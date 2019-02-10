@@ -22,9 +22,9 @@ package com.simiacryptus.mindseye.test;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.StochasticComponent;
 import com.simiacryptus.mindseye.layers.LoggingWrapperLayer;
 import com.simiacryptus.mindseye.layers.MonitoringWrapperLayer;
+import com.simiacryptus.mindseye.layers.StochasticComponent;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.opt.Step;
@@ -56,10 +56,8 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.lang.ref.WeakReference;
 import java.net.URI;
-import java.nio.charset.Charset;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -166,20 +164,6 @@ public class TestUtil {
       e.printStackTrace(System.out);
       return null;
     }
-  }
-
-  /**
-   * To string string.
-   *
-   * @param fn the fn
-   * @return the string
-   */
-  public static String toString(@Nonnull Consumer<PrintStream> fn) {
-    @Nonnull ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-    try (@Nonnull PrintStream out = new PrintStream(buffer)) {
-      fn.accept(out);
-    }
-    return new String(buffer.toByteArray(), Charset.forName("UTF-8"));
   }
 
   /**
@@ -383,7 +367,7 @@ public class TestUtil {
    * @param history the history
    * @return the plot canvas
    */
-  public static PlotCanvas plot(@Nonnull final List<StepRecord> history) {
+  public static JPanel plot(@Nonnull final List<StepRecord> history) {
     try {
       final DoubleSummaryStatistics valueStats = history.stream().mapToDouble(x -> x.fitness).summaryStatistics();
       double min = valueStats.getMin();
@@ -707,27 +691,6 @@ public class TestUtil {
   }
 
   /**
-   * Run all.
-   *
-   * @param runnables the runnables
-   */
-  public static void runAllParallel(@Nonnull Runnable... runnables) {
-    Arrays.stream(runnables)
-        .parallel()
-        .forEach(Runnable::run);
-  }
-
-  /**
-   * Run all serial.
-   *
-   * @param runnables the runnables
-   */
-  public static void runAllSerial(@Nonnull Runnable... runnables) {
-    Arrays.stream(runnables)
-        .forEach(Runnable::run);
-  }
-
-  /**
    * Or else supplier.
    *
    * @param <T>       the type parameter
@@ -927,58 +890,6 @@ public class TestUtil {
       DoubleStatistics statistic = statistics[c.getCoords()[2]];
       return max * (value - statistic.getMin()) / (statistic.getMax() - statistic.getMin());
     });
-  }
-
-  /**
-   * To string string.
-   *
-   * @param stack the stack
-   * @return the string
-   */
-  public static String toString(final StackTraceElement[] stack) {
-    return toString(stack, "\n");
-  }
-
-  /**
-   * To string string.
-   *
-   * @param stack     the stack
-   * @param delimiter the delimiter
-   * @return the string
-   */
-  public static String toString(final StackTraceElement[] stack, final CharSequence delimiter) {
-    return Arrays.stream(stack).map(x -> x.getFileName() + ":" + x.getLineNumber()).reduce((a, b) -> a + delimiter + b).orElse("");
-  }
-
-  /**
-   * Gets caller.
-   *
-   * @return the caller
-   */
-  public static CharSequence getCaller() {
-    return toString(getStackTrace(4));
-  }
-
-  /**
-   * Get stack trace stack trace element [ ].
-   *
-   * @return the stack trace element [ ]
-   */
-  public static StackTraceElement[] getStackTrace() {
-    return getStackTrace(4);
-  }
-
-  /**
-   * Get stack trace stack trace element [ ].
-   *
-   * @param skip the skip
-   * @return the stack trace element [ ]
-   */
-  public static StackTraceElement[] getStackTrace(final int skip) {
-    return Arrays.stream(Thread.currentThread().getStackTrace()).skip(skip)
-        .filter(x -> x.getClassName().startsWith("com.simiacryptus."))
-        .limit(500)
-        .toArray(i -> new StackTraceElement[i]);
   }
 
   /**

@@ -29,8 +29,8 @@ import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.notebook.TableOutput;
+import com.simiacryptus.util.CodeUtil;
 import com.simiacryptus.util.IOUtil;
-import com.simiacryptus.util.Util;
 import com.simiacryptus.util.test.SysOutInterceptor;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
@@ -372,7 +372,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       });
     }
 
-    try(Util.LogInterception refLeakLog = Util.intercept(log, ReferenceCountingBase.class.getCanonicalName())) {
+    try(CodeUtil.LogInterception refLeakLog = CodeUtil.intercept(log, ReferenceCountingBase.class.getCanonicalName())) {
 
       long seed = (long) (Math.random() * Long.MAX_VALUE);
       int[][] smallDims = getSmallDims(new Random(seed));
