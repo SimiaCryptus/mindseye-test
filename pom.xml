@@ -96,11 +96,6 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.simiacryptus</groupId>
-            <artifactId>java-analysis</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>com.github.haifengl</groupId>
             <artifactId>smile-plot</artifactId>
         </dependency>
@@ -119,6 +114,12 @@
         <dependency>
             <groupId>com.simiacryptus</groupId>
             <artifactId>literate-reporting</artifactId>
+            <version>1.6.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.simiacryptus</groupId>
+            <artifactId>java-analysis</artifactId>
             <version>1.6.0</version>
             <scope>compile</scope>
         </dependency>
