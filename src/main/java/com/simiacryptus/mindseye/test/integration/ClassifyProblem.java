@@ -35,6 +35,7 @@ import com.simiacryptus.util.Util;
 import com.simiacryptus.util.test.LabeledObject;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
+import guru.nidi.graphviz.model.Graph;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -165,7 +166,7 @@ public abstract class ClassifyProblem implements Problem {
     @Nonnull final DAGNetwork network = fwdFactory.imageToVector(log, categories);
     log.h3("Network Diagram");
     log.eval(() -> {
-      return Graphviz.fromGraph(TestUtil.toGraph(network))
+      return Graphviz.fromGraph((Graph) TestUtil.toGraph(network))
           .height(400).width(600).render(Format.PNG).toImage();
     });
 

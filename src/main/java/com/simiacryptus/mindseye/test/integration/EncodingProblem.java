@@ -35,6 +35,7 @@ import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.ScalarStatistics;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
+import guru.nidi.graphviz.model.Graph;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -192,7 +193,7 @@ public abstract class EncodingProblem implements Problem {
     @Nonnull final DAGNetwork imageNetwork = revFactory.vectorToImage(log, features);
     log.h3("Network Diagram");
     log.eval(() -> {
-      return Graphviz.fromGraph(TestUtil.toGraph(imageNetwork))
+      return Graphviz.fromGraph((Graph) TestUtil.toGraph(imageNetwork))
           .height(400).width(600).render(Format.PNG).toImage();
     });
 

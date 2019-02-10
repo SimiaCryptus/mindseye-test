@@ -28,8 +28,7 @@ import org.junit.Test;
  * The type LayerBase apply base.
  */
 public abstract class LayerTestBase extends StandardLayerTests {
-
-
+  
   /**
    * Test.
    *
@@ -51,7 +50,7 @@ public abstract class LayerTestBase extends StandardLayerTests {
   @Before
   public void setup() {
     reportingFolder = "reports/_reports";
-    //GpuController.reset();
+    //GpuController.remove();
   }
 
   /**
@@ -60,7 +59,7 @@ public abstract class LayerTestBase extends StandardLayerTests {
   @After
   public void cleanup() {
     System.gc();
-    //GpuController.reset();
+    //GpuController.remove();
   }
 
 }

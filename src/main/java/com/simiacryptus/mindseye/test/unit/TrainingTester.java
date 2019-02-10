@@ -392,20 +392,20 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     });
     log.p("Which produces the following output:");
     Result[] inputs = ConstantResult.batchResultArray(input_target);
-    Result eval = network_target.eval(inputs);
+    TensorList result = network_target.evalAndFree(inputs).getDataAndFree();
     network_target.freeRef();
-    Arrays.stream(inputs).forEach(ReferenceCounting::freeRef);
-    TensorList result = eval.getData();
-    eval.freeRef();
     final Tensor[] output_target = result.stream().toArray(i -> new Tensor[i]);
     log.eval(() -> {
       return Stream.of(output_target).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
     });
     //if (output_target.length != inputPrototype.length) return null;
-    return trainAll("Integrated Convergence", log,
-        append(shuffleCopy(random, inputPrototype), output_target),
+    Tensor[][] trainingInput = append(shuffleCopy(random, inputPrototype), output_target);
+    TestResult integrated_convergence = trainAll("Integrated Convergence", log,
+        trainingInput,
         shuffle(random, component.copy()),
         buildMask(inputPrototype.length));
+    Arrays.stream(trainingInput).flatMap(Arrays::stream).forEach(ReferenceCountingBase::freeRef);
+    return integrated_convergence;
   }
 
   /**
@@ -476,9 +476,8 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
       return network_target.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
     });
     Result[] array = ConstantResult.batchResultArray(input_target);
-    Result eval = network_target.eval(array);
+    Result eval = network_target.evalAndFree(array);
     network_target.freeRef();
-    Arrays.stream(array).forEach(ReferenceCounting::freeRef);
     TensorList result = eval.getData();
     eval.freeRef();
     final Tensor[] output_target = result.stream().toArray(i -> new Tensor[i]);
@@ -487,9 +486,12 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
       logger.info("Batch layers not supported");
       return null;
     }
-    return trainAll("Model Convergence", log,
-        append(input_target, output_target),
+    Tensor[][] trainingInput = append(input_target, output_target);
+    TestResult model_convergence = trainAll("Model Convergence", log,
+        trainingInput,
         shuffle(random, component.copy()));
+    Arrays.stream(trainingInput).flatMap(Arrays::stream).forEach(ReferenceCountingBase::freeRef);
+    return model_convergence;
   }
 
   /**

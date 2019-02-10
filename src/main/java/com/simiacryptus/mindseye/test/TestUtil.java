@@ -655,7 +655,7 @@ public class TestUtil {
    * @param network the network
    * @return the graph
    */
-  public static Graph toGraph(@Nonnull final DAGNetwork network) {
+  public static Object toGraph(@Nonnull final DAGNetwork network) {
     final List<DAGNode> nodes = network.getNodes();
     final Map<UUID, MutableNode> graphNodes = nodes.stream().collect(Collectors.toMap(node -> node.getId(), node -> {
       @Nullable String name;

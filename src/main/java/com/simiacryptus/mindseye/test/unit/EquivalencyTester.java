@@ -116,6 +116,9 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
     output.run(() -> {
       log.info(new GsonBuilder().setPrettyPrinting().create().toJson(reference.getJson()));
     });
+    output.run(() -> {
+      log.info(new GsonBuilder().setPrettyPrinting().create().toJson(subject.getJson()));
+    });
     output.p("We measureStyle the agreement between the two layers in a random execution:");
     return output.eval(() -> {
       return test(subject, inputPrototype);

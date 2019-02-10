@@ -122,6 +122,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
           if (echo == null) throw new AssertionError("Failed to deserialize");
           if (layer == echo) throw new AssertionError("Serialization did not copy");
           if (!layer.equals(echo)) throw new AssertionError("Serialization not equal");
+          echo.freeRef();
         } catch (RuntimeException e) {
           e.printStackTrace();
         } catch (OutOfMemoryError e) {
