@@ -666,7 +666,7 @@ public class TestUtil {
           }).<LinkTarget>toArray(i -> new LinkTarget[i]));
     });
     final LinkSource[] nodeArray = graphNodes.values().stream().map(x -> (LinkSource) x).toArray(i -> new LinkSource[i]);
-    return Factory.graph().with(nodeArray).generalAttr().with(RankDir.TOP_TO_BOTTOM).directed();
+    return Factory.graph().with(nodeArray).graphAttr().with(RankDir.TOP_TO_BOTTOM).directed();
   }
 
   /**
