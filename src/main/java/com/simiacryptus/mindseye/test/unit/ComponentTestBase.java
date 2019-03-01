@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.test.unit;
 
-import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
+import com.simiacryptus.lang.ref.ReferenceCountingBase;
 
 /**
  * The type Component test base.

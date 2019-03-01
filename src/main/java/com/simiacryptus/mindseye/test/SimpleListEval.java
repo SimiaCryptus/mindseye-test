@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.test;
 
+import com.simiacryptus.lang.ref.*;
 import com.simiacryptus.mindseye.lang.*;
 
 import javax.annotation.Nonnull;
@@ -68,6 +69,7 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
       l.freeRef();
       r.freeRef();
     });
+    data.freeRef();
   }
 
   /**

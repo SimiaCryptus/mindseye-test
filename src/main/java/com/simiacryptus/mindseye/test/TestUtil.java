@@ -33,7 +33,7 @@ import com.simiacryptus.notebook.FileHTTPD;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.util.JsonUtil;
 import com.simiacryptus.util.MonitoredObject;
-import com.simiacryptus.util.Util;
+import com.simiacryptus.util.ReportingUtil;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.data.PercentileStatistics;
 import com.simiacryptus.util.data.ScalarStatistics;
@@ -995,7 +995,7 @@ public class TestUtil {
    * @throws IOException the io exception
    */
   public static void browse(final URI uri) throws IOException {
-    if (Util.AUTO_BROWSE && !GraphicsEnvironment.isHeadless() && Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE))
+    if (ReportingUtil.AUTO_BROWSE && !GraphicsEnvironment.isHeadless() && Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE))
       Desktop.getDesktop().browse(uri);
   }
 

@@ -72,6 +72,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
       @Nonnull final PlaceholderLayer<Tensor> inputKey = new PlaceholderLayer<Tensor>(new Tensor(1));
       inputKey.getKey().freeRef();
       final Result[] copyInput = Arrays.stream(inputPrototype).map(x -> new Result(TensorArray.create(x), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
+        data.freeRef();
       }) {
 
         @Override
@@ -84,21 +85,25 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
       copyInput[inputIndex].freeRef();
       double[] target = new double[inputDims * outputPrototype.length()];
       copyInput[inputIndex] = new Result(TensorArray.create(inputTensor), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
-        if (1 != data.length()) throw new AssertionError();
-        if (data.length() != 1) throw new AssertionError();
-        @Nonnull final Tensor gradientBuffer = new Tensor(inputDims, outputPrototype.length());
-        if (!Arrays.equals(inputTensor.getDimensions(), data.getDimensions())) {
-          throw new AssertionError();
-        }
-        IntStream.range(0, data.length()).forEach(dataIndex -> {
-          for (int i = 0; i < inputDims; i++) {
-            @Nullable Tensor tensor = data.get(dataIndex);
-            gradientBuffer.set(new int[]{i, j_}, tensor.getData()[i]);
-            tensor.freeRef();
+        try {
+          if (1 != data.length()) throw new AssertionError();
+          if (data.length() != 1) throw new AssertionError();
+          @Nonnull final Tensor gradientBuffer = new Tensor(inputDims, outputPrototype.length());
+          if (!Arrays.equals(inputTensor.getDimensions(), data.getDimensions())) {
+            throw new AssertionError();
           }
-        });
-        buffer.get(inputKey.getId(), target).addInPlace(gradientBuffer.getData()).freeRef();
-        gradientBuffer.freeRef();
+          IntStream.range(0, data.length()).forEach(dataIndex -> {
+            for (int i = 0; i < inputDims; i++) {
+              @Nullable Tensor tensor = data.get(dataIndex);
+              gradientBuffer.set(new int[]{i, j_}, tensor.getData()[i]);
+              tensor.freeRef();
+            }
+          });
+          buffer.get(inputKey.getId(), target).addInPlace(gradientBuffer.getData()).freeRef();
+          gradientBuffer.freeRef();
+        } finally {
+          data.freeRef();
+        }
       }) {
 
         @Override
@@ -469,9 +474,6 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
             log.info(String.format("Error Statistics: %s", new ScalarStatistics().add(difference.getData())));
           }
         }
-        difference.freeRef();
-        measuredGradient.freeRef();
-        implementedGradient.freeRef();
         return result;
       } catch (@Nonnull final Throwable e) {
         //log.info(String.format("Component: %s", component));
@@ -486,10 +488,11 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
           log.info(String.format("Feedback Error: %s", difference.prettyPrint()));
           log.info(String.format("Error Statistics: %s", new ScalarStatistics().add(difference.getData())));
         }
+        throw e;
+      } finally {
+        difference.freeRef();
         measuredGradient.freeRef();
         implementedGradient.freeRef();
-        difference.freeRef();
-        throw e;
       }
     }).reduce((a, b) -> a.combine(b));
     if (!optional.isPresent()) return statistics;
@@ -509,6 +512,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     @Nonnull final Layer frozen = component.copy().freeze();
     List<TensorArray> inputCopies = Arrays.stream(inputPrototype).map(TensorArray::wrap).collect(Collectors.toList());
     Result[] input = inputCopies.stream().map((tensorArray) -> new Result(tensorArray, (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
+      data.freeRef();
       reachedInputFeedback.set(true);
     }) {
 
@@ -566,6 +570,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     List<TensorArray> inputCopies = Arrays.stream(inputPrototype).map(TensorArray::wrap).collect(Collectors.toList());
     Result[] inputs = inputCopies.stream().map(tensor -> new Result(tensor, (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
       reachedInputFeedback.set(true);
+      data.freeRef();
     }) {
       @Override
       public boolean isAlive() {

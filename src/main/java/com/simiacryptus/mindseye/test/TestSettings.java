@@ -19,8 +19,8 @@
 
 package com.simiacryptus.mindseye.test;
 
-import com.simiacryptus.mindseye.lang.Settings;
-import com.simiacryptus.util.Util;
+import com.simiacryptus.lang.Settings;
+import com.simiacryptus.util.ReportingUtil;
 
 /**
  * The type Cuda settings.
@@ -43,7 +43,7 @@ public class TestSettings implements Settings {
   private TestSettings() {
     if (TestSettings.INSTANCE != null) throw new RuntimeException();
     tag = Settings.get("GIT_TAG", "master");
-    autobrowse = Util.AUTO_BROWSE;
+    autobrowse = ReportingUtil.AUTO_BROWSE;
   }
 
 }

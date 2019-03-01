@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.test.unit;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.devutil.Javadoc;
+import com.simiacryptus.lang.ref.*;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.Explodable;
 import com.simiacryptus.mindseye.network.DAGNetwork;
@@ -275,14 +276,19 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   protected final Layer convertToReferenceLayer(Layer layer) {
     AtomicInteger counter = new AtomicInteger(0);
     Layer cvt = cvt(layer, counter);
-    return counter.get()==0?null:cvt;
+    if (counter.get() == 0) {
+      if(null != cvt) cvt.freeRef();
+      return null;
+    }
+    else return cvt;
   }
 
   private final Layer cvt(Layer layer, AtomicInteger counter) {
     if (layer instanceof DAGNetwork) {
       ((DAGNetwork) layer).visitNodes(node -> {
-        @Nullable Layer from = node.getLayer();
-        node.setLayer(cvt(from, counter));
+        Layer cvt = cvt(node.getLayer().addRef(), counter);
+        node.setLayer(cvt);
+        cvt.freeRef();
       });
       return layer;
     } else if (getTestClass().isAssignableFrom(layer.getClass())) {

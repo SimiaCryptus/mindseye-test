@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.test;
 
-import com.simiacryptus.mindseye.lang.RecycleBin;
+import com.simiacryptus.lang.ref.RecycleBin;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.data.DoubleStatistics;
 import org.apache.commons.math3.linear.BlockRealMatrix;

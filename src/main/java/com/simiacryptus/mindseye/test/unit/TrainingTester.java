@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.test.unit;
 
+import com.simiacryptus.lang.ref.*;
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.*;
@@ -567,7 +568,9 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     try {
       int inputs = data[0].length;
       @Nonnull final PipelineNetwork network = new PipelineNetwork(inputs);
-      network.wrap(lossLayer(),
+      Layer lossLayer = lossLayer();
+      assert null != lossLayer : getClass().toString();
+      network.wrap(lossLayer,
           network.add(layer, IntStream.range(0, inputs - 1).mapToObj(i -> network.getInput(i)).toArray(i -> new DAGNode[i])),
           network.getInput(inputs - 1)).freeRef();
       @Nonnull ArrayTrainable trainable = new ArrayTrainable(data, network);
