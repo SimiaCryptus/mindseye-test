@@ -133,12 +133,7 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
       }
       output = outputTensor.copy();
       @Nonnull TensorList tensorList = getFeedback(outputTensorList);
-      int prevRefs = tensorList.currentRefCount();
       eval.accumulate(deltaSet, tensorList);
-      int refDeltas = prevRefs - tensorList.currentRefCount();
-      if (refDeltas != 1 && !eval.getClass().equals(CountingResult.class)) {
-        throw new IllegalStateException(String.format("%s backprop finished with %s refs", eval.getClass().toString(), refDeltas));
-      }
       return this;
     } finally {
       outputTensor.freeRef();

@@ -226,8 +226,6 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
           return x.mapAndFree(v -> 1.0);
         }).toArray(i -> new Tensor[i]));
         result.accumulate(buffer, tensorArray);
-        if (tensorArray.currentRefCount() != 0)
-          throw new IllegalStateException(String.format("%s backprop finished with %s refs", result.getAccumulator().getClass().getCanonicalName(), tensorArray.currentRefCount()));
         return buffer;
       }).timeNanos;
       return new Tuple2<>(timedEval.timeNanos / 1e9, timedBackprop / 1e9);
