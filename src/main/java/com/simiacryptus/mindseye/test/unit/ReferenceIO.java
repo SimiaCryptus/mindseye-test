@@ -66,13 +66,16 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
       referenceIO.forEach((input, output) -> {
         log.eval(() -> {
           @Nonnull final SimpleEval eval = SimpleEval.run(layer, input);
-          Tensor add = output.scale(-1).addAndFree(eval.getOutput());
-          @Nonnull final DoubleStatistics error = new DoubleStatistics().accept(add.getData());
-          add.freeRef();
-          String format = String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\nError: %s\n--------------------\nDerivative: \n%s",
-              Arrays.stream(input).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
-              eval.getOutput().prettyPrint(), error,
+          Tensor evalOutput = eval.getOutput();
+          Tensor difference = output.scale(-1).addAndFree(evalOutput);
+          @Nonnull final DoubleStatistics error = new DoubleStatistics().accept(difference.getData());
+          String format = String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n%s\nError: %s\n--------------------\nDerivative: \n%s",
+              Arrays.stream(input).map(t -> Arrays.toString(t.getDimensions()) + "\n" + t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
+              Arrays.toString(evalOutput.getDimensions()),
+              evalOutput.prettyPrint(),
+              error,
               Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
+          difference.freeRef();
           eval.freeRef();
           return format;
         });
@@ -82,9 +85,11 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
       log.p("Display input/output pairs from random executions:");
       log.eval(() -> {
         @Nonnull final SimpleEval eval = SimpleEval.run(layer, inputPrototype);
-        String format = String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n--------------------\nDerivative: \n%s",
+        Tensor evalOutput = eval.getOutput();
+        String format = String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n%s\n--------------------\nDerivative: \n%s",
             Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).orElse(""),
-            eval.getOutput().prettyPrint(),
+            Arrays.toString(evalOutput.getDimensions()),
+            evalOutput.prettyPrint(),
             Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).orElse(""));
         eval.freeRef();
         return format;
