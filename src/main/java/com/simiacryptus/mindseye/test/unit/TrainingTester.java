@@ -394,6 +394,7 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     TensorList result = network_target.evalAndFree(inputs).getDataAndFree();
     network_target.freeRef();
     final Tensor[] output_target = result.stream().toArray(i -> new Tensor[i]);
+    result.freeRef();
     log.eval(() -> {
       return Stream.of(output_target).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
     });

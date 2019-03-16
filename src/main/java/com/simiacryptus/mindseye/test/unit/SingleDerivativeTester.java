@@ -474,6 +474,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
             log.info(String.format("Error Statistics: %s", new ScalarStatistics().add(difference.getData())));
           }
         }
+
         return result;
       } catch (@Nonnull final Throwable e) {
         //log.info(String.format("Component: %s", component));
