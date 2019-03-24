@@ -21,7 +21,9 @@ package com.simiacryptus.mindseye.test.unit;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.devutil.Javadoc;
-import com.simiacryptus.lang.ref.*;
+import com.simiacryptus.lang.ref.LifecycleException;
+import com.simiacryptus.lang.ref.ReferenceCounting;
+import com.simiacryptus.lang.ref.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.Explodable;
 import com.simiacryptus.mindseye.network.DAGNetwork;
@@ -111,7 +113,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   @Nullable
   public ComponentTest<ToleranceStatistics> getBatchingTester() {
     if (!validateBatchExecution) return null;
-    return new BatchingTester(1e-2) {
+    return new BatchingTester(1e-2, validateDifferentials) {
       @Override
       public double getRandom() {
         return random();
@@ -238,7 +240,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    */
   @Nullable
   public ComponentTest<ToleranceStatistics> getPerformanceTester() {
-    return new PerformanceTester();
+    return new PerformanceTester().setBatches(this.testingBatchSize);
   }
 
   /**
@@ -277,10 +279,9 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     AtomicInteger counter = new AtomicInteger(0);
     Layer cvt = cvt(layer, counter);
     if (counter.get() == 0) {
-      if(null != cvt) cvt.freeRef();
+      if (null != cvt) cvt.freeRef();
       return null;
-    }
-    else return cvt;
+    } else return cvt;
   }
 
   private final Layer cvt(Layer layer, AtomicInteger counter) {
@@ -324,7 +325,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    */
   @Nullable
   public ComponentTest<TrainingTester.ComponentResult> getTrainingTester() {
-    return isTestTraining() ? new TrainingTester(){
+    return isTestTraining() ? new TrainingTester() {
       @Override
       protected Layer lossLayer() {
         return StandardLayerTests.this.lossLayer();
@@ -378,7 +379,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       });
     }
 
-    try(CodeUtil.LogInterception refLeakLog = CodeUtil.intercept(log, ReferenceCountingBase.class.getCanonicalName())) {
+    try (CodeUtil.LogInterception refLeakLog = CodeUtil.intercept(log, ReferenceCountingBase.class.getCanonicalName())) {
 
       long seed = (long) (Math.random() * Long.MAX_VALUE);
       int[][] smallDims = getSmallDims(new Random(seed));
@@ -457,8 +458,8 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         try {
           String testclass = test.getClass().getCanonicalName();
           testResultProps.put("class", testclass);
-          Object result = log.subreport(testclass, sublog->test.test(sublog, copy, randomize));
-          testResultProps.put("details", null==result?null:result.toString());
+          Object result = log.subreport(testclass, sublog -> test.test(sublog, copy, randomize));
+          testResultProps.put("details", null == result ? null : result.toString());
           testResultProps.put("result", "OK");
         } catch (Throwable e) {
           testResultProps.put("result", e.toString());
@@ -562,8 +563,8 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   /**
    * Standard tests array list.
    *
-   * @param log  the log
-   * @param seed the seed
+   * @param log     the log
+   * @param seed    the seed
    * @param results
    * @return the array list
    */
@@ -590,7 +591,8 @@ public abstract class StandardLayerTests extends NotebookReportBase {
 
   /**
    * Big tests.
-   *  @param log        the log
+   *
+   * @param log        the log
    * @param seed       the seed
    * @param perfLayer  the perf key
    * @param exceptions the exceptions
@@ -604,12 +606,12 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         LinkedHashMap<CharSequence, Object> testResultProps = new LinkedHashMap<>();
         try {
           String testclass = test.getClass().getCanonicalName();
-          if(null == testclass || testclass.isEmpty()) testclass = test.toString();
+          if (null == testclass || testclass.isEmpty()) testclass = test.toString();
           testResultProps.put("class", testclass);
-          Object result = log.subreport(testclass, sublog->test.test(sublog, layer, input));
-          testResultProps.put("details", null==result?null:result.toString());
+          Object result = log.subreport(testclass, sublog -> test.test(sublog, layer, input));
+          testResultProps.put("details", null == result ? null : result.toString());
           testResultProps.put("result", "OK");
-        } catch (Throwable e){
+        } catch (Throwable e) {
           testResultProps.put("result", e.toString());
           throw new RuntimeException(e);
         } finally {
@@ -621,7 +623,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       } catch (LifecycleException e) {
         throw e;
       } catch (Throwable e) {
-        if(e.getClass().getSimpleName().equals("CudaError")) throw e;
+        if (e.getClass().getSimpleName().equals("CudaError")) throw e;
         exceptions.add(new TestError(e, test, layer));
       } finally {
         layer.freeRef();
@@ -640,8 +642,8 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       try {
         String testname = test.getClass().getCanonicalName();
         testResultProps.put("class", testname);
-        Object result = log.subreport(testname, sublog->test.test(sublog, layer, inputs));
-        testResultProps.put("details", null==result?null:result.toString());
+        Object result = log.subreport(testname, sublog -> test.test(sublog, layer, inputs));
+        testResultProps.put("details", null == result ? null : result.toString());
         testResultProps.put("result", "OK");
       } catch (LifecycleException e) {
         throw e;

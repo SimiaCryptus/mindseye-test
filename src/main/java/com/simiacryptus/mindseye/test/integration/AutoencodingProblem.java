@@ -245,7 +245,7 @@ public abstract class AutoencodingProblem implements Problem {
 
   protected abstract Layer lossLayer();
 
-  protected abstract StochasticComponent dropout(double dropout) ;
+  protected abstract StochasticComponent dropout(double dropout);
 
   /**
    * To row linked hash buildMap.

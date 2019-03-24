@@ -19,8 +19,8 @@
 
 package com.simiacryptus.mindseye.test;
 
-import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.lang.ref.ReferenceCounting;
+import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.TensorList;
 
 import java.util.UUID;

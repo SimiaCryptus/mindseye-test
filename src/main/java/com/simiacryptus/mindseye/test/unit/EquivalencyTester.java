@@ -71,32 +71,26 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
     if (null == reference || null == subject) return new ToleranceStatistics();
     reference.assertAlive();
     final Tensor subjectOutput = SimpleEval.run(subject, inputPrototype).getOutputAndFree();
-    final Tensor referenceOutput = SimpleEval.run(reference, inputPrototype).getOutputAndFree();
-    @Nonnull final Tensor error = subjectOutput.minus(referenceOutput);
-    @Nonnull final ToleranceStatistics result = IntStream.range(0, subjectOutput.length()).mapToObj(i1 -> {
-      return new ToleranceStatistics().accumulate(subjectOutput.getData()[i1], referenceOutput.getData()[i1]);
-    }).reduce((a, b) -> a.combine(b)).get();
+    final Tensor referenceOutput = SimpleEval.run(reference, false, inputPrototype).getOutputAndFree();
+    @Nonnull Tensor error = null;
     try {
-      try {
-        if (!(result.absoluteTol.getMax() < tolerance)) throw new AssertionError(result.toString());
-      } catch (@Nonnull final Throwable e) {
-        log.info(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b)));
-        log.info(String.format("Subject Output: %s", subjectOutput.prettyPrint()));
-        log.info(String.format("Reference Output: %s", referenceOutput.prettyPrint()));
-        log.info(String.format("Error: %s", error.prettyPrint()));
-        System.out.flush();
-        throw e;
-      }
       log.info(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get()));
+      log.info(String.format("Subject Output: %s", subjectOutput.prettyPrint()));
+      log.info(String.format("Reference Output: %s", referenceOutput.prettyPrint()));
+      error = subjectOutput.minus(referenceOutput);
       log.info(String.format("Error: %s", error.prettyPrint()));
+      @Nonnull final ToleranceStatistics result = IntStream.range(0, subjectOutput.length()).mapToObj(i1 -> {
+        return new ToleranceStatistics().accumulate(subjectOutput.getData()[i1], referenceOutput.getData()[i1]);
+      }).reduce((a, b) -> a.combine(b)).get();
       log.info(String.format("Accuracy:"));
       log.info(String.format("absoluteTol: %s", result.absoluteTol.toString()));
       log.info(String.format("relativeTol: %s", result.relativeTol.toString()));
+      if (!(result.absoluteTol.getMax() < tolerance)) throw new AssertionError(result.toString());
       return result;
     } finally {
       subjectOutput.freeRef();
       referenceOutput.freeRef();
-      error.freeRef();
+      if (null != error) error.freeRef();
     }
   }
 

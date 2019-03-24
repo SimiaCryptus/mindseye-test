@@ -49,6 +49,7 @@ public abstract class NotebookReportBase {
     SysOutInterceptor.INSTANCE.init();
   }
 
+  protected String reportingFolder = "reports/_reports";
 
   /**
    * Print header string.
@@ -71,9 +72,9 @@ public abstract class NotebookReportBase {
   /**
    * Gets test report location.
    *
-   * @param sourceClass the source class
+   * @param sourceClass     the source class
    * @param reportingFolder
-   * @param suffix      the suffix
+   * @param suffix          the suffix
    * @return the test report location
    */
   @Nonnull
@@ -169,7 +170,6 @@ public abstract class NotebookReportBase {
     if (null == logPath || logPath.length == 0) logPath = new String[]{getClass().getSimpleName()};
     return getLog(getTestReportLocation(getTargetClass(), reportingFolder, logPath));
   }
-  protected String reportingFolder = "reports/_reports";
 
   /**
    * Gets target class.

@@ -142,7 +142,7 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
   @Nullable
   @Override
   public ComponentTest<TrainingTester.ComponentResult> getTrainingTester() {
-    return new TrainingTester(){
+    return new TrainingTester() {
 
       @Override
       protected Layer lossLayer() {

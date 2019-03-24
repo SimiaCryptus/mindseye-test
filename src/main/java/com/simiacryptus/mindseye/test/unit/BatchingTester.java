@@ -48,14 +48,17 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
 
   private final double tolerance;
   private int batchSize = 10;
+  private boolean validateDerivatives;
 
   /**
    * Instantiates a new Batching tester.
    *
-   * @param tolerance the tolerance
+   * @param tolerance           the tolerance
+   * @param validateDerivatives
    */
-  public BatchingTester(final double tolerance) {
+  public BatchingTester(final double tolerance, boolean validateDerivatives) {
     this.tolerance = tolerance;
+    this.validateDerivatives = validateDerivatives;
   }
 
   /**
@@ -84,11 +87,11 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
     @Nonnull final SimpleResult asABatch;
     final List<SimpleEval> oneAtATime;
     try {
-      asABatch = SimpleListEval.run(reference, inputTensorLists);
+      asABatch = SimpleListEval.run(reference, validateDerivatives, inputTensorLists);
       oneAtATime = IntStream.range(0, getBatchSize()).mapToObj(batch -> {
             Tensor[] inputTensors = IntStream.range(0, inputTensorLists.length)
                 .mapToObj(i -> inputTensorLists[i].get(batch)).toArray(i -> new Tensor[i]);
-            @Nonnull SimpleEval eval = SimpleEval.run(reference, inputTensors);
+            @Nonnull SimpleEval eval = SimpleEval.run(reference, validateDerivatives, inputTensors);
             for (@Nonnull Tensor tensor : inputTensors) {
               tensor.freeRef();
             }
@@ -125,27 +128,31 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
         throw new AssertionError("Output Corrupt: " + outputAgreement);
       }
 
-      ToleranceStatistics derivativeAgreement = IntStream.range(0, Math.min(getBatchSize(), batchLength)).mapToObj(batch -> {
-        IntFunction<ToleranceStatistics> statisticsFunction = input -> {
-          @Nullable Tensor a = asABatch.getInputDerivative()[input].get(batch);
-          Tensor b = oneAtATime.get(batch).getDerivative()[input];
-          @Nonnull Tensor diff = a.minus(b);
-          logger.info("Error: " + diff.prettyPrint());
-          logger.info("Scalar Statistics: " + new ScalarStatistics().add(diff.getData()).getMetrics());
-          double[][] points = Arrays.stream(diff.getData()).mapToObj(x -> new double[]{x}).toArray(i -> new double[i][]);
-          //logger.info("Density: " + new DensityTree("x").setMinSplitFract(1e-8).setSplitSizeThreshold(2).new Node(points));
-          diff.freeRef();
-          @Nonnull ToleranceStatistics toleranceStatistics = new ToleranceStatistics().accumulate(a.getData(), b.getData());
-          a.freeRef();
-          return toleranceStatistics;
-        };
-        return IntStream.range(0, Math.min(inputPrototype.length, batchLength)).mapToObj(statisticsFunction).reduce((a, b) -> a.combine(b)).orElse(null);
-      }).filter(x -> x != null).reduce((a, b) -> a.combine(b)).orElse(null);
+      if (validateDerivatives) {
+        ToleranceStatistics derivativeAgreement = IntStream.range(0, Math.min(getBatchSize(), batchLength)).mapToObj(batch -> {
+          IntFunction<ToleranceStatistics> statisticsFunction = input -> {
+            @Nullable Tensor a = asABatch.getInputDerivative()[input].get(batch);
+            Tensor b = oneAtATime.get(batch).getDerivative()[input];
+            @Nonnull Tensor diff = a.minus(b);
+            logger.info("Error: " + diff.prettyPrint());
+            logger.info("Scalar Statistics: " + new ScalarStatistics().add(diff.getData()).getMetrics());
+            double[][] points = Arrays.stream(diff.getData()).mapToObj(x -> new double[]{x}).toArray(i -> new double[i][]);
+            //logger.info("Density: " + new DensityTree("x").setMinSplitFract(1e-8).setSplitSizeThreshold(2).new Node(points));
+            diff.freeRef();
+            @Nonnull ToleranceStatistics toleranceStatistics = new ToleranceStatistics().accumulate(a.getData(), b.getData());
+            a.freeRef();
+            return toleranceStatistics;
+          };
+          return IntStream.range(0, Math.min(inputPrototype.length, batchLength)).mapToObj(statisticsFunction).reduce((a, b) -> a.combine(b)).orElse(null);
+        }).filter(x -> x != null).reduce((a, b) -> a.combine(b)).orElse(null);
 
-      if (null != derivativeAgreement && !(derivativeAgreement.absoluteTol.getMax() < tolerance)) {
-        throw new AssertionError("Derivatives Corrupt: " + derivativeAgreement);
+        if (null != derivativeAgreement && !(derivativeAgreement.absoluteTol.getMax() < tolerance)) {
+          throw new AssertionError("Derivatives Corrupt: " + derivativeAgreement);
+        }
+        return null != derivativeAgreement ? derivativeAgreement.combine(outputAgreement) : outputAgreement;
+      } else {
+        return outputAgreement;
       }
-      return null != derivativeAgreement ? derivativeAgreement.combine(outputAgreement) : outputAgreement;
     } finally {
       asABatch.freeRef();
       oneAtATime.forEach(x -> x.freeRef());

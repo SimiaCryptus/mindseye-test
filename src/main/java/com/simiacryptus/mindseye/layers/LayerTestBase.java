@@ -28,10 +28,9 @@ import org.junit.Test;
  * The type LayerBase apply base.
  */
 public abstract class LayerTestBase extends StandardLayerTests {
-  
+
   /**
    * Test.
-   *
    */
   @Test(timeout = 15 * 60 * 1000)
   public void test() {

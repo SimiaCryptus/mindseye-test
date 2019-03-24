@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.test.unit;
 
-import com.simiacryptus.lang.ref.*;
+import com.simiacryptus.lang.ref.ReferenceCountingBase;
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.*;
@@ -299,7 +299,8 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
 
   /**
    * Test.
-   *  @param log            the log
+   *
+   * @param log            the log
    * @param component      the component
    * @param inputPrototype the input prototype
    */

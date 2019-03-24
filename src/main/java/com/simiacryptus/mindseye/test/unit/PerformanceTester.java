@@ -174,7 +174,8 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
 
   /**
    * Test.
-   *  @param log
+   *
+   * @param log
    * @param component      the component
    * @param inputPrototype the input prototype
    */

@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.test;
 
-import com.simiacryptus.lang.ref.*;
+import com.simiacryptus.lang.ref.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.*;
 
 import javax.annotation.Nonnull;
@@ -37,6 +37,7 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
   private final TensorList[] input;
   @Nonnull
   private final Layer layer;
+  private boolean calcDerivatives = true;
   private TensorList[] inputDerivative;
   private TensorList output;
   private DeltaSet<UUID> layerDerivative;
@@ -81,7 +82,20 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
    */
   @Nonnull
   public static SimpleResult run(@Nonnull final Layer layer, final TensorList... tensor) {
-    return new SimpleListEval(layer, tensor).call();
+    return run(layer, true, tensor);
+  }
+
+  /**
+   * Run simple list trainAll.
+   *
+   * @param layer           the key
+   * @param calcDerivatives
+   * @param tensor          the tensor
+   * @return the simple list trainAll
+   */
+  @Nonnull
+  public static SimpleResult run(@Nonnull final Layer layer, boolean calcDerivatives, final TensorList... tensor) {
+    return new SimpleListEval(layer, tensor).setCalcDerivatives(calcDerivatives).call();
   }
 
   @Override
@@ -124,10 +138,9 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
       tensorList.freeRef();
     }
     eval.getData().freeRef();
-    @Nonnull TensorList tensorList = getFeedback(outputData);
     this.layerDerivative.freeRef();
     this.layerDerivative = new DeltaSet<>();
-    eval.accumulate(layerDerivative, tensorList);
+    if (isCalcDerivatives()) eval.accumulate(layerDerivative, getFeedback(outputData));
     eval.freeRef();
     output = outputData;
     return this;
@@ -188,7 +201,17 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
    *
    * @param layerDerivative the key derivative
    */
-  public void setLayerDerivative(DeltaSet<UUID> layerDerivative) {
+  public SimpleListEval setLayerDerivative(DeltaSet<UUID> layerDerivative) {
     this.layerDerivative = layerDerivative;
+    return this;
+  }
+
+  public boolean isCalcDerivatives() {
+    return calcDerivatives;
+  }
+
+  public SimpleListEval setCalcDerivatives(boolean calcDerivatives) {
+    this.calcDerivatives = calcDerivatives;
+    return this;
   }
 }

@@ -19,9 +19,8 @@
 
 package com.simiacryptus.mindseye.test;
 
-import com.simiacryptus.lang.ref.*;
+import com.simiacryptus.lang.ref.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.network.CountingResult;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -38,6 +37,7 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
   private final Tensor[] input;
   @Nonnull
   private final Layer layer;
+  private boolean calcDerivative = false;
   @Nullable
   private Tensor[] derivative;
   @Nullable
@@ -68,7 +68,20 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
    */
   @Nonnull
   public static SimpleEval run(@Nonnull final Layer layer, final Tensor... tensor) {
-    return new SimpleEval(layer, tensor).call();
+    return run(layer, true, tensor);
+  }
+
+  /**
+   * Run simple trainAll.
+   *
+   * @param layer              the key
+   * @param validateDerivative
+   * @param tensor             the tensor
+   * @return the simple trainAll
+   */
+  @Nonnull
+  public static SimpleEval run(@Nonnull final Layer layer, boolean validateDerivative, final Tensor... tensor) {
+    return new SimpleEval(layer, tensor).setValidateDerivative(validateDerivative).call();
   }
 
   @Override
@@ -132,8 +145,9 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
         }
       }
       output = outputTensor.copy();
-      @Nonnull TensorList tensorList = getFeedback(outputTensorList);
-      eval.accumulate(deltaSet, tensorList);
+      if (isCalcDerivative()) {
+        eval.accumulate(deltaSet, getFeedback(outputTensorList));
+      }
       return this;
     } finally {
       outputTensor.freeRef();
@@ -190,5 +204,14 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
     output.addRef();
     freeRef();
     return output;
+  }
+
+  public boolean isCalcDerivative() {
+    return calcDerivative;
+  }
+
+  public SimpleEval setValidateDerivative(boolean calcDerivative) {
+    this.calcDerivative = calcDerivative;
+    return this;
   }
 }
