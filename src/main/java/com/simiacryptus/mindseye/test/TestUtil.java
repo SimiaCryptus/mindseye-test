@@ -989,17 +989,6 @@ public class TestUtil {
   }
 
   /**
-   * Browse.
-   *
-   * @param uri the uri
-   * @throws IOException the io exception
-   */
-  public static void browse(final URI uri) throws IOException {
-    if (ReportingUtil.AUTO_BROWSE && !GraphicsEnvironment.isHeadless() && Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE))
-      Desktop.getDesktop().browse(uri);
-  }
-
-  /**
    * Shuffle list.
    *
    * @param <T>  the type parameter

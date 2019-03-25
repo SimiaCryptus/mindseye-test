@@ -35,15 +35,9 @@ public class TestSettings implements Settings {
    */
   public final String tag;
 
-  /**
-   * The Autobrowse.
-   */
-  public boolean autobrowse;
-
   private TestSettings() {
     if (TestSettings.INSTANCE != null) throw new RuntimeException();
     tag = Settings.get("GIT_TAG", "master");
-    autobrowse = ReportingUtil.AUTO_BROWSE;
   }
 
 }
