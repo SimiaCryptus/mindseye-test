@@ -662,10 +662,15 @@ public abstract class StandardLayerTests extends NotebookReportBase {
 
   @Override
   protected Class<?> getTargetClass() {
-    Layer layer = getLayer(getSmallDims(new Random()), new Random());
-    Class<? extends Layer> layerClass = layer.getClass();
-    layer.freeRef();
-    return layerClass;
+    try {
+      Layer layer = getLayer(getSmallDims(new Random()), new Random());
+      Class<? extends Layer> layerClass = layer.getClass();
+      layer.freeRef();
+      return layerClass;
+    } catch (Throwable e) {
+      logger.warn("ERROR",e);
+      return getClass();
+    }
   }
 
   @Nonnull
