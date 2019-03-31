@@ -38,6 +38,7 @@ import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.data.PercentileStatistics;
 import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.GifSequenceWriter;
+import guru.nidi.graphviz.attribute.Label;
 import guru.nidi.graphviz.attribute.RankDir;
 import guru.nidi.graphviz.model.*;
 import org.jetbrains.annotations.NotNull;
@@ -641,7 +642,8 @@ public class TestUtil {
   public static Object toGraph(@Nonnull final DAGNetwork network, Function<DAGNode,String> fn) {
     final List<DAGNode> nodes = network.getNodes();
     final Map<UUID, MutableNode> graphNodes = nodes.stream().collect(Collectors.toMap(node -> node.getId(), node -> {
-      return Factory.mutNode(fn.apply(node));
+      String name = fn.apply(node);
+      return Factory.mutNode(Label.html(name + "<!-- " + node.getId().toString() + " -->"));
     }));
     final Stream<UUID[]> stream = nodes.stream().flatMap(to -> {
       return Arrays.stream(to.getInputs()).map(from -> {
