@@ -33,13 +33,14 @@ import com.simiacryptus.notebook.FileHTTPD;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.util.JsonUtil;
 import com.simiacryptus.util.MonitoredObject;
-import com.simiacryptus.util.ReportingUtil;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.data.PercentileStatistics;
 import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.GifSequenceWriter;
 import guru.nidi.graphviz.attribute.Label;
 import guru.nidi.graphviz.attribute.RankDir;
+import guru.nidi.graphviz.engine.Format;
+import guru.nidi.graphviz.engine.Graphviz;
 import guru.nidi.graphviz.model.*;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -639,7 +640,22 @@ public class TestUtil {
     return toGraph(network, TestUtil::getName);
   }
 
-  public static Object toGraph(@Nonnull final DAGNetwork network, Function<DAGNode,String> fn) {
+  public static void graph(@Nonnull final NotebookOutput log, @Nonnull final DAGNetwork network) {
+    Graphviz graphviz = Graphviz.fromGraph((Graph) toGraph(network, node -> {
+      Layer layer = node.getLayer();
+      if (null != layer) {
+        String name = layer.getName();
+        if (name.endsWith("Layer")) return name.substring(0, name.length() - 5);
+        else return name;
+      } else {
+        return "Input " + node.getNetwork().inputHandles.indexOf(node.getId());
+      }
+    }));
+    log.out("\n" + log.png(graphviz.height(400).width(600).render(Format.PNG).toImage(), "Configuration Graph") + "\n");
+    log.out("\n" + log.svg(graphviz.height(400).width(600).render(Format.SVG_STANDALONE).toString(), "Configuration Graph") + "\n");
+  }
+
+  public static Object toGraph(@Nonnull final DAGNetwork network, Function<DAGNode, String> fn) {
     final List<DAGNode> nodes = network.getNodes();
     final Map<UUID, MutableNode> graphNodes = nodes.stream().collect(Collectors.toMap(node -> node.getId(), node -> {
       String name = fn.apply(node);
