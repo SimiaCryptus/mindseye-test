@@ -40,6 +40,7 @@ import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.GifSequenceWriter;
 import guru.nidi.graphviz.attribute.RankDir;
 import guru.nidi.graphviz.model.*;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import smile.plot.PlotCanvas;
@@ -633,24 +634,14 @@ public class TestUtil {
     }
   }
 
-  /**
-   * To graph graph.
-   *
-   * @param network the network
-   * @return the graph
-   */
   public static Object toGraph(@Nonnull final DAGNetwork network) {
+    return toGraph(network, TestUtil::getName);
+  }
+
+  public static Object toGraph(@Nonnull final DAGNetwork network, Function<DAGNode,String> fn) {
     final List<DAGNode> nodes = network.getNodes();
     final Map<UUID, MutableNode> graphNodes = nodes.stream().collect(Collectors.toMap(node -> node.getId(), node -> {
-      @Nullable String name;
-      @Nullable final Layer layer = node.getLayer();
-      if (null == layer) {
-        name = node.getId().toString();
-      } else {
-        final Class<? extends Layer> layerClass = layer.getClass();
-        name = layerClass.getSimpleName() + "\n" + layer.getId();
-      }
-      return Factory.mutNode(name);
+      return Factory.mutNode(fn.apply(node));
     }));
     final Stream<UUID[]> stream = nodes.stream().flatMap(to -> {
       return Arrays.stream(to.getInputs()).map(from -> {
@@ -667,6 +658,19 @@ public class TestUtil {
     });
     final LinkSource[] nodeArray = graphNodes.values().stream().map(x -> (LinkSource) x).toArray(i -> new LinkSource[i]);
     return Factory.graph().with(nodeArray).graphAttr().with(RankDir.TOP_TO_BOTTOM).directed();
+  }
+
+  @NotNull
+  public static String getName(DAGNode node) {
+    String name;
+    @Nullable final Layer layer = node.getLayer();
+    if (null == layer) {
+      name = node.getId().toString();
+    } else {
+      final Class<? extends Layer> layerClass = layer.getClass();
+      name = layerClass.getSimpleName() + "\n" + layer.getId();
+    }
+    return name;
   }
 
   /**
