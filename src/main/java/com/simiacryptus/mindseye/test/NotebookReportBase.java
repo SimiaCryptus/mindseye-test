@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.test;
 
+import com.simiacryptus.lang.ref.ReferenceCountingBase;
 import com.simiacryptus.notebook.MarkdownNotebookOutput;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.util.CodeUtil;
@@ -31,7 +32,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.Date;
 import java.util.function.Consumer;
 
@@ -112,6 +112,18 @@ public abstract class NotebookReportBase {
     }
   }
 
+  public static void withRefLeakMonitor(NotebookOutput log, @Nonnull Consumer<NotebookOutput> fn) {
+    try (CodeUtil.LogInterception refLeakLog = CodeUtil.intercept(log, ReferenceCountingBase.class.getCanonicalName())) {
+      fn.accept(log);
+      System.gc();
+      if (refLeakLog.counter.get() != 0) throw new AssertionError(String.format("RefLeak logged %d bytes", refLeakLog.counter.get()));
+    } catch (RuntimeException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   /**
    * Gets report type.
    *
@@ -153,8 +165,10 @@ public abstract class NotebookReportBase {
    */
   public void run(@Nonnull Consumer<NotebookOutput> fn, @Nonnull CharSequence... logPath) {
     try (@Nonnull NotebookOutput log = getLog(logPath)) {
-      NotebookOutput.concat(this::printHeader, MarkdownNotebookOutput.wrapFrontmatter(fn)).accept(log);
-    } catch (IOException e) {
+      withRefLeakMonitor(log, NotebookOutput.concat(this::printHeader, MarkdownNotebookOutput.wrapFrontmatter(fn))::accept);
+    } catch (RuntimeException e) {
+      throw e;
+    } catch (Throwable e) {
       throw new RuntimeException(e);
     }
   }

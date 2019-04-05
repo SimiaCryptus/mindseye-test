@@ -392,6 +392,7 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     });
     log.p("Which produces the following output:");
     Result[] inputs = ConstantResult.batchResultArray(input_target);
+    Arrays.stream(input_target).flatMap(Arrays::stream).forEach(ReferenceCountingBase::freeRef);
     TensorList result = network_target.evalAndFree(inputs).getDataAndFree();
     network_target.freeRef();
     final Tensor[] output_target = result.stream().toArray(i -> new Tensor[i]);

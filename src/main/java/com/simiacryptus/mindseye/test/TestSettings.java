@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.lang.Settings;
-import com.simiacryptus.util.ReportingUtil;
 
 /**
  * The type Cuda settings.
