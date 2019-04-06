@@ -499,6 +499,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
         difference.freeRef();
         measuredGradient.freeRef();
         implementedGradient.freeRef();
+        maskedGradient.freeRef();
       }
     }).reduce((a, b) -> a.combine(b));
     if (!optional.isPresent()) return statistics;
