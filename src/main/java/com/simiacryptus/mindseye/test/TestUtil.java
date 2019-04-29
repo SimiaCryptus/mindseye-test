@@ -584,8 +584,19 @@ public class TestUtil {
    */
   @Nonnull
   public static BufferedImage resize(@Nonnull final BufferedImage source, final int size, boolean preserveAspect) {
-    if (size < 0) return source;
-    return resize(source, size, preserveAspect ? ((int) (size * (source.getHeight() * 1.0 / source.getWidth()))) : size);
+    if (size <= 0) return source;
+    double zoom = (double) size / source.getWidth();
+    int steps = (int) Math.ceil(Math.abs(Math.log(zoom)) / Math.log(1.5));
+    BufferedImage img = source;
+    for (int i = 1; i <= steps; i++) {
+      double pos = ((double) i / steps);
+      double z = Math.pow(zoom, pos);
+      img = resize(img,
+          (int) (source.getWidth() * z),
+          (int) ((preserveAspect ? source.getHeight() : source.getWidth()) * z)
+      );
+    }
+    return img;
   }
 
   /**
@@ -615,7 +626,12 @@ public class TestUtil {
   public static BufferedImage resize(BufferedImage source, int width, int height) {
     @Nonnull final BufferedImage image = new BufferedImage(width, height, source.getType());
     @Nonnull final Graphics2D graphics = (Graphics2D) image.getGraphics();
-    graphics.setRenderingHints(new RenderingHints(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC));
+    HashMap<Object, Object> hints = new HashMap<>();
+    hints.put(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+    hints.put(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+    hints.put(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+    hints.put(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+    graphics.setRenderingHints(hints);
     graphics.drawImage(source, 0, 0, width, height, null);
     return image;
   }
