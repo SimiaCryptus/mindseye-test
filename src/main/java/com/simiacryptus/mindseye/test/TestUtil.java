@@ -329,18 +329,6 @@ public class TestUtil {
       @Override
       public void onStepComplete(@Nonnull final Step currentPoint) {
         history.add(new StepRecord(currentPoint.point.getMean(), currentPoint.time, currentPoint.iteration));
-        if (null != network) {
-          if (network instanceof StochasticComponent) {
-            ((StochasticComponent) network).shuffle(System.nanoTime());
-          }
-          if (network instanceof DAGNetwork) {
-            ((DAGNetwork) network).visitLayers(layer -> {
-              if (layer instanceof StochasticComponent) {
-                ((StochasticComponent) layer).shuffle(System.nanoTime());
-              }
-            });
-          }
-        }
         super.onStepComplete(currentPoint);
       }
     };

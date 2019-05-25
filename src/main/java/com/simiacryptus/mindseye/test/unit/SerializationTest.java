@@ -87,7 +87,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
     log.h2("Raw Json");
     try {
       prettyPrint = log.eval(() -> {
-        final JsonObject json = layer.getJson();
+        final JsonObject json = layer.getJson().getAsJsonObject();
         @Nonnull final Layer echo = Layer.fromJson(json);
         if (echo == null) throw new AssertionError("Failed to deserialize");
         if (layer == echo) throw new AssertionError("Serialization did not copy");

@@ -182,7 +182,6 @@ public abstract class AutoencodingProblem implements Problem {
 
       @Override
       public void onStepComplete(final Step currentPoint) {
-        dropoutNoiseLayer.shuffle(StochasticComponent.random.get().nextLong());
         inner.onStepComplete(currentPoint);
       }
     };
