@@ -1067,4 +1067,30 @@ public class TestUtil {
       return Arrays.stream(entry.getValue()).map(StackTraceElement::toString).collect(Collectors.toList());
     }));
   }
+
+  @NotNull
+  public static Tensor sum(Collection<Tensor> tensorStream) {
+    return tensorStream.stream().reduce((a, b) -> {
+      Tensor tensor = a.addAndFree(b);
+      b.freeRef();
+      return tensor;
+    }).get();
+  }
+
+  @NotNull
+  public static Tensor sum(Stream<Tensor> tensorStream) {
+    return tensorStream.reduce((a, b) -> {
+      Tensor tensor = a.addAndFree(b);
+      b.freeRef();
+      return tensor;
+    }).get();
+  }
+
+  @NotNull
+  public static Tensor avg(Collection<Tensor> values) {
+    return sum(values.stream().map(x -> {
+      x.addRef();
+      return x;
+    })).scaleInPlace(1.0 / values.size());
+  }
 }
