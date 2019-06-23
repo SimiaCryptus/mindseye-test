@@ -44,13 +44,7 @@ import java.io.File;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * The type LayerBase apply base.
- */
 public abstract class StandardLayerTests extends NotebookReportBase {
-  /**
-   * The constant seed.
-   */
   public static final long seed = 51389; //System.nanoTime();
   private static final HashMap<String, TreeMap<String, String>> javadocs = loadJavadoc();
 
@@ -59,34 +53,13 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   }
 
   private final Random random = getRandom();
-  /**
-   * The Testing batch size.
-   */
   protected int testingBatchSize = 5;
-  /**
-   * The Validate batch execution.
-   */
   protected boolean validateBatchExecution = true;
-  /**
-   * The Validate differentials.
-   */
   protected boolean validateDifferentials = true;
-  /**
-   * The Test training.
-   */
   protected boolean testTraining = true;
-  /**
-   * The Test equivalency.
-   */
   protected boolean testEquivalency = true;
-  /**
-   * The Tolerance.
-   */
   protected double tolerance;
 
-  /**
-   * Instantiates a new Standard key tests.
-   */
   public StandardLayerTests() {
     logger.info("Seed: " + seed);
     tolerance = 1e-3;
@@ -104,11 +77,6 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     }
   }
 
-  /**
-   * Gets batching tester.
-   *
-   * @return the batching tester
-   */
   @Nullable
   public ComponentTest<ToleranceStatistics> getBatchingTester() {
     if (!validateBatchExecution) return null;
@@ -120,11 +88,6 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     }.setBatchSize(testingBatchSize);
   }
 
-  /**
-   * Gets big tests.
-   *
-   * @return the big tests
-   */
   @Nonnull
   public List<ComponentTest<?>> getBigTests() {
     return Arrays.asList(
@@ -135,11 +98,6 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     );
   }
 
-  /**
-   * Gets big tests.
-   *
-   * @return the big tests
-   */
   @Nonnull
   public List<ComponentTest<?>> getFinalTests() {
     return Arrays.asList(
@@ -147,22 +105,12 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     );
   }
 
-  /**
-   * Gets derivative tester.
-   *
-   * @return the derivative tester
-   */
   @Nullable
   public ComponentTest<ToleranceStatistics> getDerivativeTester() {
     if (!validateDifferentials) return null;
     return new SingleDerivativeTester(tolerance, 1e-4);
   }
 
-  /**
-   * Gets equivalency tester.
-   *
-   * @return the equivalency tester
-   */
   @Nullable
   public ComponentTest<ToleranceStatistics> getEquivalencyTester() {
     if (!testEquivalency) return null;
@@ -173,38 +121,15 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     return equivalencyTester;
   }
 
-  /**
-   * Get input dims int [ ] [ ].
-   *
-   * @param random the random
-   * @return the int [ ] [ ]
-   */
   public abstract int[][] getSmallDims(Random random);
 
-  /**
-   * Gets json tester.
-   *
-   * @return the json tester
-   */
   @Nullable
   protected ComponentTest<ToleranceStatistics> getJsonTester() {
     return new SerializationTest();
   }
 
-  /**
-   * Gets key.
-   *
-   * @param inputSize the input size
-   * @param random    the random
-   * @return the key
-   */
   public abstract Layer getLayer(int[][] inputSize, Random random);
 
-  /**
-   * Gets little tests.
-   *
-   * @return the little tests
-   */
   @Nonnull
   public List<ComponentTest<?>> getLittleTests() {
     return Arrays.asList(
@@ -213,60 +138,29 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     );
   }
 
-  /**
-   * Get perf dims int [ ] [ ].
-   *
-   * @param random the random
-   * @return the int [ ] [ ]
-   */
   public int[][] getLargeDims(Random random) {
     return getSmallDims(new Random());
   }
 
-  /**
-   * Gets reference io.
-   *
-   * @return the reference io
-   */
   protected HashMap<Tensor[], Tensor> getReferenceIO() {
     return new HashMap<>();
   }
 
-  /**
-   * Gets performance tester.
-   *
-   * @return the performance tester
-   */
   @Nullable
   public ComponentTest<ToleranceStatistics> getPerformanceTester() {
     return new PerformanceTester().setBatches(this.testingBatchSize);
   }
 
-  /**
-   * Gets reference io tester.
-   *
-   * @return the reference io tester
-   */
   @Nullable
   protected ComponentTest<ToleranceStatistics> getReferenceIOTester() {
     return new ReferenceIO(getReferenceIO());
   }
 
-  /**
-   * Gets reference key.
-   *
-   * @return the reference key
-   */
   @Nullable
   public Layer getReferenceLayer() {
     return convertToReferenceLayer(getLayer(getSmallDims(new Random()), new Random()));
   }
 
-  /**
-   * Gets test class.
-   *
-   * @return the test class
-   */
   public Class<?> getTestClass() {
     Layer layer = getLayer(getSmallDims(new Random()), new Random());
     Class<? extends Layer> layerClass = layer.getClass();
@@ -307,21 +201,11 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     }
   }
 
-  /**
-   * Gets reference key class.
-   *
-   * @return the reference key class
-   */
   @Nullable
   public Class<? extends Layer> getReferenceLayerClass() {
     return null;
   }
 
-  /**
-   * Gets learning tester.
-   *
-   * @return the learning tester
-   */
   @Nullable
   public ComponentTest<TrainingTester.ComponentResult> getTrainingTester() {
     return isTestTraining() ? new TrainingTester() {
@@ -334,40 +218,18 @@ public abstract class StandardLayerTests extends NotebookReportBase {
 
   protected abstract Layer lossLayer();
 
-  /**
-   * Random double.
-   *
-   * @return the double
-   */
   public double random() {
     return random(random);
   }
 
-  /**
-   * Random double.
-   *
-   * @param random the random
-   * @return the double
-   */
   public double random(@Nonnull Random random) {
     return Math.round(1000.0 * (random.nextDouble() - 0.5)) / 250.0;
   }
 
-  /**
-   * Random tensor [ ].
-   *
-   * @param inputDims the input dims
-   * @return the tensor [ ]
-   */
   public Tensor[] randomize(@Nonnull final int[][] inputDims) {
     return Arrays.stream(inputDims).map(dim -> new Tensor(dim).set(() -> random())).toArray(i -> new Tensor[i]);
   }
 
-  /**
-   * Test.
-   *
-   * @param log the log
-   */
   public void run(@Nonnull final NotebookOutput log) {
     TreeMap<String, String> javadoc = javadocs.get(getTargetClass().getCanonicalName());
     if (null != javadoc) {
@@ -479,13 +341,6 @@ public abstract class StandardLayerTests extends NotebookReportBase {
 
   }
 
-  /**
-   * Gets invocations.
-   *
-   * @param smallLayer the small key
-   * @param smallDims  the small dims
-   * @return the invocations
-   */
   @Nonnull
   public Collection<Invocation> getInvocations(@Nonnull Layer smallLayer, @Nonnull int[][] smallDims) {
     @Nonnull DAGNetwork smallCopy = (DAGNetwork) smallLayer.copy();
@@ -534,11 +389,6 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     }
   }
 
-  /**
-   * Throw exception.
-   *
-   * @param exceptions the exceptions
-   */
   public void throwException(@Nonnull ArrayList<TestError> exceptions) {
     for (@Nonnull TestError exception : exceptions) {
       logger.info(String.format("LayerBase: %s", exception.layer));
@@ -555,14 +405,6 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     }
   }
 
-  /**
-   * Standard tests array list.
-   *
-   * @param log     the log
-   * @param seed    the seed
-   * @param results
-   * @return the array list
-   */
   @Nonnull
   public ArrayList<TestError> standardTests(@Nonnull NotebookOutput log, long seed, TableOutput results) {
     log.p(String.format("Using Seed %d", seed));
@@ -584,15 +426,6 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     return exceptions;
   }
 
-  /**
-   * Big tests.
-   *
-   * @param log        the log
-   * @param seed       the seed
-   * @param perfLayer  the perf key
-   * @param exceptions the exceptions
-   * @param results
-   */
   public void bigTests(NotebookOutput log, long seed, @Nonnull Layer perfLayer, @Nonnull ArrayList<TestError> exceptions, TableOutput results) {
     getBigTests().stream().filter(x -> null != x).forEach(test -> {
       @Nonnull Layer layer = perfLayer.copy();
@@ -674,32 +507,16 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     return ReportType.Components;
   }
 
-  /**
-   * Is test training boolean.
-   *
-   * @return the boolean
-   */
   public boolean isTestTraining() {
     return testTraining;
   }
 
-  /**
-   * Sets test training.
-   *
-   * @param testTraining the test training
-   * @return the test training
-   */
   @Nonnull
   public StandardLayerTests setTestTraining(boolean testTraining) {
     this.testTraining = testTraining;
     return this;
   }
 
-  /**
-   * Gets random.
-   *
-   * @return the random
-   */
   @Nonnull
   public Random getRandom() {
     return new Random(seed);
@@ -721,20 +538,10 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       super._free();
     }
 
-    /**
-     * Gets key.
-     *
-     * @return the key
-     */
     public Layer getLayer() {
       return layer;
     }
 
-    /**
-     * Get dims int [ ] [ ].
-     *
-     * @return the int [ ] [ ]
-     */
     public int[][] getDims() {
       return smallDims;
     }

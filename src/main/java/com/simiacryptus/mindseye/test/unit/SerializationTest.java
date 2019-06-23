@@ -41,30 +41,15 @@ import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
-/**
- * The type Json apply.
- */
 public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
   @Nonnull
   private final HashMap<SerialPrecision, Layer> models = new HashMap<>();
   private boolean persist = false;
 
-  /**
-   * Compress gz byte [ ].
-   *
-   * @param prettyPrint the pretty print
-   * @return the byte [ ]
-   */
   public static byte[] compressGZ(@Nonnull String prettyPrint) {
     return compressGZ(prettyPrint.getBytes(Charset.forName("UTF-8")));
   }
 
-  /**
-   * Compress gz byte [ ].
-   *
-   * @param bytes the bytes
-   * @return the byte [ ]
-   */
   public static byte[] compressGZ(byte[] bytes) {
     @Nonnull ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
     try {
@@ -136,31 +121,15 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
     return null;
   }
 
-  /**
-   * Gets models.
-   *
-   * @return the models
-   */
   @Nonnull
   public HashMap<SerialPrecision, Layer> getModels() {
     return models;
   }
 
-  /**
-   * Is persist boolean.
-   *
-   * @return the boolean
-   */
   public boolean isPersist() {
     return persist;
   }
 
-  /**
-   * Sets persist.
-   *
-   * @param persist the persist
-   * @return the persist
-   */
   @Nonnull
   public SerializationTest setPersist(boolean persist) {
     this.persist = persist;

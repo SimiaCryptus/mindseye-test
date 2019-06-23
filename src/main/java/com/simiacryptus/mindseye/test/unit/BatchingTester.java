@@ -40,9 +40,6 @@ import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-/**
- * The type Batching tester.
- */
 public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
   private static final Logger logger = LoggerFactory.getLogger(BatchingTester.class);
 
@@ -50,33 +47,15 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
   private int batchSize = 10;
   private boolean validateDerivatives;
 
-  /**
-   * Instantiates a new Batching tester.
-   *
-   * @param tolerance           the tolerance
-   * @param validateDerivatives
-   */
   public BatchingTester(final double tolerance, boolean validateDerivatives) {
     this.tolerance = tolerance;
     this.validateDerivatives = validateDerivatives;
   }
 
-  /**
-   * Gets randomize.
-   *
-   * @return the randomize
-   */
   public double getRandom() {
     return 5 * (Math.random() - 0.5);
   }
 
-  /**
-   * Test tolerance statistics.
-   *
-   * @param reference      the reference
-   * @param inputPrototype the input prototype
-   * @return the tolerance statistics
-   */
   @Nonnull
   public ToleranceStatistics test(@Nullable final Layer reference, @Nonnull final Tensor[] inputPrototype) {
     if (null == reference) return new ToleranceStatistics();
@@ -159,14 +138,6 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
     }
   }
 
-  /**
-   * Test tolerance statistics.
-   *
-   * @param log
-   * @param reference      the reference
-   * @param inputPrototype the input prototype
-   * @return the tolerance statistics
-   */
   @Override
   public ToleranceStatistics test(@Nonnull final NotebookOutput log, final Layer reference, @Nonnull final Tensor... inputPrototype) {
     log.h1("Batch Execution");
@@ -176,21 +147,10 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
     });
   }
 
-  /**
-   * Gets batch size.
-   *
-   * @return the batch size
-   */
   public int getBatchSize() {
     return batchSize;
   }
 
-  /**
-   * Sets batch size.
-   *
-   * @param batchSize the batch size
-   * @return the batch size
-   */
   @Nonnull
   public BatchingTester setBatchSize(int batchSize) {
     this.batchSize = batchSize;

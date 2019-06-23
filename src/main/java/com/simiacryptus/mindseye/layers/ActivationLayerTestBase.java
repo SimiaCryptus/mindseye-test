@@ -37,29 +37,14 @@ import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
-/**
- * The type Activation key apply base.
- */
 public abstract class ActivationLayerTestBase extends LayerTestBase {
 
   private final Layer layer;
 
-  /**
-   * Instantiates a new Activation key apply base.
-   *
-   * @param layer the key
-   */
   public ActivationLayerTestBase(final Layer layer) {
     this.layer = layer;
   }
 
-  /**
-   * Plot plot canvas.
-   *
-   * @param title the title
-   * @param data  the data
-   * @return the plot canvas
-   */
   @Nonnull
   public static PlotCanvas plot(final String title, final double[][] data) {
     @Nonnull final PlotCanvas plot = ScatterPlot.plot(data);
@@ -69,14 +54,6 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
     return plot;
   }
 
-  /**
-   * Plot plot canvas.
-   *
-   * @param title    the title
-   * @param plotData the plot data
-   * @param function the function
-   * @return the plot canvas
-   */
   @Nonnull
   public static PlotCanvas plot(final String title, @Nonnull final List<double[]> plotData, final Function<double[], double[]> function) {
     final double[][] data = plotData.stream().map(function).toArray(i -> new double[i][]);
@@ -105,11 +82,6 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
     };
   }
 
-  /**
-   * Scan double stream.
-   *
-   * @return the double stream
-   */
   public DoubleStream scan() {
     return IntStream.range(-1000, 1000).mapToDouble(x -> x / 300.0);
   }

@@ -35,14 +35,8 @@ import java.io.FileNotFoundException;
 import java.util.Date;
 import java.util.function.Consumer;
 
-/**
- * The type Notebook output apply base.
- */
 public abstract class NotebookReportBase {
 
-  /**
-   * The constant log.
-   */
   protected static final Logger logger = LoggerFactory.getLogger(NotebookReportBase.class);
 
   static {
@@ -51,14 +45,6 @@ public abstract class NotebookReportBase {
 
   protected String reportingFolder = "reports/_reports";
 
-  /**
-   * Print header string.
-   *
-   * @param log          the log
-   * @param networkClass the network class
-   * @param prefix       the prefix
-   * @return the string
-   */
   @Nullable
   public static CharSequence printHeader(@Nonnull NotebookOutput log, @Nullable Class<?> networkClass, final CharSequence prefix) {
     if (null == networkClass) return null;
@@ -69,14 +55,6 @@ public abstract class NotebookReportBase {
     return javadoc;
   }
 
-  /**
-   * Gets test report location.
-   *
-   * @param sourceClass     the source class
-   * @param reportingFolder
-   * @param suffix          the suffix
-   * @return the test report location
-   */
   @Nonnull
   public static File getTestReportLocation(@Nonnull final Class<?> sourceClass, String reportingFolder, @Nonnull final CharSequence... suffix) {
     final StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[2];
@@ -106,19 +84,9 @@ public abstract class NotebookReportBase {
     }
   }
 
-  /**
-   * Gets report type.
-   *
-   * @return the report type
-   */
   @Nonnull
   public abstract ReportType getReportType();
 
-  /**
-   * Print header.
-   *
-   * @param log the log
-   */
   public void printHeader(@Nonnull NotebookOutput log) {
     log.setFrontMatterProperty("created_on", new Date().toString());
     log.setFrontMatterProperty("report_type", getReportType().name());
@@ -130,21 +98,10 @@ public abstract class NotebookReportBase {
     log.p("__Report Description:__ " + reportJavadoc);
   }
 
-  /**
-   * Gets report class.
-   *
-   * @return the report class
-   */
   public Class<? extends NotebookReportBase> getReportClass() {
     return getClass();
   }
 
-  /**
-   * Run.
-   *
-   * @param fn      the fn
-   * @param logPath the log path
-   */
   public void run(@Nonnull Consumer<NotebookOutput> fn, @Nonnull CharSequence... logPath) {
     try (@Nonnull NotebookOutput log = getLog(logPath)) {
       withRefLeakMonitor(log, NotebookOutput.concat(this::printHeader, MarkdownNotebookOutput.wrapFrontmatter(fn))::accept);
@@ -155,12 +112,6 @@ public abstract class NotebookReportBase {
     }
   }
 
-  /**
-   * Gets log.
-   *
-   * @param logPath the log path
-   * @return the log
-   */
   @Nonnull
   public NotebookOutput getLog(CharSequence... logPath) {
     if (null == logPath || logPath.length == 0) logPath = new String[]{getClass().getSimpleName()};
@@ -180,39 +131,14 @@ public abstract class NotebookReportBase {
     }
   }
 
-  /**
-   * Gets target class.
-   *
-   * @return the target class
-   */
   protected abstract Class<?> getTargetClass();
 
-  /**
-   * The enum Report type.
-   */
   public enum ReportType {
-    /**
-     * Demos report type.
-     */
     Applications,
-    /**
-     * Components report type.
-     */
     Components,
-    /**
-     * Models report type.
-     */
     Models,
-    /**
-     * Data report type.
-     */
     Data,
-    /**
-     * Optimizers report type.
-     */
-    Optimizers, /**
-     * Training report type.
-     */
+    Optimizers,
     Experiments
   }
 

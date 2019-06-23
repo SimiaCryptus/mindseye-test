@@ -37,18 +37,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-/**
- * The type Derivative tester.
- */
 public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics> {
-  /**
-   * The Logger.
-   */
   static final Logger log = LoggerFactory.getLogger(BatchDerivativeTester.class);
 
-  /**
-   * The Probe size.
-   */
   public final double probeSize;
   private final int batches;
   private final double tolerance;
@@ -57,13 +48,6 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
   private boolean verbose = true;
   private boolean verify = true;
 
-  /**
-   * Instantiates a new Derivative tester.
-   *
-   * @param tolerance the tolerance
-   * @param probeSize the probe size
-   * @param batches   the batches
-   */
   public BatchDerivativeTester(final double tolerance, final double probeSize, final int batches) {
     this.tolerance = tolerance;
     this.probeSize = probeSize;
@@ -135,84 +119,40 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     return gradient;
   }
 
-  /**
-   * Is apply feedback boolean.
-   *
-   * @return the boolean
-   */
   public boolean isTestFeedback() {
     return testFeedback;
   }
 
-  /**
-   * Sets apply feedback.
-   *
-   * @param testFeedback the apply feedback
-   * @return the apply feedback
-   */
   @Nonnull
   public BatchDerivativeTester setTestFeedback(final boolean testFeedback) {
     this.testFeedback = testFeedback;
     return this;
   }
 
-  /**
-   * Is apply learning boolean.
-   *
-   * @return the boolean
-   */
   public boolean isTestLearning() {
     return testLearning;
   }
 
-  /**
-   * Sets apply learning.
-   *
-   * @param testLearning the apply learning
-   * @return the apply learning
-   */
   @Nonnull
   public BatchDerivativeTester setTestLearning(final boolean testLearning) {
     this.testLearning = testLearning;
     return this;
   }
 
-  /**
-   * Is verbose boolean.
-   *
-   * @return the boolean
-   */
   public boolean isVerbose() {
     return verbose;
   }
 
-  /**
-   * Sets verbose.
-   *
-   * @param verbose the verbose
-   * @return the verbose
-   */
   @Nonnull
   public BatchDerivativeTester setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
   }
 
-  /**
-   * Is verify boolean.
-   *
-   * @return the boolean
-   */
   public boolean isVerify() {
     return verify;
   }
 
-  /**
-   * Sets verify.
-   *
-   * @param verify the verify
-   * @return the verify
-   */
   @Nonnull
   public BatchDerivativeTester setVerify(final boolean verify) {
     this.verify = verify;
@@ -259,14 +199,6 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     return gradient;
   }
 
-  /**
-   * Test learning tolerance statistics.
-   *
-   * @param component  the component
-   * @param IOPair     the io pair
-   * @param statistics the statistics
-   * @return the tolerance statistics
-   */
   public ToleranceStatistics testLearning(@Nonnull Layer component, @Nonnull IOPair IOPair, ToleranceStatistics statistics) {
     final ToleranceStatistics prev = statistics;
     statistics = IntStream.range(0, component.state().size()).mapToObj(i -> {
@@ -313,14 +245,6 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     return statistics;
   }
 
-  /**
-   * Test feedback tolerance statistics.
-   *
-   * @param component  the component
-   * @param IOPair     the io pair
-   * @param statistics the statistics
-   * @return the tolerance statistics
-   */
   public ToleranceStatistics testFeedback(@Nonnull Layer component, @Nonnull IOPair IOPair, ToleranceStatistics statistics) {
     statistics = statistics.combine(IntStream.range(0, IOPair.getInputPrototype().length).mapToObj(i -> {
       @Nullable final Tensor measuredGradient = !verify ? null : measureFeedbackGradient(component, i, IOPair.getOutputPrototype(), IOPair.getInputPrototype());
@@ -365,14 +289,6 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     return statistics;
   }
 
-  /**
-   * Test tolerance statistics.
-   *
-   * @param log
-   * @param component      the component
-   * @param inputPrototype the input prototype
-   * @return the tolerance statistics
-   */
   @Override
   public ToleranceStatistics test(@Nonnull final NotebookOutput log, @Nonnull final Layer component, @Nonnull final Tensor... inputPrototype) {
     log.h1("Differential Validation");
@@ -425,12 +341,6 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     return _statistics;
   }
 
-  /**
-   * Test frozen.
-   *
-   * @param component      the component
-   * @param inputPrototype the input prototype
-   */
   public void testFrozen(@Nonnull final Layer component, @Nonnull final Tensor[] inputPrototype) {
     @Nonnull final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
     @Nonnull final Layer frozen = component.copy().freeze();
@@ -460,12 +370,6 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     }
   }
 
-  /**
-   * Test un frozen.
-   *
-   * @param component      the component
-   * @param inputPrototype the input prototype
-   */
   public void testUnFrozen(@Nonnull final Layer component, final Tensor[] inputPrototype) {
     @Nonnull final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
     @Nonnull final Layer frozen = component.copy().setFrozen(false);
@@ -514,40 +418,19 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     private Tensor[] inputPrototype;
     private Tensor outputPrototype;
 
-    /**
-     * Instantiates a new Io pair.
-     *
-     * @param component the component
-     * @param tensor    the tensor
-     */
     public IOPair(Layer component, Tensor tensor) {
       this.component = component;
       this.tensor = tensor;
     }
 
-    /**
-     * Get input prototype tensor [ ].
-     *
-     * @return the tensor [ ]
-     */
     public Tensor[] getInputPrototype() {
       return inputPrototype;
     }
 
-    /**
-     * Gets output prototype.
-     *
-     * @return the output prototype
-     */
     public Tensor getOutputPrototype() {
       return outputPrototype;
     }
 
-    /**
-     * Invoke io pair.
-     *
-     * @return the io pair
-     */
     @Nonnull
     public IOPair invoke() {
       inputPrototype = IntStream.range(0, batches).mapToObj(i -> tensor.copy()).toArray(j -> new Tensor[j]);

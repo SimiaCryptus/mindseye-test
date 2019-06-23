@@ -27,9 +27,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.stream.Stream;
 
-/**
- * The type Cifar problem data.
- */
 public class CIFARProblemData implements ImageProblemData {
   private static final Logger log = LoggerFactory.getLogger(CIFARProblemData.class);
 

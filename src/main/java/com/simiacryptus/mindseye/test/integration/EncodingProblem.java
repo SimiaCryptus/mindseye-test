@@ -47,9 +47,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-/**
- * The type Mnist encoding apply.
- */
 public abstract class EncodingProblem implements Problem {
 
   private static int modelNo = 0;
@@ -62,14 +59,6 @@ public abstract class EncodingProblem implements Problem {
   private int timeoutMinutes = 1;
   private int trainingSize = 15000;
 
-  /**
-   * Instantiates a new Encoding problem.
-   *
-   * @param revFactory the rev factory
-   * @param optimizer  the optimizer
-   * @param data       the data
-   * @param features   the features
-   */
   public EncodingProblem(final RevNetworkFactory revFactory, final OptimizationStrategy optimizer, final ImageProblemData data, final int features) {
     this.revFactory = revFactory;
     this.optimizer = optimizer;
@@ -78,42 +67,20 @@ public abstract class EncodingProblem implements Problem {
   }
 
 
-  /**
-   * Gets batch size.
-   *
-   * @return the batch size
-   */
   public int getBatchSize() {
     return batchSize;
   }
 
-  /**
-   * Sets batch size.
-   *
-   * @param batchSize the batch size
-   * @return the batch size
-   */
   @Nonnull
   public EncodingProblem setBatchSize(final int batchSize) {
     this.batchSize = batchSize;
     return this;
   }
 
-  /**
-   * Gets features.
-   *
-   * @return the features
-   */
   public int getFeatures() {
     return features;
   }
 
-  /**
-   * Sets features.
-   *
-   * @param features the features
-   * @return the features
-   */
   @Nonnull
   public EncodingProblem setFeatures(final int features) {
     this.features = features;
@@ -126,53 +93,26 @@ public abstract class EncodingProblem implements Problem {
     return history;
   }
 
-  /**
-   * Gets timeout minutes.
-   *
-   * @return the timeout minutes
-   */
   public int getTimeoutMinutes() {
     return timeoutMinutes;
   }
 
-  /**
-   * Sets timeout minutes.
-   *
-   * @param timeoutMinutes the timeout minutes
-   * @return the timeout minutes
-   */
   @Nonnull
   public EncodingProblem setTimeoutMinutes(final int timeoutMinutes) {
     this.timeoutMinutes = timeoutMinutes;
     return this;
   }
 
-  /**
-   * Gets training size.
-   *
-   * @return the training size
-   */
   public int getTrainingSize() {
     return trainingSize;
   }
 
-  /**
-   * Sets training size.
-   *
-   * @param trainingSize the training size
-   * @return the training size
-   */
   @Nonnull
   public EncodingProblem setTrainingSize(final int trainingSize) {
     this.trainingSize = trainingSize;
     return this;
   }
 
-  /**
-   * Random double.
-   *
-   * @return the double
-   */
   public double random() {
     return 0.1 * (Math.random() - 0.5);
   }

@@ -25,24 +25,10 @@ import com.simiacryptus.notebook.NotebookOutput;
 import javax.annotation.Nonnull;
 import java.util.List;
 
-/**
- * The interface Problem.
- */
 public interface Problem {
-  /**
-   * Gets history.
-   *
-   * @return the history
-   */
   @Nonnull
   List<StepRecord> getHistory();
 
-  /**
-   * Run problem.
-   *
-   * @param log the log
-   * @return the problem
-   */
   @Nonnull
   Problem run(NotebookOutput log);
 }

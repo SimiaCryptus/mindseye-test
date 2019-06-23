@@ -26,20 +26,7 @@ import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nullable;
 
-/**
- * The interface Derivative tester.
- *
- * @param <T> the type parameter
- */
 public interface ComponentTest<T> extends ReferenceCounting {
-  /**
-   * Test tolerance statistics.
-   *
-   * @param log            the log
-   * @param component      the component
-   * @param inputPrototype the input prototype
-   * @return the tolerance statistics
-   */
   @Nullable
   T test(NotebookOutput log, Layer component, Tensor... inputPrototype);
 

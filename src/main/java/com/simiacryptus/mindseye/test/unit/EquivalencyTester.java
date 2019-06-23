@@ -33,21 +33,12 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.stream.IntStream;
 
-/**
- * The type Equivalency tester.
- */
 public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
   private static final Logger log = LoggerFactory.getLogger(EquivalencyTester.class);
 
   private final Layer reference;
   private final double tolerance;
 
-  /**
-   * Instantiates a new Equivalency tester.
-   *
-   * @param tolerance      the tolerance
-   * @param referenceLayer the reference key
-   */
   public EquivalencyTester(final double tolerance, final Layer referenceLayer) {
     this.tolerance = tolerance;
     this.reference = referenceLayer;
@@ -60,13 +51,6 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
     super._free();
   }
 
-  /**
-   * Test tolerance statistics.
-   *
-   * @param subject        the subject
-   * @param inputPrototype the input prototype
-   * @return the tolerance statistics
-   */
   public ToleranceStatistics test(@Nullable final Layer subject, @Nonnull final Tensor[] inputPrototype) {
     if (null == reference || null == subject) return new ToleranceStatistics();
     reference.assertAlive();
@@ -94,14 +78,6 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
     }
   }
 
-  /**
-   * Test tolerance statistics.
-   *
-   * @param output
-   * @param subject        the subject
-   * @param inputPrototype the input prototype
-   * @return the tolerance statistics
-   */
   @Override
   public ToleranceStatistics test(@Nonnull final NotebookOutput output, final Layer subject, @Nonnull final Tensor... inputPrototype) {
     output.h1("Reference Implementation");

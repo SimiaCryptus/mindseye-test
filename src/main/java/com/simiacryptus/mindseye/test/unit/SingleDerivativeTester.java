@@ -35,15 +35,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-/**
- * The type Derivative tester.
- */
 public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistics> {
   private static final Logger log = LoggerFactory.getLogger(SingleDerivativeTester.class);
 
-  /**
-   * The Probe size.
-   */
   public final double probeSize;
   private final double tolerance;
   private boolean testFeedback = true;
@@ -51,12 +45,6 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
   private boolean verbose = true;
   private boolean verify = true;
 
-  /**
-   * Instantiates a new Derivative tester.
-   *
-   * @param tolerance the tolerance
-   * @param probeSize the probe size
-   */
   public SingleDerivativeTester(final double tolerance, final double probeSize) {
     this.tolerance = tolerance;
     this.probeSize = probeSize;
@@ -171,84 +159,40 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     return gradient;
   }
 
-  /**
-   * Is apply feedback boolean.
-   *
-   * @return the boolean
-   */
   public boolean isTestFeedback() {
     return testFeedback;
   }
 
-  /**
-   * Sets apply feedback.
-   *
-   * @param testFeedback the apply feedback
-   * @return the apply feedback
-   */
   @Nonnull
   public SingleDerivativeTester setTestFeedback(final boolean testFeedback) {
     this.testFeedback = testFeedback;
     return this;
   }
 
-  /**
-   * Is apply learning boolean.
-   *
-   * @return the boolean
-   */
   public boolean isTestLearning() {
     return testLearning;
   }
 
-  /**
-   * Sets apply learning.
-   *
-   * @param testLearning the apply learning
-   * @return the apply learning
-   */
   @Nonnull
   public SingleDerivativeTester setTestLearning(final boolean testLearning) {
     this.testLearning = testLearning;
     return this;
   }
 
-  /**
-   * Is verbose boolean.
-   *
-   * @return the boolean
-   */
   public boolean isVerbose() {
     return verbose;
   }
 
-  /**
-   * Sets verbose.
-   *
-   * @param verbose the verbose
-   * @return the verbose
-   */
   @Nonnull
   public SingleDerivativeTester setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
   }
 
-  /**
-   * Is verify boolean.
-   *
-   * @return the boolean
-   */
   public boolean isVerify() {
     return verify;
   }
 
-  /**
-   * Sets verify.
-   *
-   * @param verify the verify
-   * @return the verify
-   */
   @Nonnull
   public SingleDerivativeTester setVerify(final boolean verify) {
     this.verify = verify;
@@ -324,14 +268,6 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     return gradient;
   }
 
-  /**
-   * Test tolerance statistics.
-   *
-   * @param output
-   * @param component      the component
-   * @param inputPrototype the input prototype
-   * @return the tolerance statistics
-   */
   @Override
   public ToleranceStatistics test(@Nonnull final NotebookOutput output, @Nonnull final Layer component, @Nonnull final Tensor... inputPrototype) {
     output.h1("Differential Validation");
@@ -384,15 +320,6 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     return _statistics;
   }
 
-  /**
-   * Test learning tolerance statistics.
-   *
-   * @param prev            the prev
-   * @param component       the component
-   * @param inputPrototype  the input prototype
-   * @param outputPrototype the output prototype
-   * @return the tolerance statistics
-   */
   public ToleranceStatistics testLearning(@Nonnull ToleranceStatistics prev, @Nonnull Layer component, Tensor[] inputPrototype, @Nonnull Tensor outputPrototype) {
     return IntStream.range(0, component.state().size()).mapToObj(i -> {
       @Nullable final Tensor measuredGradient = !verify ? null : measureLearningGradient(component, i, outputPrototype, inputPrototype);
@@ -443,15 +370,6 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     }).reduce((a, b) -> a.combine(b)).map(x -> x.combine(prev)).orElseGet(() -> prev);
   }
 
-  /**
-   * Test feedback tolerance statistics.
-   *
-   * @param statistics      the statistics
-   * @param component       the component
-   * @param inputPrototype  the input prototype
-   * @param outputPrototype the output prototype
-   * @return the tolerance statistics
-   */
   @Nonnull
   public ToleranceStatistics testFeedback(@Nonnull ToleranceStatistics statistics, @Nonnull Layer component, @Nonnull Tensor[] inputPrototype, @Nonnull Tensor outputPrototype) {
     Optional<ToleranceStatistics> optional = IntStream.range(0, inputPrototype.length).mapToObj(i -> {
@@ -506,12 +424,6 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     return statistics.combine(optional.orElse(null));
   }
 
-  /**
-   * Test frozen.
-   *
-   * @param component      the component
-   * @param inputPrototype the input prototype
-   */
   public void testFrozen(@Nonnull final Layer component, @Nonnull Tensor[] inputPrototype) {
     final int inElements = Arrays.stream(inputPrototype).mapToInt(x -> x.length()).sum();
     inputPrototype = Arrays.stream(inputPrototype).map(tensor -> tensor.copy()).toArray(i -> new Tensor[i]);
@@ -564,12 +476,6 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     }
   }
 
-  /**
-   * Test un frozen.
-   *
-   * @param component      the component
-   * @param inputPrototype the input prototype
-   */
   public void testUnFrozen(@Nonnull final Layer component, Tensor[] inputPrototype) {
     inputPrototype = Arrays.stream(inputPrototype).map(tensor -> tensor.copy()).toArray(i -> new Tensor[i]);
     @Nonnull final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);

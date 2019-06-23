@@ -24,17 +24,7 @@ import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nonnull;
 
-/**
- * The interface Fwd network factory.
- */
 public interface FwdNetworkFactory {
-  /**
-   * Image to vector dag network.
-   *
-   * @param log      the log
-   * @param features the features
-   * @return the dag network
-   */
   @Nonnull
   DAGNetwork imageToVector(NotebookOutput log, int features);
 }

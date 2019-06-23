@@ -73,26 +73,12 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-/**
- * The type Image apply util.
- */
 public class TestUtil {
-  /**
-   * The constant S3_ROOT.
-   */
   public static final URI S3_ROOT = URI.create("https://s3-us-west-2.amazonaws.com/simiacryptus/");
   private static final Logger logger = LoggerFactory.getLogger(TestUtil.class);
-  /**
-   * The constant scheduledThreadPool.
-   */
   public static ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(1, new ThreadFactoryBuilder().setDaemon(true).build());
   private static int gifNumber = 0;
 
-  /**
-   * Add logging.
-   *
-   * @param network the network
-   */
   public static void addLogging(@Nonnull final DAGNetwork network) {
     network.visitNodes(node -> {
       if (!(node.getLayer() instanceof LoggingWrapperLayer)) {
@@ -101,12 +87,6 @@ public class TestUtil {
     });
   }
 
-  /**
-   * Add monitoring.
-   *
-   * @param network        the network
-   * @param monitoringRoot the monitoring root
-   */
   public static void addMonitoring(@Nonnull final DAGNetwork network, @Nonnull final MonitoredObject monitoringRoot) {
     network.visitNodes(node -> {
       if (!(node.getLayer() instanceof MonitoringWrapperLayer)) {
@@ -115,13 +95,6 @@ public class TestUtil {
     });
   }
 
-  /**
-   * Compare plot canvas.
-   *
-   * @param title  the title
-   * @param trials the trials
-   * @return the plot canvas
-   */
   public static PlotCanvas compare(final String title, @Nonnull final ProblemRun... trials) {
     try {
       final DoubleSummaryStatistics xStatistics = Arrays.stream(trials)
@@ -168,13 +141,6 @@ public class TestUtil {
     }
   }
 
-  /**
-   * Compare plot canvas.
-   *
-   * @param title  the title
-   * @param trials the trials
-   * @return the plot canvas
-   */
   public static PlotCanvas compareTime(final String title, @Nonnull final ProblemRun... trials) {
     try {
       final DoubleSummaryStatistics[] xStatistics = Arrays.stream(trials)
@@ -224,12 +190,6 @@ public class TestUtil {
     }
   }
 
-  /**
-   * Remove performance wrappers.
-   *
-   * @param log     the logger
-   * @param network the network
-   */
   public static void extractPerformance(@Nonnull final NotebookOutput log, @Nonnull final DAGNetwork network) {
     log.p("Per-key Performance Metrics:");
     log.run(() -> {
@@ -256,11 +216,6 @@ public class TestUtil {
     removeInstrumentation(network);
   }
 
-  /**
-   * Remove instrumentation.
-   *
-   * @param network the network
-   */
   public static void removeInstrumentation(@Nonnull final DAGNetwork network) {
     network.visitNodes(node -> {
       if (node.getLayer() instanceof MonitoringWrapperLayer) {
@@ -272,12 +227,6 @@ public class TestUtil {
     });
   }
 
-  /**
-   * Sample performance buildMap.
-   *
-   * @param network the network
-   * @return the buildMap
-   */
   public static Map<CharSequence, Object> samplePerformance(@Nonnull final DAGNetwork network) {
     @Nonnull final Map<CharSequence, Object> metrics = new HashMap<>();
     network.visitLayers(layer -> {
@@ -295,23 +244,10 @@ public class TestUtil {
     return metrics;
   }
 
-  /**
-   * Gets monitor.
-   *
-   * @param history the history
-   * @return the monitor
-   */
   public static TrainingMonitor getMonitor(@Nonnull final List<StepRecord> history) {
     return getMonitor(history, null);
   }
 
-  /**
-   * Gets monitor.
-   *
-   * @param history the history
-   * @param network the network
-   * @return the monitor
-   */
   public static TrainingMonitor getMonitor(@Nonnull final List<StepRecord> history, final Layer network) {
     return new TrainingMonitor() {
       @Override
@@ -333,11 +269,6 @@ public class TestUtil {
     };
   }
 
-  /**
-   * Add performance wrappers.
-   *
-   * @param network the network
-   */
   public static void instrumentPerformance(@Nonnull final DAGNetwork network) {
     network.visitNodes(node -> {
       Layer layer = node.getLayer();
@@ -351,12 +282,6 @@ public class TestUtil {
     });
   }
 
-  /**
-   * Plot plot canvas.
-   *
-   * @param history the history
-   * @return the plot canvas
-   */
   public static JPanel plot(@Nonnull final List<StepRecord> history) {
     try {
       final DoubleSummaryStatistics valueStats = history.stream().mapToDouble(x -> x.fitness).summaryStatistics();
@@ -390,12 +315,6 @@ public class TestUtil {
     }
   }
 
-  /**
-   * Plot plot canvas.
-   *
-   * @param history the history
-   * @return the plot canvas
-   */
   public static PlotCanvas plotTime(@Nonnull final List<StepRecord> history) {
     try {
       final LongSummaryStatistics timeStats = history.stream().mapToLong(x -> x.epochTime).summaryStatistics();
@@ -414,12 +333,6 @@ public class TestUtil {
     }
   }
 
-  /**
-   * Print data statistics.
-   *
-   * @param log  the logger
-   * @param data the data
-   */
   public static void printDataStatistics(@Nonnull final NotebookOutput log, @Nonnull final Tensor[][] data) {
     for (int col = 1; col < data[0].length; col++) {
       final int c = col;
@@ -446,12 +359,6 @@ public class TestUtil {
     }
   }
 
-  /**
-   * Print history.
-   *
-   * @param log     the logger
-   * @param history the history
-   */
   public static void printHistory(@Nonnull final NotebookOutput log, @Nonnull final List<StepRecord> history) {
     if (!history.isEmpty()) {
       log.out("Convergence Plot: ");
@@ -468,11 +375,6 @@ public class TestUtil {
     }
   }
 
-  /**
-   * Remove monitoring.
-   *
-   * @param network the network
-   */
   public static void removeLogging(@Nonnull final DAGNetwork network) {
     network.visitNodes(node -> {
       if (node.getLayer() instanceof LoggingWrapperLayer) {
@@ -481,11 +383,6 @@ public class TestUtil {
     });
   }
 
-  /**
-   * Remove monitoring.
-   *
-   * @param network the network
-   */
   public static void removeMonitoring(@Nonnull final DAGNetwork network) {
     network.visitNodes(node -> {
       if (node.getLayer() instanceof MonitoringWrapperLayer) {
@@ -494,27 +391,12 @@ public class TestUtil {
     });
   }
 
-  /**
-   * Render string.
-   *
-   * @param log       the logger
-   * @param tensor    the tensor
-   * @param normalize the normalize
-   * @return the string
-   */
   public static CharSequence render(@Nonnull final NotebookOutput log, @Nonnull final Tensor tensor, final boolean normalize) {
     return TestUtil.renderToImages(tensor, normalize).map(image -> {
       return log.png(image, "");
     }).reduce((a, b) -> a + b).get();
   }
 
-  /**
-   * Render to images stream.
-   *
-   * @param tensor    the tensor
-   * @param normalize the normalize
-   * @return the stream
-   */
   public static Stream<BufferedImage> renderToImages(@Nonnull final Tensor tensor, final boolean normalize) {
     final DoubleStatistics[] statistics = IntStream.range(0, tensor.getDimensions()[2]).mapToObj(band -> {
       return new DoubleStatistics().accept(tensor.coordStream(false)
@@ -549,26 +431,11 @@ public class TestUtil {
     return (normalize ? normal : tensor).toImages().stream();
   }
 
-  /**
-   * Resize buffered png.
-   *
-   * @param source the source
-   * @param size   the size
-   * @return the buffered png
-   */
   @Nonnull
   public static BufferedImage resize(@Nonnull final BufferedImage source, final int size) {
     return resize(source, size, false);
   }
 
-  /**
-   * Resize buffered png.
-   *
-   * @param source         the source
-   * @param size           the size
-   * @param preserveAspect the preserve aspect
-   * @return the buffered png
-   */
   @Nonnull
   public static BufferedImage resize(@Nonnull final BufferedImage source, final int size, boolean preserveAspect) {
     if (size <= 0) return source;
@@ -586,13 +453,6 @@ public class TestUtil {
     return img;
   }
 
-  /**
-   * Resize px buffered png.
-   *
-   * @param source the source
-   * @param size   the size
-   * @return the buffered png
-   */
   public static BufferedImage resizePx(@Nonnull final BufferedImage source, final long size) {
     if (size < 0) return source;
     double scale = Math.sqrt(size / ((double) source.getHeight() * source.getWidth()));
@@ -601,14 +461,6 @@ public class TestUtil {
     return resize(source, width, height);
   }
 
-  /**
-   * Resize buffered png.
-   *
-   * @param source the source
-   * @param width  the width
-   * @param height the height
-   * @return the buffered png
-   */
   @Nonnull
   public static BufferedImage resize(BufferedImage source, int width, int height) {
     @Nonnull final BufferedImage image = new BufferedImage(width, height, source.getType());
@@ -623,12 +475,6 @@ public class TestUtil {
     return image;
   }
 
-  /**
-   * To formatted json string.
-   *
-   * @param metrics the metrics
-   * @return the string
-   */
   public static CharSequence toFormattedJson(final Object metrics) {
     try {
       @Nonnull final ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -694,12 +540,6 @@ public class TestUtil {
     return name;
   }
 
-  /**
-   * Shuffle int stream.
-   *
-   * @param stream the stream
-   * @return the int stream
-   */
   public static IntStream shuffle(@Nonnull IntStream stream) {
     // http://primes.utm.edu/lists/small/10000.txt
     long coprimeA = 41387;
@@ -715,13 +555,6 @@ public class TestUtil {
     return stream.map(conditions).mapToLong(fn).sorted().mapToInt(inv);
   }
 
-  /**
-   * Or else supplier.
-   *
-   * @param <T>       the type parameter
-   * @param suppliers the suppliers
-   * @return the supplier
-   */
   public static <T> Supplier<T> orElse(@Nonnull Supplier<T>... suppliers) {
     return () -> {
       for (@Nonnull Supplier<T> supplier : suppliers) {
@@ -732,11 +565,6 @@ public class TestUtil {
     };
   }
 
-  /**
-   * Mini stack trace string.
-   *
-   * @return the string
-   */
   public static CharSequence miniStackTrace() {
     int max = 30;
     StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
@@ -747,25 +575,10 @@ public class TestUtil {
     return "[" + list.stream().reduce((a, b) -> a + ", " + b).get() + (stackTrace.length > max ? ", ..." : "") + "]";
   }
 
-  /**
-   * Monitor ui.
-   *
-   * @param input       the input
-   * @param exitOnClose the exit on close
-   * @param normalize   the normalize
-   */
   public static void monitorImage(final Tensor input, final boolean exitOnClose, final boolean normalize) {
     monitorImage(input, exitOnClose, 30, normalize);
   }
 
-  /**
-   * Monitor ui.
-   *
-   * @param input       the input
-   * @param exitOnClose the exit on close
-   * @param period      the period
-   * @param normalize   the normalize
-   */
   public static void monitorImage(final Tensor input, final boolean exitOnClose, final int period, final boolean normalize) {
     if (GraphicsEnvironment.isHeadless() || !Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(Desktop.Action.BROWSE))
       return;
@@ -887,23 +700,10 @@ public class TestUtil {
     }).start();
   }
 
-  /**
-   * Normalize bands tensor.
-   *
-   * @param image the png
-   * @return the tensor
-   */
   public static Tensor normalizeBands(final Tensor image) {
     return normalizeBands(image, 255);
   }
 
-  /**
-   * Normalize bands tensor.
-   *
-   * @param image the png
-   * @param max   the max
-   * @return the tensor
-   */
   public static Tensor normalizeBands(final Tensor image, final int max) {
     DoubleStatistics[] statistics = IntStream.range(0, image.getDimensions()[2]).mapToObj(i -> new DoubleStatistics()).toArray(i -> new DoubleStatistics[i]);
     image.coordStream(false).forEach(c -> {
@@ -917,25 +717,10 @@ public class TestUtil {
     });
   }
 
-  /**
-   * Animated gif char sequence.
-   *
-   * @param log    the logger
-   * @param images the images
-   * @return the char sequence
-   */
   public static CharSequence animatedGif(@Nonnull final NotebookOutput log, @Nonnull final BufferedImage... images) {
     return animatedGif(log, 15000, images);
   }
 
-  /**
-   * Animated gif char sequence.
-   *
-   * @param log        the logger
-   * @param loopTimeMs the loop time ms
-   * @param images     the images
-   * @return the char sequence
-   */
   public static CharSequence animatedGif(@Nonnull final NotebookOutput log, final int loopTimeMs, @Nonnull final BufferedImage... images) {
     try {
       @Nonnull String filename = gifNumber++ + ".gif";
@@ -947,26 +732,12 @@ public class TestUtil {
     }
   }
 
-  /**
-   * Write gif.
-   *
-   * @param log         the logger
-   * @param imageStream the png stream
-   */
   public static void writeGif(@Nonnull final NotebookOutput log, final Stream<BufferedImage> imageStream) {
     BufferedImage[] imgs = imageStream.toArray(i -> new BufferedImage[i]);
     log.p("Animated Sequence:");
     log.p(animatedGif(log, imgs));
   }
 
-  /**
-   * Build map map.
-   *
-   * @param <K>       the type parameter
-   * @param <V>       the type parameter
-   * @param configure the configure
-   * @return the map
-   */
   @Nonnull
   public static <K, V> Map<K, V> buildMap(Consumer<Map<K, V>> configure) {
     Map<K, V> map = new HashMap<>();
@@ -974,63 +745,29 @@ public class TestUtil {
     return map;
   }
 
-  /**
-   * Geometric stream supplier.
-   *
-   * @param start the start
-   * @param end   the end
-   * @param steps the steps
-   * @return the supplier
-   */
   @Nonnull
   public static Supplier<DoubleStream> geometricStream(final double start, final double end, final int steps) {
     double step = Math.pow(end / start, 1.0 / (steps - 1));
     return () -> DoubleStream.iterate(start, x -> x * step).limit(steps);
   }
 
-  /**
-   * Arithmetic stream supplier.
-   *
-   * @param start the start
-   * @param end   the end
-   * @param steps the steps
-   * @return the supplier
-   */
   @Nonnull
   public static Supplier<DoubleStream> arithmeticStream(final double start, final double end, final int steps) {
     double step = Math.pow(end - start, 1.0 / steps);
     return () -> DoubleStream.iterate(start, x -> x + step).limit(steps);
   }
 
-  /**
-   * Constant stream supplier.
-   *
-   * @param values the values
-   * @return the supplier
-   */
   @Nonnull
   public static Supplier<DoubleStream> constantStream(final double... values) {
     return () -> Arrays.stream(values);
   }
 
-  /**
-   * Shuffle list.
-   *
-   * @param <T>  the type parameter
-   * @param list the list
-   * @return the list
-   */
   public static <T> List<T> shuffle(final List<T> list) {
     ArrayList<T> copy = new ArrayList<>(list);
     Collections.shuffle(copy);
     return copy;
   }
 
-  /**
-   * Add global handlers.
-   *
-   * @param httpd the httpd
-   */
   public static void addGlobalHandlers(final FileHTTPD httpd) {
     if (null != httpd) {
 //      httpd.addGET("gpu.json", "text/json", out -> {
@@ -1054,11 +791,6 @@ public class TestUtil {
     }
   }
 
-  /**
-   * Gets stack info.
-   *
-   * @return the stack info
-   */
   public static Map<String, List<String>> getStackInfo() {
     return Thread.getAllStackTraces().entrySet().stream().collect(Collectors.toMap(entry -> {
       Thread key = entry.getKey();

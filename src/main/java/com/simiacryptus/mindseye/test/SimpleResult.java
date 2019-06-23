@@ -25,29 +25,11 @@ import com.simiacryptus.mindseye.lang.TensorList;
 
 import java.util.UUID;
 
-/**
- * The interface Simple result.
- */
 public interface SimpleResult extends ReferenceCounting {
-  /**
-   * Get derivative tensor list [ ].
-   *
-   * @return the tensor list [ ]
-   */
   TensorList[] getInputDerivative();
 
-  /**
-   * Gets key derivative.
-   *
-   * @return the key derivative
-   */
   DeltaSet<UUID> getLayerDerivative();
 
 
-  /**
-   * Gets output.
-   *
-   * @return the output
-   */
   TensorList getOutput();
 }

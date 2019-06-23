@@ -27,19 +27,7 @@ import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nonnull;
 
-/**
- * The interface Optimization strategy.
- */
 public interface OptimizationStrategy {
-  /**
-   * Train validating trainer.
-   *
-   * @param log               the log
-   * @param trainingSubject   the training subject
-   * @param validationSubject the validation subject
-   * @param monitor           the monitor
-   * @return the validating trainer
-   */
   @Nonnull
   ValidatingTrainer train(NotebookOutput log, SampledTrainable trainingSubject, Trainable validationSubject, TrainingMonitor monitor);
 }

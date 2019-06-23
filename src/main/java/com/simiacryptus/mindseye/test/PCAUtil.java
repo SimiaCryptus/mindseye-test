@@ -34,16 +34,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-/**
- * The type Pca util.
- */
 public class PCAUtil {
-  /**
-   * Forked from Apache Commons Math
-   *
-   * @param stream the stream
-   * @return covariance covariance
-   */
   @Nonnull
   public static RealMatrix getCovariance(@Nonnull final Supplier<Stream<double[]>> stream) {
     final int dimension = stream.get().findAny().get().length;
@@ -68,15 +59,6 @@ public class PCAUtil {
     return covariance;
   }
 
-  /**
-   * Pca features inv tensor [ ].
-   *
-   * @param covariance        the covariance
-   * @param components        the components
-   * @param featureDimensions the feature dimensions
-   * @param power             the power
-   * @return the tensor [ ]
-   */
   public static Tensor[] pcaFeatures(final RealMatrix covariance, final int components, final int[] featureDimensions, final double power) {
     @Nonnull final EigenDecomposition decomposition = new EigenDecomposition(covariance);
     final int[] orderedVectors = IntStream.range(0, components).mapToObj(x -> x)
@@ -92,12 +74,6 @@ public class PCAUtil {
         ).toArray(i -> new Tensor[i]);
   }
 
-  /**
-   * Populate pca kernel.
-   *
-   * @param kernel              the kernel
-   * @param featureSpaceVectors the feature space vectors
-   */
   public static void populatePCAKernel_1(final Tensor kernel, final Tensor[] featureSpaceVectors) {
     final int outputBands = featureSpaceVectors.length;
     @Nonnull final int[] filterDimensions = kernel.getDimensions();
@@ -114,12 +90,6 @@ public class PCAUtil {
     });
   }
 
-  /**
-   * Populate pca kernel.
-   *
-   * @param kernel              the kernel
-   * @param featureSpaceVectors the feature space vectors
-   */
   public static void populatePCAKernel_2(final Tensor kernel, final Tensor[] featureSpaceVectors) {
     final int outputBands = featureSpaceVectors.length;
     @Nonnull final int[] filterDimensions = kernel.getDimensions();

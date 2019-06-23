@@ -25,44 +25,19 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.stream.IntStream;
 
-/**
- * The type Tolerance statistics.
- */
 public class ToleranceStatistics {
-  /**
-   * The Absolute tol.
-   */
   public final DoubleStatistics absoluteTol;
-  /**
-   * The Relative tol.
-   */
   public final DoubleStatistics relativeTol;
 
-  /**
-   * Instantiates a new Tolerance statistics.
-   */
   public ToleranceStatistics() {
     this(new DoubleStatistics(), new DoubleStatistics());
   }
 
-  /**
-   * Instantiates a new Tolerance statistics.
-   *
-   * @param absoluteTol the absolute tol
-   * @param relativeTol the relative tol
-   */
   public ToleranceStatistics(final DoubleStatistics absoluteTol, final DoubleStatistics relativeTol) {
     this.absoluteTol = absoluteTol;
     this.relativeTol = relativeTol;
   }
 
-  /**
-   * Accumulate tolerance statistics.
-   *
-   * @param target the target
-   * @param val    the val
-   * @return the tolerance statistics
-   */
   @Nonnull
   public ToleranceStatistics accumulate(final double target, final double val) {
     absoluteTol.accept(Math.abs(target - val));
@@ -72,13 +47,6 @@ public class ToleranceStatistics {
     return this;
   }
 
-  /**
-   * Accumulate tolerance statistics.
-   *
-   * @param target the target
-   * @param val    the val
-   * @return the tolerance statistics
-   */
   @Nonnull
   public ToleranceStatistics accumulate(@Nonnull final double[] target, @Nonnull final double[] val) {
     if (target.length != val.length) throw new IllegalArgumentException();
@@ -86,12 +54,6 @@ public class ToleranceStatistics {
     return this;
   }
 
-  /**
-   * Combine tolerance statistics.
-   *
-   * @param right the right
-   * @return the tolerance statistics
-   */
   @Nonnull
   public ToleranceStatistics combine(@Nullable final ToleranceStatistics right) {
     if (null == right) return this;

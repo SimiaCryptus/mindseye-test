@@ -27,9 +27,6 @@ import javax.annotation.Nonnull;
 import java.awt.image.BufferedImage;
 import java.util.stream.Stream;
 
-/**
- * The type Image classifier apply base.
- */
 public class CaltechDatasetDemo extends ImageCategoryDatasetDemo {
 
   @Override

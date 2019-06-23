@@ -27,13 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.stream.Stream;
 
-/**
- * The type Mnist problem data.
- */
 public class MnistProblemData implements ImageProblemData {
-  /**
-   * The Logger.
-   */
   static final Logger log = LoggerFactory.getLogger(MnistProblemData.class);
 
   @Override

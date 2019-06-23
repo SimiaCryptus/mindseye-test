@@ -29,27 +29,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/**
- * Caltech 101 Image Dataset.
- */
 public class CaltechProblemData implements ImageProblemData {
 
   private final int imageSize;
   @Nullable
   private List<CharSequence> labels = null;
 
-  /**
-   * Instantiates a new Caltech problem data.
-   */
   public CaltechProblemData() {
     this(256);
   }
 
-  /**
-   * Instantiates a new Caltech problem data.
-   *
-   * @param imageSize the png size
-   */
   public CaltechProblemData(int imageSize) {
     this.imageSize = imageSize;
   }
@@ -64,20 +53,10 @@ public class CaltechProblemData implements ImageProblemData {
     return trainingData();
   }
 
-  /**
-   * Gets png size.
-   *
-   * @return the png size
-   */
   public int getImageSize() {
     return imageSize;
   }
 
-  /**
-   * Gets labels.
-   *
-   * @return the labels
-   */
   @Nullable
   public List<CharSequence> getLabels() {
     if (null == labels) {

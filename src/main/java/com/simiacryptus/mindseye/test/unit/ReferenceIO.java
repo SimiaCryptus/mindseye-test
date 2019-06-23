@@ -32,20 +32,9 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.HashMap;
 
-/**
- * The type Reference io.
- */
 public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
-  /**
-   * The Reference io.
-   */
   HashMap<Tensor[], Tensor> referenceIO;
 
-  /**
-   * Instantiates a new Reference io.
-   *
-   * @param referenceIO the reference io
-   */
   public ReferenceIO(final HashMap<Tensor[], Tensor> referenceIO) {
     this.referenceIO = referenceIO;
   }

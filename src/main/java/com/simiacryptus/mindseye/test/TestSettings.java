@@ -21,17 +21,8 @@ package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.lang.Settings;
 
-/**
- * The type Cuda settings.
- */
 public class TestSettings implements Settings {
-  /**
-   * The constant INSTANCE.
-   */
   public static final TestSettings INSTANCE = new TestSettings();
-  /**
-   * The Tag.
-   */
   public final String tag;
 
   private TestSettings() {

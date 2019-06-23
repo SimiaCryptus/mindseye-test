@@ -25,23 +25,8 @@ import com.simiacryptus.util.test.LabeledObject;
 import java.io.IOException;
 import java.util.stream.Stream;
 
-/**
- * The interface Image data.
- */
 public interface ImageProblemData {
-  /**
-   * Training data stream.
-   *
-   * @return the stream
-   * @throws IOException the io exception
-   */
   Stream<LabeledObject<Tensor>> trainingData() throws IOException;
 
-  /**
-   * Validation data stream.
-   *
-   * @return the stream
-   * @throws IOException the io exception
-   */
   Stream<LabeledObject<Tensor>> validationData() throws IOException;
 }

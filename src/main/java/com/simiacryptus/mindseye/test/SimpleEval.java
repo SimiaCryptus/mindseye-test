@@ -29,9 +29,6 @@ import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.stream.IntStream;
 
-/**
- * The type Simple trainAll.
- */
 public class SimpleEval extends ReferenceCountingBase implements Callable<SimpleEval> {
   @Nonnull
   private final Tensor[] input;
@@ -44,12 +41,6 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
   private Tensor output;
 
 
-  /**
-   * Instantiates a new Simple trainAll.
-   *
-   * @param layer the key
-   * @param input the input
-   */
   public SimpleEval(@Nonnull final Layer layer, @Nonnull final Tensor... input) {
     this.layer = layer;
     this.input = input;
@@ -59,26 +50,11 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
     layer.addRef();
   }
 
-  /**
-   * Run simple trainAll.
-   *
-   * @param layer  the key
-   * @param tensor the tensor
-   * @return the simple trainAll
-   */
   @Nonnull
   public static SimpleEval run(@Nonnull final Layer layer, final Tensor... tensor) {
     return run(layer, true, tensor);
   }
 
-  /**
-   * Run simple trainAll.
-   *
-   * @param layer              the key
-   * @param validateDerivative
-   * @param tensor             the tensor
-   * @return the simple trainAll
-   */
   @Nonnull
   public static SimpleEval run(@Nonnull final Layer layer, boolean validateDerivative, final Tensor... tensor) {
     return new SimpleEval(layer, tensor).setValidateDerivative(validateDerivative).call();
@@ -158,22 +134,11 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
     }
   }
 
-  /**
-   * Get derivative tensor [ ].
-   *
-   * @return the tensor [ ]
-   */
   @Nullable
   public Tensor[] getDerivative() {
     return derivative;
   }
 
-  /**
-   * Gets feedback.
-   *
-   * @param data the data
-   * @return the feedback
-   */
   @Nonnull
   public TensorList getFeedback(@Nonnull final TensorList data) {
     return TensorArray.wrap(data.stream().map(t -> {
@@ -183,21 +148,11 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
     }).toArray(i -> new Tensor[i]));
   }
 
-  /**
-   * Gets output.
-   *
-   * @return the output
-   */
   @Nullable
   public Tensor getOutput() {
     return output;
   }
 
-  /**
-   * Gets output and free.
-   *
-   * @return the output and free
-   */
   @Nullable
   public Tensor getOutputAndFree() {
     Tensor output = this.output;

@@ -37,16 +37,8 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import java.util.zip.GZIPInputStream;
 
-/**
- * References: [LeCun et al., 1998a] Y. LeCun, L. Bottou, Y. Bengio, and P. Haffner. "Gradient-based learning applied to
- * document recognition." Proceedings of the IEEE, 86(11):2278-2324, November 1998. See Also:
- * http://yann.lecun.com/exdb/mnist/
- */
 public class MNIST {
 
-  /**
-   * The constant training.
-   */
   public static final DataLoader<LabeledObject<Tensor>> training = new DataLoader<LabeledObject<Tensor>>() {
     @Override
     protected void read(@Nonnull final List<LabeledObject<Tensor>> queue) {
@@ -79,9 +71,6 @@ public class MNIST {
       }
     }
   };
-  /**
-   * The constant validation.
-   */
   public static final DataLoader<LabeledObject<Tensor>> validation = new DataLoader<LabeledObject<Tensor>>() {
     @Override
     protected void read(@Nonnull final List<LabeledObject<Tensor>> queue) {
@@ -150,20 +139,10 @@ public class MNIST {
     return StreamSupport.stream(Spliterators.spliterator(iterator, size, Spliterator.ORDERED), parallel);
   }
 
-  /**
-   * Training data stream stream.
-   *
-   * @return the stream
-   */
   public static Stream<LabeledObject<Tensor>> trainingDataStream() {
     return MNIST.training.stream();
   }
 
-  /**
-   * Validation data stream stream.
-   *
-   * @return the stream
-   */
   public static Stream<LabeledObject<Tensor>> validationDataStream() {
     return MNIST.validation.stream();
   }

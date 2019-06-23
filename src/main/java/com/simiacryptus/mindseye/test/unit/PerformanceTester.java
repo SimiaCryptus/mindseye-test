@@ -39,13 +39,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-/**
- * The type Performance tester.
- */
 public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
-  /**
-   * The Logger.
-   */
   static final Logger log = LoggerFactory.getLogger(PerformanceTester.class);
 
   private int batches = 100;
@@ -53,103 +47,50 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   private boolean testEvaluation = true;
   private boolean testLearning = true;
 
-  /**
-   * Instantiates a new Performance tester.
-   */
   public PerformanceTester() {
 
   }
 
-  /**
-   * Gets batches.
-   *
-   * @return the batches
-   */
   public int getBatches() {
     return batches;
   }
 
-  /**
-   * Sets batches.
-   *
-   * @param batches the batches
-   * @return the batches
-   */
   @Nonnull
   public PerformanceTester setBatches(final int batches) {
     this.batches = batches;
     return this;
   }
 
-  /**
-   * Gets samples.
-   *
-   * @return the samples
-   */
   public int getSamples() {
     return samples;
   }
 
-  /**
-   * Sets samples.
-   *
-   * @param samples the samples
-   * @return the samples
-   */
   @Nonnull
   public PerformanceTester setSamples(final int samples) {
     this.samples = samples;
     return this;
   }
 
-  /**
-   * Is apply evaluation boolean.
-   *
-   * @return the boolean
-   */
   public boolean isTestEvaluation() {
     return testEvaluation;
   }
 
-  /**
-   * Sets apply evaluation.
-   *
-   * @param testEvaluation the apply evaluation
-   * @return the apply evaluation
-   */
   @Nonnull
   public PerformanceTester setTestEvaluation(final boolean testEvaluation) {
     this.testEvaluation = testEvaluation;
     return this;
   }
 
-  /**
-   * Is apply learning boolean.
-   *
-   * @return the boolean
-   */
   public boolean isTestLearning() {
     return testLearning;
   }
 
-  /**
-   * Sets apply learning.
-   *
-   * @param testLearning the apply learning
-   * @return the apply learning
-   */
   @Nonnull
   public ComponentTest<ToleranceStatistics> setTestLearning(final boolean testLearning) {
     this.testLearning = testLearning;
     return this;
   }
 
-  /**
-   * Test.
-   *
-   * @param component      the component
-   * @param inputPrototype the input prototype
-   */
   public void test(@Nonnull final Layer component, @Nonnull final Tensor[] inputPrototype) {
     log.info(String.format("%s batch length, %s trials", batches, samples));
     log.info("Input Dimensions:");
@@ -172,13 +113,6 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
     }
   }
 
-  /**
-   * Test.
-   *
-   * @param log
-   * @param component      the component
-   * @param inputPrototype the input prototype
-   */
   @Nullable
   @Override
   public ToleranceStatistics test(@Nonnull final NotebookOutput log, final Layer component, @Nonnull final Tensor... inputPrototype) {
@@ -196,13 +130,6 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
     return null;
   }
 
-  /**
-   * Test learning performance double statistics.
-   *
-   * @param component      the component
-   * @param inputPrototype the input prototype
-   * @return the double statistics
-   */
   @Nonnull
   protected Tuple2<Double, Double> testPerformance(@Nonnull final Layer component, final Tensor... inputPrototype) {
     final Tensor[][] data = IntStream.range(0, batches).mapToObj(x -> x).flatMap(x -> Stream.<Tensor[]>of(inputPrototype)).toArray(i -> new Tensor[i][]);

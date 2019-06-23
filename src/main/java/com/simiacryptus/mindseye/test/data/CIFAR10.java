@@ -42,10 +42,6 @@ import java.util.List;
 import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 
-/**
- * Mirrored from https://www.cs.toronto.edu/~kriz/cifar.html For more information, and for citation, please see:
- * Learning Multiple Layers of Features from Tiny Images, Alex Krizhevsky, 2009. https://www.cs.toronto.edu/~kriz/learning-features-2009-TR.pdf
- */
 public class CIFAR10 {
 
   @Nullable
@@ -83,9 +79,6 @@ public class CIFAR10 {
     }
   };
 
-  /**
-   * Halt.
-   */
   public static void halt() {
     CIFAR10.training.stop();
   }
@@ -104,11 +97,6 @@ public class CIFAR10 {
     return new LabeledObject<>(img, Arrays.toString(new byte[]{b[0]}));
   }
 
-  /**
-   * Training data stream stream.
-   *
-   * @return the stream
-   */
   public static Stream<LabeledObject<Tensor>> trainingDataStream() {
     return CIFAR10.training.stream();
   }

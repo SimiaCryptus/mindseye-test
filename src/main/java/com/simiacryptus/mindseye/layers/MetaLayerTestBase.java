@@ -24,14 +24,8 @@ import com.simiacryptus.mindseye.test.unit.ComponentTest;
 
 import javax.annotation.Nullable;
 
-/**
- * The type Meta key apply base.
- */
 public abstract class MetaLayerTestBase extends LayerTestBase {
 
-  /**
-   * Instantiates a new Meta key apply base.
-   */
   public MetaLayerTestBase() {
     validateBatchExecution = false;
   }

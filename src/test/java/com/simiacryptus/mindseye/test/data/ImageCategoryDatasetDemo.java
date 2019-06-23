@@ -34,25 +34,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/**
- * The type Image category dataset demo.
- */
 public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
-  /**
-   * Test.
-   *
-   * @throws Throwable the throwable
-   */
   @Test
   public void run() {
     run(this::run);
   }
 
-  /**
-   * Test.
-   *
-   * @param log the log
-   */
   public void run(@Nonnull NotebookOutput log) {
     log.h3("Loading Data");
     List<LabeledObject<SupplierWeakCache<BufferedImage>>> testData =
@@ -74,20 +61,8 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
     }));
   }
 
-  /**
-   * Gets training stream.
-   *
-   * @param log the log
-   * @return the training stream
-   */
   public abstract Stream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(NotebookOutput log);
 
-  /**
-   * Gets shuffle comparator.
-   *
-   * @param <T> the type parameter
-   * @return the shuffle comparator
-   */
   public <T> Comparator<T> getShuffleComparator() {
     final int seed = (int) ((System.nanoTime() >>> 8) % (Integer.MAX_VALUE - 84));
     return Comparator.comparingInt(a1 -> System.identityHashCode(a1) ^ seed);

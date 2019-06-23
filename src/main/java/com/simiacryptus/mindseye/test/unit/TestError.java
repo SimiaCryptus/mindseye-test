@@ -23,27 +23,11 @@ import com.simiacryptus.mindseye.lang.Layer;
 
 import javax.annotation.Nonnull;
 
-/**
- * The type Test error.
- */
 public class TestError extends RuntimeException {
-  /**
-   * The Test.
-   */
   public final ComponentTest<?> test;
-  /**
-   * The LayerBase.
-   */
   @Nonnull
   public final Layer layer;
 
-  /**
-   * Instantiates a new Test error.
-   *
-   * @param cause the cause
-   * @param test  the test
-   * @param layer the key
-   */
   public TestError(Throwable cause, ComponentTest<?> test, @Nonnull Layer layer) {
     super(String.format("Error in %s apply %s", test, layer), cause);
     this.test = test;
