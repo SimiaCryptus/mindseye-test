@@ -819,7 +819,7 @@ public class TestUtil {
   }
 
   @NotNull
-  public static Tensor avg(Collection<Tensor> values) {
+  public static Tensor avg(Collection<? extends Tensor> values) {
     return sum(values.stream().map(x -> {
       x.addRef();
       return x;
