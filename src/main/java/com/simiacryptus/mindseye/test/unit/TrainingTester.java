@@ -580,22 +580,22 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
       }
     },
     PermuteDuplicates {
-          @Override
-          public void shuffle(@Nonnull final Random random, @Nonnull final double[] buffer) {
-            Permute.shuffle(random, buffer);
-            for (int i = 0; i < buffer.length; i++) {
-              buffer[i] = buffer[random.nextInt(buffer.length)];
-            }
-          }
-        },
+      @Override
+      public void shuffle(@Nonnull final Random random, @Nonnull final double[] buffer) {
+        Permute.shuffle(random, buffer);
+        for (int i = 0; i < buffer.length; i++) {
+          buffer[i] = buffer[random.nextInt(buffer.length)];
+        }
+      }
+    },
     Random {
-          @Override
-          public void shuffle(@Nonnull final Random random, @Nonnull final double[] buffer) {
-            for (int i = 0; i < buffer.length; i++) {
-              buffer[i] = 2 * (random.nextDouble() - 0.5);
-            }
-          }
-        };
+      @Override
+      public void shuffle(@Nonnull final Random random, @Nonnull final double[] buffer) {
+        for (int i = 0; i < buffer.length; i++) {
+          buffer[i] = 2 * (random.nextDouble() - 0.5);
+        }
+      }
+    };
 
     public abstract void shuffle(Random random, double[] buffer);
   }
