@@ -445,10 +445,9 @@ public class TestUtil {
     for (int i = 1; i <= steps; i++) {
       double pos = ((double) i / steps);
       double z = Math.pow(zoom, pos);
-      img = resize(img,
-          (int) (source.getWidth() * z),
-          (int) ((preserveAspect ? source.getHeight() : source.getWidth()) * z)
-      );
+      int targetWidth = (int) (source.getWidth() * z);
+      int targetHeight = (int) ((source.getWidth() == source.getHeight()) ? targetWidth : ((preserveAspect ? source.getHeight() : source.getWidth()) * z));
+      img = resize(img, targetWidth, targetHeight);
     }
     return img;
   }

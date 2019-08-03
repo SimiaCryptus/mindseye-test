@@ -320,7 +320,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         if (null == name) name = testClass.getName();
         if (null == name) name = testClass.toString();
         testResultProps.put("class", name);
-        Object result = log.subreport(name, sublog -> test.test(sublog, copy, randomize));
+        Object result = log.subreport(sublog -> test.test(sublog, copy, randomize), log.getName() + "_" + name);
         testResultProps.put("details", null == result ? null : result.toString());
         testResultProps.put("result", "OK");
       } catch (Throwable e) {
@@ -436,7 +436,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
           String testclass = test.getClass().getCanonicalName();
           if (null == testclass || testclass.isEmpty()) testclass = test.toString();
           testResultProps.put("class", testclass);
-          Object result = log.subreport(testclass, sublog -> test.test(sublog, layer, input));
+          Object result = log.subreport(sublog -> test.test(sublog, layer, input), log.getName() + "_" + testclass);
           testResultProps.put("details", null == result ? null : result.toString());
           testResultProps.put("result", "OK");
         } catch (Throwable e) {
@@ -470,7 +470,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       try {
         String testname = test.getClass().getCanonicalName();
         testResultProps.put("class", testname);
-        Object result = log.subreport(testname, sublog -> test.test(sublog, layer, inputs));
+        Object result = log.subreport(sublog -> test.test(sublog, layer, inputs), log.getName() + "_" + testname);
         testResultProps.put("details", null == result ? null : result.toString());
         testResultProps.put("result", "OK");
       } catch (LifecycleException e) {

@@ -33,6 +33,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Date;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 public abstract class NotebookReportBase {
@@ -118,7 +119,7 @@ public abstract class NotebookReportBase {
     final File path = getTestReportLocation(getTargetClass(), reportingFolder, logPath);
     try {
       StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[3];
-      String methodName = callingFrame.getMethodName();
+      String methodName = callingFrame.getMethodName() + "_" + UUID.randomUUID().toString();
       path.getParentFile().mkdirs();
       return new MarkdownNotebookOutput(new File(path, methodName), true) {
         @Override
