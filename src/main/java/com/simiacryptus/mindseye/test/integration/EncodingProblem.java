@@ -29,6 +29,7 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
+import com.simiacryptus.mindseye.util.ImageUtil;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.notebook.TableOutput;
 import com.simiacryptus.util.Util;
@@ -218,7 +219,7 @@ public abstract class EncodingProblem implements Problem {
     for (int featureNumber = 0; featureNumber < features; featureNumber++) {
       @Nonnull final Tensor input = new Tensor(features).set(featureNumber, 1);
       @Nullable final Tensor tensor = imageNetwork.eval(input).getData().get(0);
-      TestUtil.renderToImages(tensor, true).forEach(img -> {
+      ImageUtil.renderToImages(tensor, true).forEach(img -> {
         log.out(log.png(img, ""));
       });
     }

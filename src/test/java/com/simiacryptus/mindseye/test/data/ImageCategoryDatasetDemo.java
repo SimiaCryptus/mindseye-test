@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.test.data;
 
 import com.simiacryptus.lang.SupplierWeakCache;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
-import com.simiacryptus.mindseye.test.TestUtil;
+import com.simiacryptus.mindseye.util.ImageUtil;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.util.test.LabeledObject;
 import org.junit.Test;
@@ -55,7 +55,7 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
     log.p(log.out(() -> {
       return testData.stream().map(labeledObj -> {
         @Nullable BufferedImage img = labeledObj.data.get();
-        img = TestUtil.resize(img, 224, true);
+        img = ImageUtil.resize(img, 224, true);
         return log.png(img, labeledObj.label);
       }).limit(20).reduce((a, b) -> a + b).get();
     }));

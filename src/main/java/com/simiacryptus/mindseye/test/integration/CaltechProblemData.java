@@ -20,8 +20,8 @@
 package com.simiacryptus.mindseye.test.integration;
 
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.data.Caltech101;
+import com.simiacryptus.mindseye.util.ImageUtil;
 import com.simiacryptus.util.test.LabeledObject;
 
 import javax.annotation.Nullable;
@@ -45,7 +45,7 @@ public class CaltechProblemData implements ImageProblemData {
 
   @Override
   public Stream<LabeledObject<Tensor>> trainingData() {
-    return Caltech101.trainingDataStream().parallel().map(x -> x.map(y -> Tensor.fromRGB(TestUtil.resize(y.get(), getImageSize()))));
+    return Caltech101.trainingDataStream().parallel().map(x -> x.map(y -> Tensor.fromRGB(ImageUtil.resize(y.get(), getImageSize()))));
   }
 
   @Override
