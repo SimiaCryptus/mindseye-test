@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.test.unit;
 
-import com.simiacryptus.lang.ref.ReferenceCountingBase;
+import com.simiacryptus.ref.lang.ReferenceCountingBase;
 
 public abstract class ComponentTestBase<T> extends ReferenceCountingBase implements ComponentTest<T> {
 }

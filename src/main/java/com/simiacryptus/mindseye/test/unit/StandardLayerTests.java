@@ -21,9 +21,9 @@ package com.simiacryptus.mindseye.test.unit;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.devutil.Javadoc;
-import com.simiacryptus.lang.ref.LifecycleException;
-import com.simiacryptus.lang.ref.ReferenceCounting;
-import com.simiacryptus.lang.ref.ReferenceCountingBase;
+import com.simiacryptus.ref.lang.LifecycleException;
+import com.simiacryptus.ref.lang.ReferenceCounting;
+import com.simiacryptus.ref.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.Explodable;
 import com.simiacryptus.mindseye.network.DAGNetwork;
