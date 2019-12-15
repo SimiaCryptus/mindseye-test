@@ -1,4 +1,4 @@
-/mnt/h/SimiaCryptus/data-science-tools/mindseye-test/src/test/java/com/simiacryptus/mindseye/test/data/CaltechDatasetDemo.java
-/mnt/h/SimiaCryptus/data-science-tools/mindseye-test/src/test/java/com/simiacryptus/mindseye/test/data/CIFARDatasetDemo.java
-/mnt/h/SimiaCryptus/data-science-tools/mindseye-test/src/test/java/com/simiacryptus/mindseye/test/data/ImageCategoryDatasetDemo.java
-/mnt/h/SimiaCryptus/data-science-tools/mindseye-test/src/test/java/com/simiacryptus/mindseye/test/data/MNistDatasetDemo.java
+/mnt/h/SimiaCryptus/all-projects/mindseye/mindseye-test/src/test/java/com/simiacryptus/mindseye/test/data/MNistDatasetDemo.java
+/mnt/h/SimiaCryptus/all-projects/mindseye/mindseye-test/src/test/java/com/simiacryptus/mindseye/test/data/ImageCategoryDatasetDemo.java
+/mnt/h/SimiaCryptus/all-projects/mindseye/mindseye-test/src/test/java/com/simiacryptus/mindseye/test/data/CaltechDatasetDemo.java
+/mnt/h/SimiaCryptus/all-projects/mindseye/mindseye-test/src/test/java/com/simiacryptus/mindseye/test/data/CIFARDatasetDemo.java
