@@ -25,7 +25,7 @@
         <groupId>com.simiacryptus</groupId>
         <artifactId>java-parent</artifactId>
         <version>1.8.1-SNAPSHOT</version>
-        <relativePath>../java-parent</relativePath>
+        <relativePath>../../mvn-parents/java-parent</relativePath>
     </parent>
 
     <artifactId>mindseye-test</artifactId>
@@ -122,6 +122,11 @@
             <artifactId>java-analysis</artifactId>
             <version>1.8.1-SNAPSHOT</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.simiacryptus</groupId>
+            <artifactId>refcount-core</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
