@@ -50,8 +50,10 @@ public class MNIST {
 
         @Nonnull final Stream<LabeledObject<Tensor>> merged = MNIST.toStream(new Iterator<LabeledObject<Tensor>>() {
           @Nonnull
+          final
           Iterator<Tensor> imgItr = imgStream.iterator();
           @Nonnull
+          final
           Iterator<byte[]> labelItr = labelStream.iterator();
 
           @Override
@@ -82,8 +84,10 @@ public class MNIST {
 
         @Nonnull final Stream<LabeledObject<Tensor>> merged = MNIST.toStream(new Iterator<LabeledObject<Tensor>>() {
           @Nonnull
+          final
           Iterator<Tensor> imgItr = imgStream.iterator();
           @Nonnull
+          final
           Iterator<byte[]> labelItr = labelStream.iterator();
 
           @Override
@@ -103,6 +107,14 @@ public class MNIST {
       }
     }
   };
+
+  public static Stream<LabeledObject<Tensor>> trainingDataStream() {
+    return MNIST.training.stream();
+  }
+
+  public static Stream<LabeledObject<Tensor>> validationDataStream() {
+    return MNIST.validation.stream();
+  }
 
   private static Stream<byte[]> binaryStream(@Nonnull final String name, final int skip, final int recordSize) throws IOException {
     @Nullable InputStream stream = null;
@@ -137,14 +149,6 @@ public class MNIST {
 
   private static <T> Stream<T> toStream(@Nonnull final Iterator<T> iterator, final int size, final boolean parallel) {
     return StreamSupport.stream(Spliterators.spliterator(iterator, size, Spliterator.ORDERED), parallel);
-  }
-
-  public static Stream<LabeledObject<Tensor>> trainingDataStream() {
-    return MNIST.training.stream();
-  }
-
-  public static Stream<LabeledObject<Tensor>> validationDataStream() {
-    return MNIST.validation.stream();
   }
 
 }

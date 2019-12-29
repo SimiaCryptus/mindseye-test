@@ -83,6 +83,10 @@ public class CIFAR10 {
     CIFAR10.training.stop();
   }
 
+  public static Stream<LabeledObject<Tensor>> trainingDataStream() {
+    return CIFAR10.training.stream();
+  }
+
   private static LabeledObject<BufferedImage> toImage(final byte[] b) {
     @Nonnull final BufferedImage img = new BufferedImage(32, 32, BufferedImage.TYPE_INT_RGB);
     for (int x = 0; x < img.getWidth(); x++) {
@@ -95,10 +99,6 @@ public class CIFAR10 {
       }
     }
     return new LabeledObject<>(img, Arrays.toString(new byte[]{b[0]}));
-  }
-
-  public static Stream<LabeledObject<Tensor>> trainingDataStream() {
-    return CIFAR10.training.stream();
   }
 
 

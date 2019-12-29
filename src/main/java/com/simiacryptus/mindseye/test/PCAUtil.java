@@ -19,8 +19,8 @@
 
 package com.simiacryptus.mindseye.test;
 
-import com.simiacryptus.ref.lang.RecycleBin;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.ref.lang.RecycleBin;
 import com.simiacryptus.util.data.DoubleStatistics;
 import org.apache.commons.math3.linear.BlockRealMatrix;
 import org.apache.commons.math3.linear.EigenDecomposition;

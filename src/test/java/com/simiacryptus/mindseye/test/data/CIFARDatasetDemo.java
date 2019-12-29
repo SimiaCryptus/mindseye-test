@@ -29,16 +29,16 @@ import java.util.stream.Stream;
 
 public class CIFARDatasetDemo extends ImageCategoryDatasetDemo {
 
+  @Nonnull
+  @Override
+  protected Class<?> getTargetClass() {
+    return CIFAR10.class;
+  }
+
   @Override
   public Stream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(@Nonnull NotebookOutput log) {
     return log.eval(() -> {
       return CIFAR10.trainingDataStream().map(x -> x.map(y -> new SupplierWeakCache<>(() -> y.toImage())));
     });
-  }
-
-  @Nonnull
-  @Override
-  protected Class<?> getTargetClass() {
-    return CIFAR10.class;
   }
 }

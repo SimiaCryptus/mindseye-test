@@ -19,9 +19,9 @@
 
 package com.simiacryptus.mindseye.test;
 
-import com.simiacryptus.ref.lang.ReferenceCountingBase;
 import com.simiacryptus.notebook.MarkdownNotebookOutput;
 import com.simiacryptus.notebook.NotebookOutput;
+import com.simiacryptus.ref.lang.ReferenceCountingBase;
 import com.simiacryptus.util.CodeUtil;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.test.SysOutInterceptor;
@@ -45,6 +45,15 @@ public abstract class NotebookReportBase {
   }
 
   protected String reportingFolder = "reports/_reports";
+
+  public Class<? extends NotebookReportBase> getReportClass() {
+    return getClass();
+  }
+
+  @Nonnull
+  public abstract ReportType getReportType();
+
+  protected abstract Class<?> getTargetClass();
 
   @Nullable
   public static CharSequence printHeader(@Nonnull NotebookOutput log, @Nullable Class<?> networkClass, final CharSequence prefix) {
@@ -85,9 +94,6 @@ public abstract class NotebookReportBase {
     }
   }
 
-  @Nonnull
-  public abstract ReportType getReportType();
-
   public void printHeader(@Nonnull NotebookOutput log) {
     log.setFrontMatterProperty("created_on", new Date().toString());
     log.setFrontMatterProperty("report_type", getReportType().name());
@@ -99,13 +105,9 @@ public abstract class NotebookReportBase {
     log.p("__Report Description:__ " + reportJavadoc);
   }
 
-  public Class<? extends NotebookReportBase> getReportClass() {
-    return getClass();
-  }
-
   public void run(@Nonnull Consumer<NotebookOutput> fn, @Nonnull CharSequence... logPath) {
     try (@Nonnull NotebookOutput log = getLog(logPath)) {
-      withRefLeakMonitor(log, NotebookOutput.concat(this::printHeader, MarkdownNotebookOutput.wrapFrontmatter(fn))::accept);
+      withRefLeakMonitor(log, NotebookOutput.concat(this::printHeader, MarkdownNotebookOutput.wrapFrontmatter(fn)));
     } catch (RuntimeException e) {
       throw e;
     } catch (Throwable e) {
@@ -131,8 +133,6 @@ public abstract class NotebookReportBase {
       throw new RuntimeException(e);
     }
   }
-
-  protected abstract Class<?> getTargetClass();
 
   public enum ReportType {
     Applications,

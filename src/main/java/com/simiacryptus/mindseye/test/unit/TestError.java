@@ -31,9 +31,7 @@ public class TestError extends RuntimeException {
   public TestError(Throwable cause, ComponentTest<?> test, @Nonnull Layer layer) {
     super(String.format("Error in %s apply %s", test, layer), cause);
     this.test = test;
-    this.test.addRef();
     this.layer = layer;
-    this.layer.addRef();
     layer.detach();
   }
 }

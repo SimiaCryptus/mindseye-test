@@ -43,17 +43,17 @@ public class SupplementedProblemData implements ImageProblemData {
     this.inner = inner;
   }
 
-  @Nullable
-  protected static Tensor addNoise(@Nonnull final Tensor tensor) {
-    return tensor.mapParallel((v) -> Math.random() < 0.9 ? v : v + Math.random() * 100);
-  }
-
   public static void printSample(@Nonnull final NotebookOutput log, final Tensor[][] expanded, final int size) {
     @Nonnull final ArrayList<Tensor[]> list = new ArrayList<>(Arrays.asList(expanded));
     Collections.shuffle(list);
     log.p("Expanded Training Data Sample: " + list.stream().limit(size).map(x -> {
       return log.png(x[0].toGrayImage(), "");
     }).reduce((a, b) -> a + b).get());
+  }
+
+  @Nullable
+  protected static Tensor addNoise(@Nonnull final Tensor tensor) {
+    return tensor.mapParallel((v) -> Math.random() < 0.9 ? v : v + Math.random() * 100);
   }
 
   protected static Tensor translate(final int dx, final int dy, @Nonnull final Tensor tensor) {

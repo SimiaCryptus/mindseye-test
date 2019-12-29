@@ -42,23 +42,19 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
   public EquivalencyTester(final double tolerance, final Layer referenceLayer) {
     this.tolerance = tolerance;
     this.reference = referenceLayer;
-    this.reference.addRef();
-  }
-
-  @Override
-  protected void _free() {
-    reference.freeRef();
-    super._free();
   }
 
   public ToleranceStatistics test(@Nullable final Layer subject, @Nonnull final Tensor[] inputPrototype) {
-    if (null == reference || null == subject) return new ToleranceStatistics();
+    if (null == reference || null == subject)
+      return new ToleranceStatistics();
     reference.assertAlive();
-    final Tensor subjectOutput = SimpleEval.run(subject, inputPrototype).getOutputAndFree();
-    final Tensor referenceOutput = SimpleEval.run(reference, false, inputPrototype).getOutputAndFree();
-    @Nonnull Tensor error = null;
-    try {
-      log.info(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get()));
+    final Tensor subjectOutput = SimpleEval.run(subject, inputPrototype).getOutput();
+    final Tensor referenceOutput = SimpleEval.run(reference, false, inputPrototype).getOutput();
+    @Nonnull
+    Tensor error = null;
+    {
+      log.info(String.format("Inputs: %s",
+          Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get()));
       log.info(String.format("Subject Output: %s", subjectOutput.prettyPrint()));
       log.info(String.format("Reference Output: %s", referenceOutput.prettyPrint()));
       error = subjectOutput.minus(referenceOutput);
@@ -69,17 +65,15 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
       log.info(String.format("Accuracy:"));
       log.info(String.format("absoluteTol: %s", result.absoluteTol.toString()));
       log.info(String.format("relativeTol: %s", result.relativeTol.toString()));
-      if (!(result.absoluteTol.getMax() < tolerance)) throw new AssertionError(result.toString());
+      if (!(result.absoluteTol.getMax() < tolerance))
+        throw new AssertionError(result.toString());
       return result;
-    } finally {
-      subjectOutput.freeRef();
-      referenceOutput.freeRef();
-      if (null != error) error.freeRef();
     }
   }
 
   @Override
-  public ToleranceStatistics test(@Nonnull final NotebookOutput output, final Layer subject, @Nonnull final Tensor... inputPrototype) {
+  public ToleranceStatistics test(@Nonnull final NotebookOutput output, final Layer subject,
+                                  @Nonnull final Tensor... inputPrototype) {
     output.h1("Reference Implementation");
     output.p("This key is an alternate implementation which is expected to behave the same as the following key:");
     output.run(() -> {
@@ -97,9 +91,11 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
   @Nonnull
   @Override
   public String toString() {
-    return "EquivalencyTester{" +
-        "reference=" + reference +
-        ", tolerance=" + tolerance +
-        '}';
+    return "EquivalencyTester{" + "reference=" + reference + ", tolerance=" + tolerance + '}';
+  }
+
+  @Override
+  protected void _free() {
+    super._free();
   }
 }

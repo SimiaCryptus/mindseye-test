@@ -29,17 +29,16 @@ import java.util.stream.Stream;
 
 public class CaltechDatasetDemo extends ImageCategoryDatasetDemo {
 
-  @Override
-  public Stream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(@Nonnull NotebookOutput log) {
-    return log.eval(() -> {
-      Stream<LabeledObject<SupplierWeakCache<BufferedImage>>> trainingDataStream = Caltech101.trainingDataStream();
-      return trainingDataStream;
-    });
-  }
-
   @Nonnull
   @Override
   protected Class<?> getTargetClass() {
     return Caltech101.class;
+  }
+
+  @Override
+  public Stream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(@Nonnull NotebookOutput log) {
+    return log.eval(() -> {
+      return Caltech101.trainingDataStream();
+    });
   }
 }

@@ -62,7 +62,8 @@ public abstract class AutoencodingProblem implements Problem {
   private final RevNetworkFactory revFactory;
   private int timeoutMinutes = 1;
 
-  public AutoencodingProblem(final FwdNetworkFactory fwdFactory, final OptimizationStrategy optimizer, final RevNetworkFactory revFactory, final ImageProblemData data, final int features, final double dropout) {
+  public AutoencodingProblem(final FwdNetworkFactory fwdFactory, final OptimizationStrategy optimizer,
+                             final RevNetworkFactory revFactory, final ImageProblemData data, final int features, final double dropout) {
     this.fwdFactory = fwdFactory;
     this.optimizer = optimizer;
     this.revFactory = revFactory;
@@ -109,34 +110,33 @@ public abstract class AutoencodingProblem implements Problem {
     @Nonnull final DAGNetwork revNetwork = revFactory.vectorToImage(log, features);
 
     @Nonnull final PipelineNetwork echoNetwork = new PipelineNetwork(1);
-    echoNetwork.add(fwdNetwork).freeRef();
-    echoNetwork.add(revNetwork).freeRef();
+    echoNetwork.add(fwdNetwork);
+    echoNetwork.add(revNetwork);
 
     @Nonnull final PipelineNetwork supervisedNetwork = new PipelineNetwork(1);
-    supervisedNetwork.add(fwdNetwork).freeRef();
+    supervisedNetwork.add(fwdNetwork);
     @Nonnull final StochasticComponent dropoutNoiseLayer = dropout(dropout);
-    supervisedNetwork.add(dropoutNoiseLayer).freeRef();
-    supervisedNetwork.add(revNetwork).freeRef();
-    supervisedNetwork.wrap(lossLayer(),
-        supervisedNetwork.getHead(),
-        supervisedNetwork.getInput(0)).freeRef();
+    supervisedNetwork.add(dropoutNoiseLayer);
+    supervisedNetwork.add(revNetwork);
+    supervisedNetwork.add(lossLayer(), supervisedNetwork.getHead(), supervisedNetwork.getInput(0));
 
     log.h3("Network Diagrams");
     log.eval(() -> {
-      return Graphviz.fromGraph((Graph) TestUtil.toGraph(fwdNetwork))
-          .height(400).width(600).render(Format.PNG).toImage();
+      return Graphviz.fromGraph((Graph) TestUtil.toGraph(fwdNetwork)).height(400).width(600).render(Format.PNG)
+          .toImage();
     });
     log.eval(() -> {
-      return Graphviz.fromGraph((Graph) TestUtil.toGraph(revNetwork))
-          .height(400).width(600).render(Format.PNG).toImage();
+      return Graphviz.fromGraph((Graph) TestUtil.toGraph(revNetwork)).height(400).width(600).render(Format.PNG)
+          .toImage();
     });
     log.eval(() -> {
-      return Graphviz.fromGraph((Graph) TestUtil.toGraph(supervisedNetwork))
-          .height(400).width(600).render(Format.PNG).toImage();
+      return Graphviz.fromGraph((Graph) TestUtil.toGraph(supervisedNetwork)).height(400).width(600).render(Format.PNG)
+          .toImage();
     });
 
     @Nonnull final TrainingMonitor monitor = new TrainingMonitor() {
       @Nonnull
+      final
       TrainingMonitor inner = TestUtil.getMonitor(history);
 
       @Override
@@ -181,10 +181,10 @@ public abstract class AutoencodingProblem implements Problem {
     @Nonnull final String modelName = "decoder_model" + AutoencodingProblem.modelNo++ + ".json";
     log.p("Saved model as " + log.file(revNetwork.getJson().toString(), modelName, modelName));
 
-//    log.h3("Metrics");
-//    log.run(() -> {
-//      return TestUtil.toFormattedJson(monitoringRoot.getMetrics());
-//    });
+    //    log.h3("Metrics");
+    //    log.run(() -> {
+    //      return TestUtil.toFormattedJson(monitoringRoot.getMetrics());
+    //    });
 
     log.h3("Validation");
 
@@ -206,15 +206,17 @@ public abstract class AutoencodingProblem implements Problem {
     return this;
   }
 
+  @Nonnull
+  public LinkedHashMap<CharSequence, Object> toRow(@Nonnull final NotebookOutput log,
+                                                   @Nonnull final LabeledObject<Tensor> labeledObject, final double[] predictionSignal) {
+    @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();
+    row.put("Image", log.png(labeledObject.data.toImage(), labeledObject.label));
+    row.put("Echo",
+        log.png(new Tensor(predictionSignal, labeledObject.data.getDimensions()).toImage(), labeledObject.label));
+    return row;
+  }
+
   protected abstract Layer lossLayer();
 
   protected abstract StochasticComponent dropout(double dropout);
-
-  @Nonnull
-  public LinkedHashMap<CharSequence, Object> toRow(@Nonnull final NotebookOutput log, @Nonnull final LabeledObject<Tensor> labeledObject, final double[] predictionSignal) {
-    @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();
-    row.put("Image", log.png(labeledObject.data.toImage(), labeledObject.label));
-    row.put("Echo", log.png(new Tensor(predictionSignal, labeledObject.data.getDimensions()).toImage(), labeledObject.label));
-    return row;
-  }
 }

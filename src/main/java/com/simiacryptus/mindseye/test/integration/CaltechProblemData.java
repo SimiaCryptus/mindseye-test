@@ -43,16 +43,6 @@ public class CaltechProblemData implements ImageProblemData {
     this.imageSize = imageSize;
   }
 
-  @Override
-  public Stream<LabeledObject<Tensor>> trainingData() {
-    return Caltech101.trainingDataStream().parallel().map(x -> x.map(y -> Tensor.fromRGB(ImageUtil.resize(y.get(), getImageSize()))));
-  }
-
-  @Override
-  public Stream<LabeledObject<Tensor>> validationData() {
-    return trainingData();
-  }
-
   public int getImageSize() {
     return imageSize;
   }
@@ -67,6 +57,16 @@ public class CaltechProblemData implements ImageProblemData {
       }
     }
     return labels;
+  }
+
+  @Override
+  public Stream<LabeledObject<Tensor>> trainingData() {
+    return Caltech101.trainingDataStream().parallel().map(x -> x.map(y -> Tensor.fromRGB(ImageUtil.resize(y.get(), getImageSize()))));
+  }
+
+  @Override
+  public Stream<LabeledObject<Tensor>> validationData() {
+    return trainingData();
   }
 
 }

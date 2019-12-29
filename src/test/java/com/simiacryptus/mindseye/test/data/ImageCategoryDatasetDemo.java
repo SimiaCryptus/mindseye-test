@@ -35,6 +35,17 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
+  @Nonnull
+  @Override
+  public ReportType getReportType() {
+    return ReportType.Data;
+  }
+
+  public <T> Comparator<T> getShuffleComparator() {
+    final int seed = (int) ((System.nanoTime() >>> 8) % (Integer.MAX_VALUE - 84));
+    return Comparator.comparingInt(a1 -> System.identityHashCode(a1) ^ seed);
+  }
+
   @Test
   public void run() {
     run(this::run);
@@ -62,15 +73,4 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
   }
 
   public abstract Stream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(NotebookOutput log);
-
-  public <T> Comparator<T> getShuffleComparator() {
-    final int seed = (int) ((System.nanoTime() >>> 8) % (Integer.MAX_VALUE - 84));
-    return Comparator.comparingInt(a1 -> System.identityHashCode(a1) ^ seed);
-  }
-
-  @Nonnull
-  @Override
-  public ReportType getReportType() {
-    return ReportType.Data;
-  }
 }

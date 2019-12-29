@@ -19,8 +19,8 @@
 
 package com.simiacryptus.mindseye.test;
 
-import com.simiacryptus.ref.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.ref.lang.ReferenceCountingBase;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -40,14 +40,30 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
   @Nullable
   private Tensor output;
 
-
   public SimpleEval(@Nonnull final Layer layer, @Nonnull final Tensor... input) {
     this.layer = layer;
     this.input = input;
     this.derivative = null;
     this.output = null;
-    for (@Nonnull Tensor x : input) x.addRef();
-    layer.addRef();
+  }
+
+  @Nullable
+  public Tensor[] getDerivative() {
+    return derivative;
+  }
+
+  @Nullable
+  public Tensor getOutput() {
+    return output;
+  }
+
+  public boolean isCalcDerivative() {
+    return calcDerivative;
+  }
+
+  public SimpleEval setValidateDerivative(boolean calcDerivative) {
+    this.calcDerivative = calcDerivative;
+    return this;
   }
 
   @Nonnull
@@ -60,40 +76,26 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
     return new SimpleEval(layer, tensor).setValidateDerivative(validateDerivative).call();
   }
 
-  @Override
-  protected void _free() {
-    for (@Nonnull Tensor x : input) x.freeRef();
-    layer.freeRef();
-    if (null != derivative) for (@Nonnull Tensor x : derivative) x.freeRef();
-    synchronized (this) {
-      if (null != output) {
-        output.freeRef();
-        output = null;
-      }
-    }
-  }
-
   @Nonnull
   @Override
   public SimpleEval call() {
     Tensor[] inputCopy = Arrays.stream(input).map(x -> x.copy()).toArray(i -> new Tensor[i]);
     derivative = Arrays.stream(inputCopy).map(input -> new Tensor(input.getDimensions())).toArray(i -> new Tensor[i]);
     Result[] input = IntStream.range(0, inputCopy.length).mapToObj(i -> {
-      return new Result(TensorArray.create(inputCopy[i]), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
-        data.stream().forEach(t -> {
-          derivative[i].addInPlace(t);
-          t.freeRef();
-        });
-        data.freeRef();
-      }) {
-        @Override
-        protected void _free() {
-
-        }
-
+      return new Result(new TensorArray(inputCopy[i]),
+          (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
+            data.stream().forEach(t -> {
+              derivative[i].addInPlace(t);
+            });
+          }) {
         @Override
         public boolean isAlive() {
           return true;
+        }
+
+        @Override
+        protected void _free() {
+
         }
       };
     }).toArray(i -> new Result[i]);
@@ -101,22 +103,20 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
     try {
       eval = layer.eval(input);
     } finally {
-      for (@Nonnull Result result : input) {
-        result.getData().freeRef();
-        result.freeRef();
-      }
-      for (@Nonnull Tensor tensor : inputCopy) {
-        tensor.freeRef();
+      for (@Nonnull
+          Result result : input) {
+        result.getData();
       }
     }
     TensorList evalData = eval.getData();
     TensorList outputTensorList = evalData.copy();
-    @Nullable Tensor outputTensor = outputTensorList.get(0);
-    @Nonnull DeltaSet<UUID> deltaSet = new DeltaSet<>();
-    try {
+    @Nullable
+    Tensor outputTensor = outputTensorList.get(0);
+    @Nonnull
+    DeltaSet<UUID> deltaSet = new DeltaSet<>();
+    {
       synchronized (this) {
         if (null != output) {
-          output.freeRef();
           output = null;
         }
       }
@@ -125,48 +125,22 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
         eval.accumulate(deltaSet, getFeedback(outputTensorList));
       }
       return this;
-    } finally {
-      outputTensor.freeRef();
-      evalData.freeRef();
-      outputTensorList.freeRef();
-      eval.freeRef();
-      deltaSet.freeRef();
     }
-  }
-
-  @Nullable
-  public Tensor[] getDerivative() {
-    return derivative;
   }
 
   @Nonnull
   public TensorList getFeedback(@Nonnull final TensorList data) {
-    return TensorArray.wrap(data.stream().map(t -> {
-      @Nullable Tensor map = t.map(v -> 1.0);
-      t.freeRef();
-      return map;
+    return new TensorArray(data.stream().map(t -> {
+      return t.map(v -> 1.0);
     }).toArray(i -> new Tensor[i]));
   }
 
-  @Nullable
-  public Tensor getOutput() {
-    return output;
-  }
-
-  @Nullable
-  public Tensor getOutputAndFree() {
-    Tensor output = this.output;
-    output.addRef();
-    freeRef();
-    return output;
-  }
-
-  public boolean isCalcDerivative() {
-    return calcDerivative;
-  }
-
-  public SimpleEval setValidateDerivative(boolean calcDerivative) {
-    this.calcDerivative = calcDerivative;
-    return this;
+  @Override
+  protected void _free() {
+    synchronized (this) {
+      if (null != output) {
+        output = null;
+      }
+    }
   }
 }

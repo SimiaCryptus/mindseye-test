@@ -171,7 +171,7 @@ public abstract class EncodingProblem implements Problem {
     }
 
     try {
-      @Nonnull String filename = log.getName().toString() + EncodingProblem.modelNo++ + "_plot.png";
+      @Nonnull String filename = log.getName() + EncodingProblem.modelNo++ + "_plot.png";
       ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", log.file(filename));
       log.appendFrontMatterProperty("result_plot", filename, ";");
     } catch (IOException e) {
@@ -228,14 +228,5 @@ public abstract class EncodingProblem implements Problem {
   }
 
   protected abstract DAGNetwork trainingNetwork(DAGNetwork imageNetwork);
-  //    @Nonnull final PipelineNetwork trainingNetwork = new PipelineNetwork(2);
-//    @Nullable final DAGNode image = trainingNetwork.add(imageNetwork, trainingNetwork.getInput(0));
-//    @Nullable final DAGNode softmax = trainingNetwork.add(new SoftmaxActivationLayer(), trainingNetwork.getInput(0));
-//    trainingNetwork.add(new SumInputsLayer(),
-//        trainingNetwork.add(new EntropyLossLayer(), softmax, softmax),
-//        trainingNetwork.add(new NthPowerActivationLayer().setPower(1.0 / 2.0),
-//            trainingNetwork.add(new MeanSqLossLayer(), image, trainingNetwork.getInput(1))
-//        )
-//    ).freeRef();
 
 }

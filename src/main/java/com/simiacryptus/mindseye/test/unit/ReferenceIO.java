@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.test.unit;
 
-import com.simiacryptus.ref.lang.ReferenceCounting;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.SimpleEval;
@@ -33,22 +32,16 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
-  HashMap<Tensor[], Tensor> referenceIO;
+  final HashMap<Tensor[], Tensor> referenceIO;
 
   public ReferenceIO(final HashMap<Tensor[], Tensor> referenceIO) {
     this.referenceIO = referenceIO;
   }
 
-  @Override
-  protected void _free() {
-    referenceIO.keySet().stream().flatMap(x -> Arrays.stream(x)).forEach(ReferenceCounting::freeRef);
-    referenceIO.values().forEach(ReferenceCounting::freeRef);
-    super._free();
-  }
-
   @Nullable
   @Override
-  public ToleranceStatistics test(@Nonnull final NotebookOutput log, @Nonnull final Layer layer, @Nonnull final Tensor... inputPrototype) {
+  public ToleranceStatistics test(@Nonnull final NotebookOutput log, @Nonnull final Layer layer,
+                                  @Nonnull final Tensor... inputPrototype) {
     if (!referenceIO.isEmpty()) {
       log.h1("Reference Input/Output Pairs");
       log.p("Display pre-setBytes input/output example pairs:");
@@ -58,15 +51,12 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
           Tensor evalOutput = eval.getOutput();
           Tensor difference = output.scale(-1).addAndFree(evalOutput);
           @Nonnull final DoubleStatistics error = new DoubleStatistics().accept(difference.getData());
-          String format = String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n%s\nError: %s\n--------------------\nDerivative: \n%s",
-              Arrays.stream(input).map(t -> Arrays.toString(t.getDimensions()) + "\n" + t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
-              Arrays.toString(evalOutput.getDimensions()),
-              evalOutput.prettyPrint(),
-              error,
+          return String.format(
+              "--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n%s\nError: %s\n--------------------\nDerivative: \n%s",
+              Arrays.stream(input).map(t -> Arrays.toString(t.getDimensions()) + "\n" + t.prettyPrint())
+                  .reduce((a, b) -> a + ",\n" + b).get(),
+              Arrays.toString(evalOutput.getDimensions()), evalOutput.prettyPrint(), error,
               Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
-          difference.freeRef();
-          eval.freeRef();
-          return format;
         });
       });
     } else {
@@ -75,13 +65,11 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
       log.eval(() -> {
         @Nonnull final SimpleEval eval = SimpleEval.run(layer, inputPrototype);
         Tensor evalOutput = eval.getOutput();
-        String format = String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n%s\n--------------------\nDerivative: \n%s",
+        return String.format(
+            "--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n%s\n--------------------\nDerivative: \n%s",
             Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).orElse(""),
-            Arrays.toString(evalOutput.getDimensions()),
-            evalOutput.prettyPrint(),
+            Arrays.toString(evalOutput.getDimensions()), evalOutput.prettyPrint(),
             Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).orElse(""));
-        eval.freeRef();
-        return format;
       });
     }
     return null;
@@ -90,8 +78,11 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
   @Nonnull
   @Override
   public String toString() {
-    return "ReferenceIO{" +
-        "referenceIO=" + referenceIO +
-        '}';
+    return "ReferenceIO{" + "referenceIO=" + referenceIO + '}';
+  }
+
+  @Override
+  protected void _free() {
+    super._free();
   }
 }

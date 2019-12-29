@@ -77,6 +77,15 @@ public abstract class ClassifyProblem implements Problem {
     }
   }
 
+  public int getBatchSize() {
+    return batchSize;
+  }
+
+  @Nonnull
+  public ClassifyProblem setBatchSize(int batchSize) {
+    this.batchSize = batchSize;
+    return this;
+  }
 
   @Nonnull
   @Override
@@ -175,7 +184,7 @@ public abstract class ClassifyProblem implements Problem {
       try {
         @Nonnull final TableOutput table = new TableOutput();
         Lists.partition(data.validationData().collect(Collectors.toList()), 100).stream().flatMap(batch -> {
-          @Nonnull TensorList batchIn = TensorArray.create(batch.stream().map(x -> x.data).toArray(i -> new Tensor[i]));
+          @Nonnull TensorList batchIn = new TensorArray(batch.stream().map(x -> x.data).toArray(i1 -> new Tensor[i1]));
           TensorList batchOut = network.eval(new ConstantResult(batchIn)).getData();
           return IntStream.range(0, batchOut.length())
               .mapToObj(i -> toRow(log, batch.get(i), batchOut.get(i).getData()));
@@ -187,8 +196,6 @@ public abstract class ClassifyProblem implements Problem {
     });
     return this;
   }
-
-  protected abstract Layer lossLayer();
 
   @Nullable
   public LinkedHashMap<CharSequence, Object> toRow(@Nonnull final NotebookOutput log, @Nonnull final LabeledObject<Tensor> labeledObject, final double[] predictionSignal) {
@@ -203,13 +210,5 @@ public abstract class ClassifyProblem implements Problem {
     return row;
   }
 
-  public int getBatchSize() {
-    return batchSize;
-  }
-
-  @Nonnull
-  public ClassifyProblem setBatchSize(int batchSize) {
-    this.batchSize = batchSize;
-    return this;
-  }
+  protected abstract Layer lossLayer();
 }

@@ -46,81 +46,6 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
   private final HashMap<SerialPrecision, Layer> models = new HashMap<>();
   private boolean persist = false;
 
-  public static byte[] compressGZ(@Nonnull String prettyPrint) {
-    return compressGZ(prettyPrint.getBytes(Charset.forName("UTF-8")));
-  }
-
-  public static byte[] compressGZ(byte[] bytes) {
-    @Nonnull ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-    try {
-      try (@Nonnull GZIPOutputStream out = new GZIPOutputStream(byteArrayOutputStream)) {
-        IOUtils.write(bytes, out);
-      }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    return byteArrayOutputStream.toByteArray();
-  }
-
-  @Nullable
-  @Override
-  public ToleranceStatistics test(@Nonnull final NotebookOutput log, @Nonnull final Layer layer, final Tensor... inputPrototype) {
-    log.h1("Serialization");
-    log.p("This apply will demonstrate the key's JSON serialization, and verify deserialization integrity.");
-
-    String prettyPrint = "";
-    log.h2("Raw Json");
-    try {
-      prettyPrint = log.eval(() -> {
-        final JsonObject json = layer.getJson().getAsJsonObject();
-        @Nonnull final Layer echo = Layer.fromJson(json);
-        if (echo == null) throw new AssertionError("Failed to deserialize");
-        if (layer == echo) throw new AssertionError("Serialization did not copy");
-        if (!layer.equals(echo)) throw new AssertionError("Serialization not equal");
-        echo.freeRef();
-        return new GsonBuilder().setPrettyPrinting().create().toJson(json);
-      });
-      @Nonnull String filename = layer.getClass().getSimpleName() + "_" + log.getName() + ".json";
-      log.p(log.file(prettyPrint, filename, String.format("Wrote Model to %s; %s characters", filename, prettyPrint.length())));
-    } catch (RuntimeException e) {
-      e.printStackTrace();
-      Util.sleep(1000);
-    } catch (OutOfMemoryError e) {
-      e.printStackTrace();
-      Util.sleep(1000);
-    }
-    log.p("");
-    @Nonnull Object outSync = new Object();
-    if (prettyPrint.isEmpty() || prettyPrint.length() > 1024 * 64)
-      Arrays.stream(SerialPrecision.values()).parallel().forEach(precision -> {
-        try {
-          @Nonnull File file = new File(log.getResourceDir(), log.getName() + "_" + precision.name() + ".zip");
-          layer.writeZip(file, precision);
-          @Nonnull final Layer echo = Layer.fromZip(new ZipFile(file));
-          getModels().put(precision, echo);
-          synchronized (outSync) {
-            log.h2(String.format("Zipfile %s", precision.name()));
-            log.p(log.link(file, String.format("Wrote Model apply %s precision to %s; %.3fMiB bytes", precision, file.getName(), file.length() * 1.0 / (0x100000))));
-          }
-          if (!isPersist()) file.delete();
-          if (echo == null) throw new AssertionError("Failed to deserialize");
-          if (layer == echo) throw new AssertionError("Serialization did not copy");
-          if (!layer.equals(echo)) throw new AssertionError("Serialization not equal");
-          echo.freeRef();
-        } catch (RuntimeException e) {
-          e.printStackTrace();
-        } catch (OutOfMemoryError e) {
-          e.printStackTrace();
-        } catch (ZipException e) {
-          e.printStackTrace();
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      });
-
-    return null;
-  }
-
   @Nonnull
   public HashMap<SerialPrecision, Layer> getModels() {
     return models;
@@ -136,12 +61,97 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
     return this;
   }
 
+  public static byte[] compressGZ(@Nonnull String prettyPrint) {
+    return compressGZ(prettyPrint.getBytes(Charset.forName("UTF-8")));
+  }
+
+  public static byte[] compressGZ(byte[] bytes) {
+    @Nonnull
+    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+    try {
+      try (@Nonnull
+           GZIPOutputStream out = new GZIPOutputStream(byteArrayOutputStream)) {
+        IOUtils.write(bytes, out);
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    return byteArrayOutputStream.toByteArray();
+  }
+
+  @Nullable
+  @Override
+  public ToleranceStatistics test(@Nonnull final NotebookOutput log, @Nonnull final Layer layer,
+                                  final Tensor... inputPrototype) {
+    log.h1("Serialization");
+    log.p("This apply will demonstrate the key's JSON serialization, and verify deserialization integrity.");
+
+    String prettyPrint = "";
+    log.h2("Raw Json");
+    try {
+      prettyPrint = log.eval(() -> {
+        final JsonObject json = layer.getJson().getAsJsonObject();
+        @Nonnull final Layer echo = Layer.fromJson(json);
+        if (echo == null)
+          throw new AssertionError("Failed to deserialize");
+        if (layer == echo)
+          throw new AssertionError("Serialization did not copy");
+        if (!layer.equals(echo))
+          throw new AssertionError("Serialization not equal");
+        return new GsonBuilder().setPrettyPrinting().create().toJson(json);
+      });
+      @Nonnull
+      String filename = layer.getClass().getSimpleName() + "_" + log.getName() + ".json";
+      log.p(log.file(prettyPrint, filename,
+          String.format("Wrote Model to %s; %s characters", filename, prettyPrint.length())));
+    } catch (RuntimeException e) {
+      e.printStackTrace();
+      Util.sleep(1000);
+    } catch (OutOfMemoryError e) {
+      e.printStackTrace();
+      Util.sleep(1000);
+    }
+    log.p("");
+    @Nonnull
+    Object outSync = new Object();
+    if (prettyPrint.isEmpty() || prettyPrint.length() > 1024 * 64)
+      Arrays.stream(SerialPrecision.values()).parallel().forEach(precision -> {
+        try {
+          @Nonnull
+          File file = new File(log.getResourceDir(), log.getName() + "_" + precision.name() + ".zip");
+          layer.writeZip(file, precision);
+          @Nonnull final Layer echo = Layer.fromZip(new ZipFile(file));
+          getModels().put(precision, echo);
+          synchronized (outSync) {
+            log.h2(String.format("Zipfile %s", precision.name()));
+            log.p(log.link(file, String.format("Wrote Model apply %s precision to %s; %.3fMiB bytes", precision,
+                file.getName(), file.length() * 1.0 / (0x100000))));
+          }
+          if (!isPersist())
+            file.delete();
+          if (echo == null)
+            throw new AssertionError("Failed to deserialize");
+          if (layer == echo)
+            throw new AssertionError("Serialization did not copy");
+          if (!layer.equals(echo))
+            throw new AssertionError("Serialization not equal");
+        } catch (RuntimeException e) {
+          e.printStackTrace();
+        } catch (OutOfMemoryError e) {
+          e.printStackTrace();
+        } catch (ZipException e) {
+          e.printStackTrace();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      });
+
+    return null;
+  }
+
   @Nonnull
   @Override
   public String toString() {
-    return "SerializationTest{" +
-        "models=" + models +
-        ", persist=" + persist +
-        '}';
+    return "SerializationTest{" + "models=" + models + ", persist=" + persist + '}';
   }
 }

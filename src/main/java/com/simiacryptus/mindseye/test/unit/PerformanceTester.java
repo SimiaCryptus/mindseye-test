@@ -100,22 +100,25 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
       return testPerformance(component, inputPrototype);
     }).collect(Collectors.toList());
     if (isTestEvaluation()) {
-      @Nonnull final DoubleStatistics statistics = new DoubleStatistics().accept(performance.stream().mapToDouble(x -> x._1).toArray());
-      log.info(String.format("\tEvaluation performance: %.6fs +- %.6fs [%.6fs - %.6fs]",
-          statistics.getAverage(), statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
+      @Nonnull final DoubleStatistics statistics = new DoubleStatistics()
+          .accept(performance.stream().mapToDouble(x -> x._1).toArray());
+      log.info(String.format("\tEvaluation performance: %.6fs +- %.6fs [%.6fs - %.6fs]", statistics.getAverage(),
+          statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
     }
     if (isTestLearning()) {
-      @Nonnull final DoubleStatistics statistics = new DoubleStatistics().accept(performance.stream().mapToDouble(x -> x._2).toArray());
+      @Nonnull final DoubleStatistics statistics = new DoubleStatistics()
+          .accept(performance.stream().mapToDouble(x -> x._2).toArray());
       if (null != statistics) {
-        log.info(String.format("\tLearning performance: %.6fs +- %.6fs [%.6fs - %.6fs]",
-            statistics.getAverage(), statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
+        log.info(String.format("\tLearning performance: %.6fs +- %.6fs [%.6fs - %.6fs]", statistics.getAverage(),
+            statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
       }
     }
   }
 
   @Nullable
   @Override
-  public ToleranceStatistics test(@Nonnull final NotebookOutput log, final Layer component, @Nonnull final Tensor... inputPrototype) {
+  public ToleranceStatistics test(@Nonnull final NotebookOutput log, final Layer component,
+                                  @Nonnull final Tensor... inputPrototype) {
     log.h1("Performance");
     if (component instanceof DAGNetwork) {
       TestUtil.instrumentPerformance((DAGNetwork) component);
@@ -131,17 +134,27 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   }
 
   @Nonnull
+  @Override
+  public String toString() {
+    return "PerformanceTester{" + "batches=" + batches + ", samples=" + samples + ", testEvaluation=" + testEvaluation
+        + ", testLearning=" + testLearning + '}';
+  }
+
+  @Nonnull
   protected Tuple2<Double, Double> testPerformance(@Nonnull final Layer component, final Tensor... inputPrototype) {
-    final Tensor[][] data = IntStream.range(0, batches).mapToObj(x -> x).flatMap(x -> Stream.<Tensor[]>of(inputPrototype)).toArray(i -> new Tensor[i][]);
-    @Nonnull TimedResult<Result> timedEval = TimedResult.time(() -> {
+    final Tensor[][] data = IntStream.range(0, batches).mapToObj(x -> x)
+        .flatMap(x -> Stream.<Tensor[]>of(inputPrototype)).toArray(i -> new Tensor[i][]);
+    @Nonnull
+    TimedResult<Result> timedEval = TimedResult.time(() -> {
       Result[] input = ConstantResult.batchResultArray(data);
-      @Nullable Result result;
+      @Nullable
+      Result result;
       try {
         result = component.eval(input);
       } finally {
-        for (@Nonnull Result nnResult : input) {
-          nnResult.freeRef();
-          nnResult.getData().freeRef();
+        for (@Nonnull
+            Result nnResult : input) {
+          nnResult.getData();
         }
       }
       return result;
@@ -150,28 +163,16 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
     @Nonnull final DeltaSet<UUID> buffer = new DeltaSet<UUID>();
     try {
       long timedBackprop = TimedResult.time(() -> {
-        @Nonnull TensorArray tensorArray = TensorArray.wrap(result.getData().stream().map(x -> {
-          return x.mapAndFree(v -> 1.0);
+        @Nonnull
+        TensorArray tensorArray = new TensorArray(result.getData().stream().map(x -> {
+          return x.map(v -> 1.0);
         }).toArray(i -> new Tensor[i]));
         result.accumulate(buffer, tensorArray);
         return buffer;
       }).timeNanos;
       return new Tuple2<>(timedEval.timeNanos / 1e9, timedBackprop / 1e9);
     } finally {
-      buffer.freeRef();
-      result.freeRef();
-      result.getData().freeRef();
+      result.getData();
     }
-  }
-
-  @Nonnull
-  @Override
-  public String toString() {
-    return "PerformanceTester{" +
-        "batches=" + batches +
-        ", samples=" + samples +
-        ", testEvaluation=" + testEvaluation +
-        ", testLearning=" + testLearning +
-        '}';
   }
 }
