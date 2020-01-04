@@ -37,15 +37,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
-import com.simiacryptus.ref.wrappers.RefArrays;
-import com.simiacryptus.ref.wrappers.RefList;
-import com.simiacryptus.ref.wrappers.RefStream;
 
-public @com.simiacryptus.ref.lang.RefAware class CIFAR10 {
+public @com.simiacryptus.ref.lang.RefAware
+class CIFAR10 {
 
   @Nullable
   private static final DataLoader<LabeledObject<Tensor>> training = new DataLoader<LabeledObject<Tensor>>() {
@@ -60,10 +55,8 @@ public @com.simiacryptus.ref.lang.RefAware class CIFAR10 {
           throw new RuntimeException(e);
         }
         final int recordSize = 3073;
-        @Nonnull
-        final GZIPInputStream inflatedInput = new GZIPInputStream(stream);
-        @Nullable
-        final TarArchiveInputStream tar = new TarArchiveInputStream(inflatedInput);
+        @Nonnull final GZIPInputStream inflatedInput = new GZIPInputStream(stream);
+        @Nullable final TarArchiveInputStream tar = new TarArchiveInputStream(inflatedInput);
         while (0 < inflatedInput.available()) {
           if (Thread.interrupted()) {
             break;
@@ -72,8 +65,7 @@ public @com.simiacryptus.ref.lang.RefAware class CIFAR10 {
           if (null == nextTarEntry) {
             break;
           }
-          @Nonnull
-          final BinaryChunkIterator iterator = new BinaryChunkIterator(
+          @Nonnull final BinaryChunkIterator iterator = new BinaryChunkIterator(
               new DataInputStream(new BoundedInputStream(tar, nextTarEntry.getSize())), recordSize);
           for (final byte[] chunk : (Iterable<byte[]>) () -> iterator) {
             queue.add(CIFAR10.toImage(chunk).map(img -> Tensor.fromRGB(img)));
@@ -96,8 +88,7 @@ public @com.simiacryptus.ref.lang.RefAware class CIFAR10 {
   }
 
   private static LabeledObject<BufferedImage> toImage(final byte[] b) {
-    @Nonnull
-    final BufferedImage img = new BufferedImage(32, 32, BufferedImage.TYPE_INT_RGB);
+    @Nonnull final BufferedImage img = new BufferedImage(32, 32, BufferedImage.TYPE_INT_RGB);
     for (int x = 0; x < img.getWidth(); x++) {
       for (int y = 0; y < img.getHeight(); y++) {
         final int red = 0xFF & b[1 + 1024 * 0 + x + y * 32];
@@ -107,7 +98,7 @@ public @com.simiacryptus.ref.lang.RefAware class CIFAR10 {
         img.setRGB(x, y, c);
       }
     }
-    return new LabeledObject<>(img, com.simiacryptus.ref.wrappers.RefArrays.toString(new byte[] { b[0] }));
+    return new LabeledObject<>(img, com.simiacryptus.ref.wrappers.RefArrays.toString(new byte[]{b[0]}));
   }
 
 }

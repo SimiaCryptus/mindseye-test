@@ -25,15 +25,30 @@ import com.simiacryptus.util.test.LabeledObject;
 
 import javax.annotation.Nonnull;
 import java.awt.image.BufferedImage;
-import java.util.stream.Stream;
-import com.simiacryptus.ref.wrappers.RefStream;
 
-public @com.simiacryptus.ref.lang.RefAware class MNistDatasetDemo extends ImageCategoryDatasetDemo {
+public @com.simiacryptus.ref.lang.RefAware
+class MNistDatasetDemo extends ImageCategoryDatasetDemo {
 
   @Nonnull
   @Override
   protected Class<?> getTargetClass() {
     return MNIST.class;
+  }
+
+  public static @SuppressWarnings("unused")
+  MNistDatasetDemo[] addRefs(MNistDatasetDemo[] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(MNistDatasetDemo::addRef)
+        .toArray((x) -> new MNistDatasetDemo[x]);
+  }
+
+  public static @SuppressWarnings("unused")
+  MNistDatasetDemo[][] addRefs(MNistDatasetDemo[][] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(MNistDatasetDemo::addRefs)
+        .toArray((x) -> new MNistDatasetDemo[x][]);
   }
 
   @Override
@@ -44,24 +59,13 @@ public @com.simiacryptus.ref.lang.RefAware class MNistDatasetDemo extends ImageC
     });
   }
 
-  public @SuppressWarnings("unused") void _free() {
+  public @SuppressWarnings("unused")
+  void _free() {
   }
 
-  public @Override @SuppressWarnings("unused") MNistDatasetDemo addRef() {
+  public @Override
+  @SuppressWarnings("unused")
+  MNistDatasetDemo addRef() {
     return (MNistDatasetDemo) super.addRef();
-  }
-
-  public static @SuppressWarnings("unused") MNistDatasetDemo[] addRefs(MNistDatasetDemo[] array) {
-    if (array == null)
-      return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(MNistDatasetDemo::addRef)
-        .toArray((x) -> new MNistDatasetDemo[x]);
-  }
-
-  public static @SuppressWarnings("unused") MNistDatasetDemo[][] addRefs(MNistDatasetDemo[][] array) {
-    if (array == null)
-      return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(MNistDatasetDemo::addRefs)
-        .toArray((x) -> new MNistDatasetDemo[x][]);
   }
 }

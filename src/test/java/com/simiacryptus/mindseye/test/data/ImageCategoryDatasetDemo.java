@@ -29,16 +29,9 @@ import org.junit.Test;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.awt.image.BufferedImage;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import com.simiacryptus.ref.wrappers.RefComparator;
-import com.simiacryptus.ref.wrappers.RefList;
-import com.simiacryptus.ref.wrappers.RefCollectors;
-import com.simiacryptus.ref.wrappers.RefStream;
 
-public abstract @com.simiacryptus.ref.lang.RefAware class ImageCategoryDatasetDemo extends NotebookReportBase {
+public abstract @com.simiacryptus.ref.lang.RefAware
+class ImageCategoryDatasetDemo extends NotebookReportBase {
   @Nonnull
   @Override
   public ReportType getReportType() {
@@ -48,6 +41,22 @@ public abstract @com.simiacryptus.ref.lang.RefAware class ImageCategoryDatasetDe
   public <T> com.simiacryptus.ref.wrappers.RefComparator<T> getShuffleComparator() {
     final int seed = (int) ((System.nanoTime() >>> 8) % (Integer.MAX_VALUE - 84));
     return com.simiacryptus.ref.wrappers.RefComparator.comparingInt(a1 -> System.identityHashCode(a1) ^ seed);
+  }
+
+  public static @SuppressWarnings("unused")
+  ImageCategoryDatasetDemo[] addRefs(ImageCategoryDatasetDemo[] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(ImageCategoryDatasetDemo::addRef)
+        .toArray((x) -> new ImageCategoryDatasetDemo[x]);
+  }
+
+  public static @SuppressWarnings("unused")
+  ImageCategoryDatasetDemo[][] addRefs(ImageCategoryDatasetDemo[][] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(ImageCategoryDatasetDemo::addRefs)
+        .toArray((x) -> new ImageCategoryDatasetDemo[x][]);
   }
 
   @Test
@@ -82,24 +91,13 @@ public abstract @com.simiacryptus.ref.lang.RefAware class ImageCategoryDatasetDe
   public abstract com.simiacryptus.ref.wrappers.RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(
       NotebookOutput log);
 
-  public @SuppressWarnings("unused") void _free() {
+  public @SuppressWarnings("unused")
+  void _free() {
   }
 
-  public @Override @SuppressWarnings("unused") ImageCategoryDatasetDemo addRef() {
+  public @Override
+  @SuppressWarnings("unused")
+  ImageCategoryDatasetDemo addRef() {
     return (ImageCategoryDatasetDemo) super.addRef();
-  }
-
-  public static @SuppressWarnings("unused") ImageCategoryDatasetDemo[] addRefs(ImageCategoryDatasetDemo[] array) {
-    if (array == null)
-      return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(ImageCategoryDatasetDemo::addRef)
-        .toArray((x) -> new ImageCategoryDatasetDemo[x]);
-  }
-
-  public static @SuppressWarnings("unused") ImageCategoryDatasetDemo[][] addRefs(ImageCategoryDatasetDemo[][] array) {
-    if (array == null)
-      return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(ImageCategoryDatasetDemo::addRefs)
-        .toArray((x) -> new ImageCategoryDatasetDemo[x][]);
   }
 }

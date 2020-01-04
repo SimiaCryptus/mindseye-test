@@ -23,10 +23,9 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.test.LabeledObject;
 
 import java.io.IOException;
-import java.util.stream.Stream;
-import com.simiacryptus.ref.wrappers.RefStream;
 
-public @com.simiacryptus.ref.lang.RefAware interface ImageProblemData {
+public @com.simiacryptus.ref.lang.RefAware
+interface ImageProblemData {
   com.simiacryptus.ref.wrappers.RefStream<LabeledObject<Tensor>> trainingData() throws IOException;
 
   com.simiacryptus.ref.wrappers.RefStream<LabeledObject<Tensor>> validationData() throws IOException;

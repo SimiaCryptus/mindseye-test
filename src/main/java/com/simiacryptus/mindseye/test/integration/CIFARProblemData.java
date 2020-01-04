@@ -25,10 +25,8 @@ import com.simiacryptus.util.test.LabeledObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.stream.Stream;
-import com.simiacryptus.ref.wrappers.RefStream;
-
-public @com.simiacryptus.ref.lang.RefAware class CIFARProblemData implements ImageProblemData {
+public @com.simiacryptus.ref.lang.RefAware
+class CIFARProblemData implements ImageProblemData {
   private static final Logger log = LoggerFactory.getLogger(CIFARProblemData.class);
 
   @Override

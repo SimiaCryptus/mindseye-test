@@ -32,19 +32,10 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
-import com.simiacryptus.ref.wrappers.RefArrays;
-import com.simiacryptus.ref.wrappers.RefList;
-import com.simiacryptus.ref.wrappers.RefCollectors;
-import com.simiacryptus.ref.wrappers.RefIntStream;
-import com.simiacryptus.ref.wrappers.RefStream;
 
-public @com.simiacryptus.ref.lang.RefAware class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
+public @com.simiacryptus.ref.lang.RefAware
+class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   static final Logger log = LoggerFactory.getLogger(PerformanceTester.class);
 
   private int batches = 100;
@@ -90,6 +81,22 @@ public @com.simiacryptus.ref.lang.RefAware class PerformanceTester extends Compo
     return testLearning;
   }
 
+  public static @SuppressWarnings("unused")
+  PerformanceTester[] addRefs(PerformanceTester[] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(PerformanceTester::addRef)
+        .toArray((x) -> new PerformanceTester[x]);
+  }
+
+  public static @SuppressWarnings("unused")
+  PerformanceTester[][] addRefs(PerformanceTester[][] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(PerformanceTester::addRefs)
+        .toArray((x) -> new PerformanceTester[x][]);
+  }
+
   @Nonnull
   public ComponentTest<ToleranceStatistics> setTestLearning(final boolean testLearning) {
     this.testLearning = testLearning;
@@ -108,15 +115,13 @@ public @com.simiacryptus.ref.lang.RefAware class PerformanceTester extends Compo
           return testPerformance(component, inputPrototype);
         }).collect(com.simiacryptus.ref.wrappers.RefCollectors.toList());
     if (isTestEvaluation()) {
-      @Nonnull
-      final DoubleStatistics statistics = new DoubleStatistics()
+      @Nonnull final DoubleStatistics statistics = new DoubleStatistics()
           .accept(performance.stream().mapToDouble(x -> x._1).toArray());
       log.info(String.format("\tEvaluation performance: %.6fs +- %.6fs [%.6fs - %.6fs]", statistics.getAverage(),
           statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
     }
     if (isTestLearning()) {
-      @Nonnull
-      final DoubleStatistics statistics = new DoubleStatistics()
+      @Nonnull final DoubleStatistics statistics = new DoubleStatistics()
           .accept(performance.stream().mapToDouble(x -> x._2).toArray());
       if (null != statistics) {
         log.info(String.format("\tLearning performance: %.6fs +- %.6fs [%.6fs - %.6fs]", statistics.getAverage(),
@@ -128,7 +133,7 @@ public @com.simiacryptus.ref.lang.RefAware class PerformanceTester extends Compo
   @Nullable
   @Override
   public ToleranceStatistics test(@Nonnull final NotebookOutput log, final Layer component,
-      @Nonnull final Tensor... inputPrototype) {
+                                  @Nonnull final Tensor... inputPrototype) {
     log.h1("Performance");
     if (component instanceof DAGNetwork) {
       TestUtil.instrumentPerformance((DAGNetwork) component);
@@ -150,6 +155,16 @@ public @com.simiacryptus.ref.lang.RefAware class PerformanceTester extends Compo
         + ", testLearning=" + testLearning + '}';
   }
 
+  public @SuppressWarnings("unused")
+  void _free() {
+  }
+
+  public @Override
+  @SuppressWarnings("unused")
+  PerformanceTester addRef() {
+    return (PerformanceTester) super.addRef();
+  }
+
   @Nonnull
   protected Tuple2<Double, Double> testPerformance(@Nonnull final Layer component, final Tensor... inputPrototype) {
     final Tensor[][] data = com.simiacryptus.ref.wrappers.RefIntStream.range(0, batches).mapToObj(x -> x)
@@ -164,15 +179,14 @@ public @com.simiacryptus.ref.lang.RefAware class PerformanceTester extends Compo
         result = component.eval(input);
       } finally {
         for (@Nonnull
-        Result nnResult : input) {
+            Result nnResult : input) {
           nnResult.getData();
         }
       }
       return result;
     });
     final Result result = timedEval.result;
-    @Nonnull
-    final DeltaSet<UUID> buffer = new DeltaSet<UUID>();
+    @Nonnull final DeltaSet<UUID> buffer = new DeltaSet<UUID>();
     try {
       long timedBackprop = TimedResult.time(() -> {
         @Nonnull
@@ -186,26 +200,5 @@ public @com.simiacryptus.ref.lang.RefAware class PerformanceTester extends Compo
     } finally {
       result.getData();
     }
-  }
-
-  public @SuppressWarnings("unused") void _free() {
-  }
-
-  public @Override @SuppressWarnings("unused") PerformanceTester addRef() {
-    return (PerformanceTester) super.addRef();
-  }
-
-  public static @SuppressWarnings("unused") PerformanceTester[] addRefs(PerformanceTester[] array) {
-    if (array == null)
-      return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(PerformanceTester::addRef)
-        .toArray((x) -> new PerformanceTester[x]);
-  }
-
-  public static @SuppressWarnings("unused") PerformanceTester[][] addRefs(PerformanceTester[][] array) {
-    if (array == null)
-      return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(PerformanceTester::addRefs)
-        .toArray((x) -> new PerformanceTester[x][]);
   }
 }

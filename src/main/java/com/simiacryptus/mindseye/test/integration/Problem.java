@@ -24,11 +24,11 @@ import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import java.util.List;
-import com.simiacryptus.ref.wrappers.RefList;
 
-public @com.simiacryptus.ref.lang.RefAware interface Problem {
+public @com.simiacryptus.ref.lang.RefAware
+interface Problem {
   @Nonnull
-  com.simiacryptus.ref.wrappers.RefList<StepRecord> getHistory();
+  List<StepRecord> getHistory();
 
   @Nonnull
   Problem run(NotebookOutput log);

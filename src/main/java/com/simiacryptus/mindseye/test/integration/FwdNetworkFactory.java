@@ -24,7 +24,8 @@ import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nonnull;
 
-public @com.simiacryptus.ref.lang.RefAware interface FwdNetworkFactory {
+public @com.simiacryptus.ref.lang.RefAware
+interface FwdNetworkFactory {
   @Nonnull
   DAGNetwork imageToVector(NotebookOutput log, int features);
 }

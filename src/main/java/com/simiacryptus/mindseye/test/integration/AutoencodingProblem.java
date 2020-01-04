@@ -45,12 +45,10 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import com.simiacryptus.ref.wrappers.RefArrayList;
-import com.simiacryptus.ref.wrappers.RefLinkedHashMap;
-import com.simiacryptus.ref.wrappers.RefList;
 
 @SuppressWarnings("FieldCanBeLocal")
-public abstract @com.simiacryptus.ref.lang.RefAware class AutoencodingProblem implements Problem {
+public abstract @com.simiacryptus.ref.lang.RefAware
+class AutoencodingProblem implements Problem {
 
   private static int modelNo = 0;
 
@@ -60,13 +58,13 @@ public abstract @com.simiacryptus.ref.lang.RefAware class AutoencodingProblem im
   private final int features;
   private final FwdNetworkFactory fwdFactory;
   @Nonnull
-  private final com.simiacryptus.ref.wrappers.RefList<StepRecord> history = new com.simiacryptus.ref.wrappers.RefArrayList<>();
+  private final List<StepRecord> history = new ArrayList<>();
   private final OptimizationStrategy optimizer;
   private final RevNetworkFactory revFactory;
   private int timeoutMinutes = 1;
 
   public AutoencodingProblem(final FwdNetworkFactory fwdFactory, final OptimizationStrategy optimizer,
-      final RevNetworkFactory revFactory, final ImageProblemData data, final int features, final double dropout) {
+                             final RevNetworkFactory revFactory, final ImageProblemData data, final int features, final double dropout) {
     this.fwdFactory = fwdFactory;
     this.optimizer = optimizer;
     this.revFactory = revFactory;
@@ -77,7 +75,7 @@ public abstract @com.simiacryptus.ref.lang.RefAware class AutoencodingProblem im
 
   @Nonnull
   @Override
-  public com.simiacryptus.ref.wrappers.RefList<StepRecord> getHistory() {
+  public List<StepRecord> getHistory() {
     return history;
   }
 
@@ -94,7 +92,7 @@ public abstract @com.simiacryptus.ref.lang.RefAware class AutoencodingProblem im
   public Tensor[][] getTrainingData(final NotebookOutput log) {
     try {
       return data.trainingData().map(labeledObject -> {
-        return new Tensor[] { labeledObject.data };
+        return new Tensor[]{labeledObject.data};
       }).toArray(i -> new Tensor[i][]);
     } catch (@Nonnull final IOException e) {
       throw new RuntimeException(e);
@@ -109,21 +107,16 @@ public abstract @com.simiacryptus.ref.lang.RefAware class AutoencodingProblem im
   @Override
   public AutoencodingProblem run(@Nonnull final NotebookOutput log) {
 
-    @Nonnull
-    final DAGNetwork fwdNetwork = fwdFactory.imageToVector(log, features);
-    @Nonnull
-    final DAGNetwork revNetwork = revFactory.vectorToImage(log, features);
+    @Nonnull final DAGNetwork fwdNetwork = fwdFactory.imageToVector(log, features);
+    @Nonnull final DAGNetwork revNetwork = revFactory.vectorToImage(log, features);
 
-    @Nonnull
-    final PipelineNetwork echoNetwork = new PipelineNetwork(1);
+    @Nonnull final PipelineNetwork echoNetwork = new PipelineNetwork(1);
     echoNetwork.add(fwdNetwork);
     echoNetwork.add(revNetwork);
 
-    @Nonnull
-    final PipelineNetwork supervisedNetwork = new PipelineNetwork(1);
+    @Nonnull final PipelineNetwork supervisedNetwork = new PipelineNetwork(1);
     supervisedNetwork.add(fwdNetwork);
-    @Nonnull
-    final StochasticComponent dropoutNoiseLayer = dropout(dropout);
+    @Nonnull final StochasticComponent dropoutNoiseLayer = dropout(dropout);
     supervisedNetwork.add(dropoutNoiseLayer);
     supervisedNetwork.add(revNetwork);
     supervisedNetwork.add(lossLayer(), supervisedNetwork.getHead(), supervisedNetwork.getInput(0));
@@ -142,8 +135,7 @@ public abstract @com.simiacryptus.ref.lang.RefAware class AutoencodingProblem im
           .toImage();
     });
 
-    @Nonnull
-    final TrainingMonitor monitor = new TrainingMonitor() {
+    @Nonnull final TrainingMonitor monitor = new TrainingMonitor() {
       @Nonnull
       final TrainingMonitor inner = TestUtil.getMonitor(history);
 
@@ -165,8 +157,7 @@ public abstract @com.simiacryptus.ref.lang.RefAware class AutoencodingProblem im
 
     log.h3("Training");
     TestUtil.instrumentPerformance(supervisedNetwork);
-    @Nonnull
-    final ValidatingTrainer trainer = optimizer.train(log,
+    @Nonnull final ValidatingTrainer trainer = optimizer.train(log,
         new SampledArrayTrainable(trainingData, supervisedNetwork, trainingData.length / 2, batchSize),
         new ArrayTrainable(trainingData, supervisedNetwork, batchSize), monitor);
     log.run(() -> {
@@ -183,13 +174,11 @@ public abstract @com.simiacryptus.ref.lang.RefAware class AutoencodingProblem im
     TestUtil.extractPerformance(log, supervisedNetwork);
 
     {
-      @Nonnull
-      final String modelName = "encoder_model" + AutoencodingProblem.modelNo++ + ".json";
+      @Nonnull final String modelName = "encoder_model" + AutoencodingProblem.modelNo++ + ".json";
       log.p("Saved model as " + log.file(fwdNetwork.getJson().toString(), modelName, modelName));
     }
 
-    @Nonnull
-    final String modelName = "decoder_model" + AutoencodingProblem.modelNo++ + ".json";
+    @Nonnull final String modelName = "decoder_model" + AutoencodingProblem.modelNo++ + ".json";
     log.p("Saved model as " + log.file(revNetwork.getJson().toString(), modelName, modelName));
 
     //    log.h3("Metrics");
@@ -201,8 +190,7 @@ public abstract @com.simiacryptus.ref.lang.RefAware class AutoencodingProblem im
 
     log.p("Here are some re-encoded examples:");
     log.eval(() -> {
-      @Nonnull
-      final TableOutput table = new TableOutput();
+      @Nonnull final TableOutput table = new TableOutput();
       data.validationData().map(labeledObject -> {
         return toRow(log, labeledObject, echoNetwork.eval(labeledObject.data).getData().get(0).getData());
       }).filter(x -> null != x).limit(10).forEach(table::putRow);
@@ -211,20 +199,17 @@ public abstract @com.simiacryptus.ref.lang.RefAware class AutoencodingProblem im
 
     log.p("Some rendered unit vectors:");
     for (int featureNumber = 0; featureNumber < features; featureNumber++) {
-      @Nonnull
-      final Tensor input = new Tensor(features).set(featureNumber, 1);
-      @Nullable
-      final Tensor tensor = revNetwork.eval(input).getData().get(0);
+      @Nonnull final Tensor input = new Tensor(features).set(featureNumber, 1);
+      @Nullable final Tensor tensor = revNetwork.eval(input).getData().get(0);
       log.out(log.png(tensor.toImage(), ""));
     }
     return this;
   }
 
   @Nonnull
-  public com.simiacryptus.ref.wrappers.RefLinkedHashMap<CharSequence, Object> toRow(@Nonnull final NotebookOutput log,
-      @Nonnull final LabeledObject<Tensor> labeledObject, final double[] predictionSignal) {
-    @Nonnull
-    final com.simiacryptus.ref.wrappers.RefLinkedHashMap<CharSequence, Object> row = new com.simiacryptus.ref.wrappers.RefLinkedHashMap<>();
+  public LinkedHashMap<CharSequence, Object> toRow(@Nonnull final NotebookOutput log,
+                                                   @Nonnull final LabeledObject<Tensor> labeledObject, final double[] predictionSignal) {
+    @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();
     row.put("Image", log.png(labeledObject.data.toImage(), labeledObject.label));
     row.put("Echo",
         log.png(new Tensor(predictionSignal, labeledObject.data.getDimensions()).toImage(), labeledObject.label));

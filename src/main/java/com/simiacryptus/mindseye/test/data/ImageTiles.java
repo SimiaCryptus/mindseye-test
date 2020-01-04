@@ -29,33 +29,20 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import com.simiacryptus.ref.wrappers.RefArrayList;
-import com.simiacryptus.ref.wrappers.RefArrays;
-import com.simiacryptus.ref.wrappers.RefCollections;
-import com.simiacryptus.ref.wrappers.RefList;
-import com.simiacryptus.ref.wrappers.RefCollectors;
-import com.simiacryptus.ref.wrappers.RefStream;
 
-public @com.simiacryptus.ref.lang.RefAware class ImageTiles {
+public @com.simiacryptus.ref.lang.RefAware
+class ImageTiles {
 
   @Nonnull
   public static Tensor read(@Nonnull final BufferedImage image, final int width, final int height, final int x,
-      final int y) {
-    @Nonnull
-    final Tensor tensor = new Tensor(width, height, 3);
+                            final int y) {
+    @Nonnull final Tensor tensor = new Tensor(width, height, 3);
     for (int xx = 0; xx < width; xx++) {
       for (int yy = 0; yy < height; yy++) {
-        @Nonnull
-        final Color rgb = new Color(image.getRGB(x + xx, y + yy));
-        tensor.set(new int[] { xx, yy, 0 }, rgb.getRed());
-        tensor.set(new int[] { xx, yy, 1 }, rgb.getGreen());
-        tensor.set(new int[] { xx, yy, 2 }, rgb.getBlue());
+        @Nonnull final Color rgb = new Color(image.getRGB(x + xx, y + yy));
+        tensor.set(new int[]{xx, yy, 0}, rgb.getRed());
+        tensor.set(new int[]{xx, yy, 1}, rgb.getGreen());
+        tensor.set(new int[]{xx, yy, 2}, rgb.getBlue());
       }
     }
     return tensor;
@@ -72,34 +59,31 @@ public @com.simiacryptus.ref.lang.RefAware class ImageTiles {
   }
 
   public static Tensor[] tilesRgb(@Nonnull final BufferedImage image, final int width, final int height,
-      final boolean overlap) {
+                                  final boolean overlap) {
     return ImageTiles.tilesRgb(image, width, height, overlap ? 1 : width, overlap ? 1 : height);
   }
 
   public static Tensor[] tilesRgb(@Nonnull final BufferedImage image, final int width, final int height,
-      final int xStep, final int yStep) {
-    @Nonnull
-    final com.simiacryptus.ref.wrappers.RefList<Tensor> tensors = new com.simiacryptus.ref.wrappers.RefArrayList<>();
+                                  final int xStep, final int yStep) {
+    @Nonnull final com.simiacryptus.ref.wrappers.RefList<Tensor> tensors = new com.simiacryptus.ref.wrappers.RefArrayList<>();
     for (int y = 0; y < image.getHeight(); y += yStep) {
       for (int x = 0; x < image.getWidth(); x += xStep) {
         try {
-          @Nonnull
-          final Tensor tensor = ImageTiles.read(image, width, height, y, x);
+          @Nonnull final Tensor tensor = ImageTiles.read(image, width, height, y, x);
           tensors.add(tensor);
         } catch (@Nonnull final ArrayIndexOutOfBoundsException e) {
           // Ignore
         }
       }
     }
-    return tensors.toArray(new Tensor[] {});
+    return tensors.toArray(new Tensor[]{});
   }
 
   @Nonnull
   public static com.simiacryptus.ref.wrappers.RefList<Tensor> toTiles(@Nullable final BufferedImage image,
-      final int tileWidth, final int tileHeight, final int minSpacingWidth, final int minSpacingHeight,
-      final int maxTileCols, final int maxTileRows) {
-    @Nonnull
-    final com.simiacryptus.ref.wrappers.RefList<Tensor> queue = new com.simiacryptus.ref.wrappers.RefArrayList<>();
+                                                                      final int tileWidth, final int tileHeight, final int minSpacingWidth, final int minSpacingHeight,
+                                                                      final int maxTileCols, final int maxTileRows) {
+    @Nonnull final com.simiacryptus.ref.wrappers.RefList<Tensor> queue = new com.simiacryptus.ref.wrappers.RefArrayList<>();
     if (null != image) {
       final int xMax = image.getWidth() - tileWidth;
       final int yMax = image.getHeight() - tileHeight;
@@ -122,13 +106,14 @@ public @com.simiacryptus.ref.lang.RefAware class ImageTiles {
 
   @Nonnull
   public static com.simiacryptus.ref.wrappers.RefList<Tensor> toTiles(@Nonnull final File file, final int tileWidth,
-      final int tileHeight, final int minSpacingWidth, final int minSpacingHeight, final int maxTileCols,
-      final int maxTileRows) throws IOException {
+                                                                      final int tileHeight, final int minSpacingWidth, final int minSpacingHeight, final int maxTileCols,
+                                                                      final int maxTileRows) throws IOException {
     return ImageTiles.toTiles(ImageIO.read(file), tileWidth, tileHeight, minSpacingWidth, minSpacingHeight, maxTileCols,
         maxTileRows);
   }
 
-  public static @com.simiacryptus.ref.lang.RefAware class ImageTensorLoader extends DataLoader<Tensor> {
+  public static @com.simiacryptus.ref.lang.RefAware
+  class ImageTensorLoader extends DataLoader<Tensor> {
 
     public final int maxTileCols;
     public final int maxTileRows;
@@ -139,7 +124,7 @@ public @com.simiacryptus.ref.lang.RefAware class ImageTiles {
     public final int tileWidth;
 
     public ImageTensorLoader(final File parentDirectiory, final int tileWidth, final int tileHeight,
-        final int minSpacingWidth, final int minSpacingHeight, final int maxTileRows, final int maxTileCols) {
+                             final int minSpacingWidth, final int minSpacingHeight, final int maxTileRows, final int maxTileCols) {
       this.parentDirectiory = parentDirectiory;
       this.tileWidth = tileWidth;
       this.tileHeight = tileHeight;
@@ -151,12 +136,10 @@ public @com.simiacryptus.ref.lang.RefAware class ImageTiles {
 
     @Override
     protected void read(@Nonnull final com.simiacryptus.ref.wrappers.RefList<Tensor> queue) {
-      @Nonnull
-      final com.simiacryptus.ref.wrappers.RefArrayList<File> files = new com.simiacryptus.ref.wrappers.RefArrayList<>(
+      @Nonnull final com.simiacryptus.ref.wrappers.RefArrayList<File> files = new com.simiacryptus.ref.wrappers.RefArrayList<>(
           ImageTiles.readFiles(parentDirectiory).collect(com.simiacryptus.ref.wrappers.RefCollectors.toList()));
       com.simiacryptus.ref.wrappers.RefCollections.shuffle(files);
-      for (@Nonnull
-      final File f : files) {
+      for (@Nonnull final File f : files) {
         if (Thread.interrupted()) {
           break;
         }

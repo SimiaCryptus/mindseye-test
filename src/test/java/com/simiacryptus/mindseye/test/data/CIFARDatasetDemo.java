@@ -25,15 +25,30 @@ import com.simiacryptus.util.test.LabeledObject;
 
 import javax.annotation.Nonnull;
 import java.awt.image.BufferedImage;
-import java.util.stream.Stream;
-import com.simiacryptus.ref.wrappers.RefStream;
 
-public @com.simiacryptus.ref.lang.RefAware class CIFARDatasetDemo extends ImageCategoryDatasetDemo {
+public @com.simiacryptus.ref.lang.RefAware
+class CIFARDatasetDemo extends ImageCategoryDatasetDemo {
 
   @Nonnull
   @Override
   protected Class<?> getTargetClass() {
     return CIFAR10.class;
+  }
+
+  public static @SuppressWarnings("unused")
+  CIFARDatasetDemo[] addRefs(CIFARDatasetDemo[] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(CIFARDatasetDemo::addRef)
+        .toArray((x) -> new CIFARDatasetDemo[x]);
+  }
+
+  public static @SuppressWarnings("unused")
+  CIFARDatasetDemo[][] addRefs(CIFARDatasetDemo[][] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(CIFARDatasetDemo::addRefs)
+        .toArray((x) -> new CIFARDatasetDemo[x][]);
   }
 
   @Override
@@ -44,24 +59,13 @@ public @com.simiacryptus.ref.lang.RefAware class CIFARDatasetDemo extends ImageC
     });
   }
 
-  public @SuppressWarnings("unused") void _free() {
+  public @SuppressWarnings("unused")
+  void _free() {
   }
 
-  public @Override @SuppressWarnings("unused") CIFARDatasetDemo addRef() {
+  public @Override
+  @SuppressWarnings("unused")
+  CIFARDatasetDemo addRef() {
     return (CIFARDatasetDemo) super.addRef();
-  }
-
-  public static @SuppressWarnings("unused") CIFARDatasetDemo[] addRefs(CIFARDatasetDemo[] array) {
-    if (array == null)
-      return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(CIFARDatasetDemo::addRef)
-        .toArray((x) -> new CIFARDatasetDemo[x]);
-  }
-
-  public static @SuppressWarnings("unused") CIFARDatasetDemo[][] addRefs(CIFARDatasetDemo[][] array) {
-    if (array == null)
-      return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(CIFARDatasetDemo::addRefs)
-        .toArray((x) -> new CIFARDatasetDemo[x][]);
   }
 }

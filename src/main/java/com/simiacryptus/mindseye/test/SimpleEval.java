@@ -24,14 +24,11 @@ import com.simiacryptus.ref.lang.ReferenceCountingBase;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.Callable;
-import java.util.stream.IntStream;
-import com.simiacryptus.ref.wrappers.RefArrays;
-import com.simiacryptus.ref.wrappers.RefIntStream;
 
-public @com.simiacryptus.ref.lang.RefAware class SimpleEval extends ReferenceCountingBase
+public @com.simiacryptus.ref.lang.RefAware
+class SimpleEval extends ReferenceCountingBase
     implements Callable<SimpleEval> {
   @Nonnull
   private final Tensor[] input;
@@ -79,6 +76,22 @@ public @com.simiacryptus.ref.lang.RefAware class SimpleEval extends ReferenceCou
     return new SimpleEval(layer, tensor).setValidateDerivative(validateDerivative).call();
   }
 
+  public static @SuppressWarnings("unused")
+  SimpleEval[] addRefs(SimpleEval[] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(SimpleEval::addRef)
+        .toArray((x) -> new SimpleEval[x]);
+  }
+
+  public static @SuppressWarnings("unused")
+  SimpleEval[][] addRefs(SimpleEval[][] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(SimpleEval::addRefs)
+        .toArray((x) -> new SimpleEval[x][]);
+  }
+
   @Nonnull
   @Override
   public SimpleEval call() {
@@ -103,13 +116,12 @@ public @com.simiacryptus.ref.lang.RefAware class SimpleEval extends ReferenceCou
         }
       };
     }).toArray(i -> new Result[i]);
-    @Nullable
-    final Result eval;
+    @Nullable final Result eval;
     try {
       eval = layer.eval(input);
     } finally {
       for (@Nonnull
-      Result result : input) {
+          Result result : input) {
         result.getData();
       }
     }
@@ -148,21 +160,9 @@ public @com.simiacryptus.ref.lang.RefAware class SimpleEval extends ReferenceCou
     }
   }
 
-  public @Override @SuppressWarnings("unused") SimpleEval addRef() {
+  public @Override
+  @SuppressWarnings("unused")
+  SimpleEval addRef() {
     return (SimpleEval) super.addRef();
-  }
-
-  public static @SuppressWarnings("unused") SimpleEval[] addRefs(SimpleEval[] array) {
-    if (array == null)
-      return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(SimpleEval::addRef)
-        .toArray((x) -> new SimpleEval[x]);
-  }
-
-  public static @SuppressWarnings("unused") SimpleEval[][] addRefs(SimpleEval[][] array) {
-    if (array == null)
-      return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(SimpleEval::addRefs)
-        .toArray((x) -> new SimpleEval[x][]);
   }
 }

@@ -26,26 +26,29 @@ import com.simiacryptus.ref.lang.ReferenceCounting;
 
 import javax.annotation.Nullable;
 
-public @com.simiacryptus.ref.lang.RefAware interface ComponentTest<T> extends ReferenceCounting {
-  @Nullable
-  T test(NotebookOutput log, Layer component, Tensor... inputPrototype);
-
-  public void _free();
-
-  public ComponentTest<T> addRef();
-
-  public static @SuppressWarnings("unused") ComponentTest[] addRefs(ComponentTest[] array) {
+public @com.simiacryptus.ref.lang.RefAware
+interface ComponentTest<T> extends ReferenceCounting {
+  public static @SuppressWarnings("unused")
+  ComponentTest[] addRefs(ComponentTest[] array) {
     if (array == null)
       return null;
     return java.util.Arrays.stream(array).filter((x) -> x != null).map(ComponentTest::addRef)
         .toArray((x) -> new ComponentTest[x]);
   }
 
-  public static @SuppressWarnings("unused") ComponentTest[][] addRefs(ComponentTest[][] array) {
+  public static @SuppressWarnings("unused")
+  ComponentTest[][] addRefs(ComponentTest[][] array) {
     if (array == null)
       return null;
     return java.util.Arrays.stream(array).filter((x) -> x != null).map(ComponentTest::addRefs)
         .toArray((x) -> new ComponentTest[x][]);
   }
+
+  @Nullable
+  T test(NotebookOutput log, Layer component, Tensor... inputPrototype);
+
+  public void _free();
+
+  public ComponentTest<T> addRef();
 
 }

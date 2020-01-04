@@ -27,19 +27,10 @@ import org.apache.commons.math3.linear.EigenDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 
 import javax.annotation.Nonnull;
-import java.util.Comparator;
-import java.util.List;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
-import com.simiacryptus.ref.wrappers.RefComparator;
-import com.simiacryptus.ref.wrappers.RefList;
-import com.simiacryptus.ref.wrappers.RefCollectors;
-import com.simiacryptus.ref.wrappers.RefIntStream;
-import com.simiacryptus.ref.wrappers.RefStream;
 
-public @com.simiacryptus.ref.lang.RefAware class PCAUtil {
+public @com.simiacryptus.ref.lang.RefAware
+class PCAUtil {
   @Nonnull
   public static RealMatrix getCovariance(
       @Nonnull final Supplier<com.simiacryptus.ref.wrappers.RefStream<double[]>> stream) {
@@ -55,8 +46,7 @@ public @com.simiacryptus.ref.lang.RefAware class PCAUtil {
       }
       RecycleBin.DOUBLES.recycle(array, array.length);
     });
-    @Nonnull
-    final RealMatrix covariance = new BlockRealMatrix(dimension, dimension);
+    @Nonnull final RealMatrix covariance = new BlockRealMatrix(dimension, dimension);
     for (int i = 0; i < dimension; i++) {
       for (int j = 0; j <= i; j++) {
         final double v = statList.get(i + dimension * j).getAverage();
@@ -68,15 +58,13 @@ public @com.simiacryptus.ref.lang.RefAware class PCAUtil {
   }
 
   public static Tensor[] pcaFeatures(final RealMatrix covariance, final int components, final int[] featureDimensions,
-      final double power) {
-    @Nonnull
-    final EigenDecomposition decomposition = new EigenDecomposition(covariance);
+                                     final double power) {
+    @Nonnull final EigenDecomposition decomposition = new EigenDecomposition(covariance);
     final int[] orderedVectors = com.simiacryptus.ref.wrappers.RefIntStream.range(0, components).mapToObj(x -> x)
         .sorted(com.simiacryptus.ref.wrappers.RefComparator.comparing(x -> -decomposition.getRealEigenvalue(x)))
         .mapToInt(x -> x).toArray();
     return com.simiacryptus.ref.wrappers.RefIntStream.range(0, orderedVectors.length).mapToObj(i -> {
-      @Nonnull
-      final Tensor src = new Tensor(decomposition.getEigenvector(orderedVectors[i]).toArray(), featureDimensions)
+      @Nonnull final Tensor src = new Tensor(decomposition.getEigenvector(orderedVectors[i]).toArray(), featureDimensions)
           .copy();
       return src.scale(1.0 / src.rms())
           .scale((Math.pow(
@@ -87,8 +75,7 @@ public @com.simiacryptus.ref.lang.RefAware class PCAUtil {
 
   public static void populatePCAKernel_1(final Tensor kernel, final Tensor[] featureSpaceVectors) {
     final int outputBands = featureSpaceVectors.length;
-    @Nonnull
-    final int[] filterDimensions = kernel.getDimensions();
+    @Nonnull final int[] filterDimensions = kernel.getDimensions();
     kernel.setByCoord(c -> {
       final int kband = c.getCoords()[2];
       final int outband = kband % outputBands;
@@ -104,8 +91,7 @@ public @com.simiacryptus.ref.lang.RefAware class PCAUtil {
 
   public static void populatePCAKernel_2(final Tensor kernel, final Tensor[] featureSpaceVectors) {
     final int outputBands = featureSpaceVectors.length;
-    @Nonnull
-    final int[] filterDimensions = kernel.getDimensions();
+    @Nonnull final int[] filterDimensions = kernel.getDimensions();
     kernel.setByCoord(c -> {
       final int kband = c.getCoords()[2];
       final int outband = kband % outputBands;

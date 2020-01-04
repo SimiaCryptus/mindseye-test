@@ -34,22 +34,15 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.List;
 import java.util.function.IntFunction;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import com.simiacryptus.ref.wrappers.RefArrays;
-import com.simiacryptus.ref.wrappers.RefList;
-import com.simiacryptus.ref.wrappers.RefCollectors;
-import com.simiacryptus.ref.wrappers.RefIntStream;
 
-public @com.simiacryptus.ref.lang.RefAware class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
+public @com.simiacryptus.ref.lang.RefAware
+class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
   private static final Logger logger = LoggerFactory.getLogger(BatchingTester.class);
 
   private final double tolerance;
-  private int batchSize = 10;
   private final boolean validateDerivatives;
+  private int batchSize = 10;
 
   public BatchingTester(final double tolerance, boolean validateDerivatives) {
     this.tolerance = tolerance;
@@ -70,6 +63,22 @@ public @com.simiacryptus.ref.lang.RefAware class BatchingTester extends Componen
     return 5 * (Math.random() - 0.5);
   }
 
+  public static @SuppressWarnings("unused")
+  BatchingTester[] addRefs(BatchingTester[] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(BatchingTester::addRef)
+        .toArray((x) -> new BatchingTester[x]);
+  }
+
+  public static @SuppressWarnings("unused")
+  BatchingTester[][] addRefs(BatchingTester[][] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(BatchingTester::addRefs)
+        .toArray((x) -> new BatchingTester[x][]);
+  }
+
   @Nonnull
   public ToleranceStatistics test(@Nullable final Layer reference, @Nonnull final Tensor[] inputPrototype) {
     if (null == reference)
@@ -79,8 +88,7 @@ public @com.simiacryptus.ref.lang.RefAware class BatchingTester extends Componen
         .stream(inputPrototype).map(t -> new TensorArray(com.simiacryptus.ref.wrappers.RefIntStream
             .range(0, getBatchSize()).mapToObj(i -> t.map(v -> getRandom())).toArray(i -> new Tensor[i])))
         .toArray(i -> new TensorList[i]);
-    @Nonnull
-    final SimpleResult asABatch;
+    @Nonnull final SimpleResult asABatch;
     final com.simiacryptus.ref.wrappers.RefList<SimpleEval> oneAtATime;
     {
       asABatch = SimpleListEval.run(reference, validateDerivatives, inputTensorLists);
@@ -99,8 +107,7 @@ public @com.simiacryptus.ref.lang.RefAware class BatchingTester extends Componen
       return new ToleranceStatistics().accumulate(batchTensor.getData(), oneAtATime.get(batch).getOutput().getData());
     };
     int batchLength = batchOutput.length();
-    @Nonnull
-    final ToleranceStatistics outputAgreement = com.simiacryptus.ref.wrappers.RefIntStream
+    @Nonnull final ToleranceStatistics outputAgreement = com.simiacryptus.ref.wrappers.RefIntStream
         .range(0, Math.min(getBatchSize(), batchLength)).mapToObj(toleranceStatisticsIntFunction)
         .reduce((a, b) -> a.combine(b)).get();
     if (!(outputAgreement.absoluteTol.getMax() < tolerance)) {
@@ -124,7 +131,7 @@ public @com.simiacryptus.ref.lang.RefAware class BatchingTester extends Componen
               logger.info("Error: " + diff.prettyPrint());
               logger.info("Scalar Statistics: " + new ScalarStatistics().add(diff.getData()).getMetrics());
               double[][] points = com.simiacryptus.ref.wrappers.RefArrays.stream(diff.getData())
-                  .mapToObj(x -> new double[] { x }).toArray(i -> new double[i][]);
+                  .mapToObj(x -> new double[]{x}).toArray(i -> new double[i][]);
               return new ToleranceStatistics().accumulate(a.getData(), b.getData());
             };
             return com.simiacryptus.ref.wrappers.RefIntStream.range(0, Math.min(inputPrototype.length, batchLength))
@@ -142,7 +149,7 @@ public @com.simiacryptus.ref.lang.RefAware class BatchingTester extends Componen
 
   @Override
   public ToleranceStatistics test(@Nonnull final NotebookOutput log, final Layer reference,
-      @Nonnull final Tensor... inputPrototype) {
+                                  @Nonnull final Tensor... inputPrototype) {
     log.h1("Batch Execution");
     log.p(
         "Most layers, including this one, should behave the same no matter how the items are split between batches. We verify this:");
@@ -157,24 +164,13 @@ public @com.simiacryptus.ref.lang.RefAware class BatchingTester extends Componen
     return "BatchingTester{" + "tolerance=" + tolerance + ", batchSize=" + batchSize + '}';
   }
 
-  public @SuppressWarnings("unused") void _free() {
+  public @SuppressWarnings("unused")
+  void _free() {
   }
 
-  public @Override @SuppressWarnings("unused") BatchingTester addRef() {
+  public @Override
+  @SuppressWarnings("unused")
+  BatchingTester addRef() {
     return (BatchingTester) super.addRef();
-  }
-
-  public static @SuppressWarnings("unused") BatchingTester[] addRefs(BatchingTester[] array) {
-    if (array == null)
-      return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(BatchingTester::addRef)
-        .toArray((x) -> new BatchingTester[x]);
-  }
-
-  public static @SuppressWarnings("unused") BatchingTester[][] addRefs(BatchingTester[][] array) {
-    if (array == null)
-      return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(BatchingTester::addRefs)
-        .toArray((x) -> new BatchingTester[x][]);
   }
 }

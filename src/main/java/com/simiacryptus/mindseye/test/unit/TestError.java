@@ -27,10 +27,17 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 
-public @com.simiacryptus.ref.lang.RefAware class TestError extends RuntimeException implements ReferenceCounting {
+public @com.simiacryptus.ref.lang.RefAware
+class TestError extends RuntimeException implements ReferenceCounting {
   public final ComponentTest<?> test;
   @Nonnull
   public final Layer layer;
+  @RefIgnore
+  private final ReferenceCountingBase refCounter = new ReferenceCountingBase() {
+    public void _free() {
+      TestError.this._free();
+    }
+  };
 
   public TestError(Throwable cause, ComponentTest<?> test, @Nonnull Layer layer) {
     super(String.format("Error in %s apply %s", test, layer), cause);
@@ -40,21 +47,30 @@ public @com.simiacryptus.ref.lang.RefAware class TestError extends RuntimeExcept
   }
 
   @RefIgnore
-  private final ReferenceCountingBase refCounter = new ReferenceCountingBase() {
-    public void _free() {
-      TestError.this._free();
-    }
-  };
+  @Override
+  public boolean isFinalized() {
+    return refCounter.isFinalized();
+  }
+
+  public static @SuppressWarnings("unused")
+  TestError[] addRefs(TestError[] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(TestError::addRef)
+        .toArray((x) -> new TestError[x]);
+  }
+
+  public static @SuppressWarnings("unused")
+  TestError[][] addRefs(TestError[][] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(TestError::addRefs)
+        .toArray((x) -> new TestError[x][]);
+  }
 
   public void _free() {
     layer.freeRef();
     test.freeRef();
-  }
-
-  @RefIgnore
-  @Override
-  public boolean isFinalized() {
-    return refCounter.isFinalized();
   }
 
   @RefIgnore
@@ -87,22 +103,10 @@ public @com.simiacryptus.ref.lang.RefAware class TestError extends RuntimeExcept
     return refCounter.tryAddRef();
   }
 
-  public @Override @SuppressWarnings("unused") TestError addRef() {
+  public @Override
+  @SuppressWarnings("unused")
+  TestError addRef() {
     refCounter.addRef();
     return this;
-  }
-
-  public static @SuppressWarnings("unused") TestError[] addRefs(TestError[] array) {
-    if (array == null)
-      return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(TestError::addRef)
-        .toArray((x) -> new TestError[x]);
-  }
-
-  public static @SuppressWarnings("unused") TestError[][] addRefs(TestError[][] array) {
-    if (array == null)
-      return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(TestError::addRefs)
-        .toArray((x) -> new TestError[x][]);
   }
 }

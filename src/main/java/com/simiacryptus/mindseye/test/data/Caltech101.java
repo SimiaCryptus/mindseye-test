@@ -35,14 +35,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
-import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import com.simiacryptus.ref.wrappers.RefList;
-import com.simiacryptus.ref.wrappers.RefStream;
 
-public @com.simiacryptus.ref.lang.RefAware class Caltech101 {
+public @com.simiacryptus.ref.lang.RefAware
+class Caltech101 {
 
   @Nullable
   private static final DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>> training = new DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>>() {
@@ -59,8 +56,7 @@ public @com.simiacryptus.ref.lang.RefAware class Caltech101 {
           throw new RuntimeException(e);
         }
         final boolean continueLoop = true;
-        @Nullable
-        final ZipInputStream tar = new ZipInputStream(stream);
+        @Nullable final ZipInputStream tar = new ZipInputStream(stream);
         while (continueLoop) {
           if (Thread.interrupted()) {
             break;

@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.test.data;
 
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.TestUtil;
+import com.simiacryptus.ref.wrappers.RefStream;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.BinaryChunkIterator;
 import com.simiacryptus.util.io.DataLoader;
@@ -32,14 +33,11 @@ import javax.annotation.Nullable;
 import java.io.*;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+import java.util.Spliterator;
 import java.util.zip.GZIPInputStream;
-import com.simiacryptus.ref.wrappers.RefStream;
-import com.simiacryptus.ref.wrappers.RefStreamSupport;
 
-public @com.simiacryptus.ref.lang.RefAware class MNIST {
+public @com.simiacryptus.ref.lang.RefAware
+class MNIST {
 
   public static final DataLoader<LabeledObject<Tensor>> training = new DataLoader<LabeledObject<Tensor>>() {
     @Override
@@ -49,33 +47,11 @@ public @com.simiacryptus.ref.lang.RefAware class MNIST {
             .binaryStream("train-images-idx3-ubyte.gz", 16, 28 * 28).map(b -> {
               return MNIST.fillImage(b, new Tensor(28, 28, 1));
             });
-        @Nonnull
-        final com.simiacryptus.ref.wrappers.RefStream<byte[]> labelStream = MNIST
+        @Nonnull final com.simiacryptus.ref.wrappers.RefStream<byte[]> labelStream = MNIST
             .binaryStream("train-labels-idx1-ubyte.gz", 8, 1);
 
-        @Nonnull
-        final com.simiacryptus.ref.wrappers.RefStream<LabeledObject<Tensor>> merged = MNIST
-            .toStream(new com.simiacryptus.ref.wrappers.RefIteratorBase<LabeledObject<Tensor>>() {
-              @Nonnull
-              final com.simiacryptus.ref.wrappers.RefIterator<Tensor> imgItr = imgStream.iterator();
-              @Nonnull
-              final com.simiacryptus.ref.wrappers.RefIterator<byte[]> labelItr = labelStream.iterator();
-
-              @Override
-              public boolean hasNext() {
-                return imgItr.hasNext() && labelItr.hasNext();
-              }
-
-              @Nonnull
-              @Override
-              public LabeledObject<Tensor> next() {
-                return new LabeledObject<>(imgItr.next(),
-                    com.simiacryptus.ref.wrappers.RefArrays.toString(labelItr.next()));
-              }
-
-              public @SuppressWarnings("unused") void _free() {
-              }
-            }, 100);
+        @Nonnull final com.simiacryptus.ref.wrappers.RefStream<LabeledObject<Tensor>> merged = MNIST
+            .toStream(new LabeledObjectIterator(imgStream, labelStream), 100);
         merged.forEach(x -> queue.add(x));
       } catch (@Nonnull final IOException e) {
         throw new RuntimeException(e);
@@ -90,33 +66,11 @@ public @com.simiacryptus.ref.lang.RefAware class MNIST {
             .binaryStream("t10k-images-idx3-ubyte.gz", 16, 28 * 28).map(b -> {
               return MNIST.fillImage(b, new Tensor(28, 28, 1));
             });
-        @Nonnull
-        final com.simiacryptus.ref.wrappers.RefStream<byte[]> labelStream = MNIST
+        @Nonnull final com.simiacryptus.ref.wrappers.RefStream<byte[]> labelStream = MNIST
             .binaryStream("t10k-labels-idx1-ubyte.gz", 8, 1);
 
-        @Nonnull
-        final com.simiacryptus.ref.wrappers.RefStream<LabeledObject<Tensor>> merged = MNIST
-            .toStream(new com.simiacryptus.ref.wrappers.RefIteratorBase<LabeledObject<Tensor>>() {
-              @Nonnull
-              final com.simiacryptus.ref.wrappers.RefIterator<Tensor> imgItr = imgStream.iterator();
-              @Nonnull
-              final com.simiacryptus.ref.wrappers.RefIterator<byte[]> labelItr = labelStream.iterator();
-
-              @Override
-              public boolean hasNext() {
-                return imgItr.hasNext() && labelItr.hasNext();
-              }
-
-              @Nonnull
-              @Override
-              public LabeledObject<Tensor> next() {
-                return new LabeledObject<>(imgItr.next(),
-                    com.simiacryptus.ref.wrappers.RefArrays.toString(labelItr.next()));
-              }
-
-              public @SuppressWarnings("unused") void _free() {
-              }
-            }, 100);
+        @Nonnull final com.simiacryptus.ref.wrappers.RefStream<LabeledObject<Tensor>> merged = MNIST
+            .toStream(new LabeledObjectIterator(imgStream, labelStream), 100);
         merged.forEach(x -> queue.add(x));
       } catch (@Nonnull final IOException e) {
         throw new RuntimeException(e);
@@ -133,7 +87,7 @@ public @com.simiacryptus.ref.lang.RefAware class MNIST {
   }
 
   private static com.simiacryptus.ref.wrappers.RefStream<byte[]> binaryStream(@Nonnull final String name,
-      final int skip, final int recordSize) throws IOException {
+                                                                              final int skip, final int recordSize) throws IOException {
     @Nullable
     InputStream stream = null;
     try {
@@ -143,8 +97,7 @@ public @com.simiacryptus.ref.lang.RefAware class MNIST {
     }
     final byte[] fileData = IOUtils
         .toByteArray(new BufferedInputStream(new GZIPInputStream(new BufferedInputStream(stream))));
-    @Nonnull
-    final DataInputStream in = new DataInputStream(new ByteArrayInputStream(fileData));
+    @Nonnull final DataInputStream in = new DataInputStream(new ByteArrayInputStream(fileData));
     in.skip(skip);
     return MNIST.toIterator(new BinaryChunkIterator(in, recordSize));
   }
@@ -153,7 +106,7 @@ public @com.simiacryptus.ref.lang.RefAware class MNIST {
   private static Tensor fillImage(final byte[] b, @Nonnull final Tensor tensor) {
     for (int x = 0; x < 28; x++) {
       for (int y = 0; y < 28; y++) {
-        tensor.set(new int[] { x, y }, b[x + y * 28] & 0xFF);
+        tensor.set(new int[]{x, y}, b[x + y * 28] & 0xFF);
       }
     }
     return tensor;
@@ -174,6 +127,34 @@ public @com.simiacryptus.ref.lang.RefAware class MNIST {
       @Nonnull final com.simiacryptus.ref.wrappers.RefIteratorBase<T> iterator, final int size, final boolean parallel) {
     return com.simiacryptus.ref.wrappers.RefStreamSupport.stream(
         com.simiacryptus.ref.wrappers.RefSpliterators.spliterator(iterator, size, Spliterator.ORDERED), parallel);
+  }
+
+  private static class LabeledObjectIterator extends com.simiacryptus.ref.wrappers.RefIteratorBase<LabeledObject<Tensor>> {
+    @Nonnull
+    private final com.simiacryptus.ref.wrappers.RefIterator<Tensor> imgItr;
+    @Nonnull
+    private final com.simiacryptus.ref.wrappers.RefIterator<byte[]> labelItr;
+
+    public LabeledObjectIterator(RefStream<Tensor> imgStream, RefStream<byte[]> labelStream) {
+      imgItr = imgStream.iterator();
+      labelItr = labelStream.iterator();
+    }
+
+    @Override
+    public boolean hasNext() {
+      return imgItr.hasNext() && labelItr.hasNext();
+    }
+
+    @Nonnull
+    @Override
+    public LabeledObject<Tensor> next() {
+      return new LabeledObject<>(imgItr.next(),
+          com.simiacryptus.ref.wrappers.RefArrays.toString(labelItr.next()));
+    }
+
+    public @SuppressWarnings("unused")
+    void _free() {
+    }
   }
 
 }

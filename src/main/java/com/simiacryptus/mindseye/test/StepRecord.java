@@ -19,7 +19,8 @@
 
 package com.simiacryptus.mindseye.test;
 
-public @com.simiacryptus.ref.lang.RefAware class StepRecord {
+public @com.simiacryptus.ref.lang.RefAware
+final class StepRecord {
   public final long epochTime;
   public final double fitness;
   public final long iteration;

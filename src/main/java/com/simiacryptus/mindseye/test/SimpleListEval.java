@@ -24,14 +24,11 @@ import com.simiacryptus.ref.lang.ReferenceCountingBase;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.Callable;
-import java.util.stream.IntStream;
-import com.simiacryptus.ref.wrappers.RefArrays;
-import com.simiacryptus.ref.wrappers.RefIntStream;
 
-public @com.simiacryptus.ref.lang.RefAware class SimpleListEval extends ReferenceCountingBase
+public @com.simiacryptus.ref.lang.RefAware
+class SimpleListEval extends ReferenceCountingBase
     implements Callable<SimpleResult>, SimpleResult {
   @Nonnull
   private final TensorList[] input;
@@ -96,6 +93,22 @@ public @com.simiacryptus.ref.lang.RefAware class SimpleListEval extends Referenc
     return new SimpleListEval(layer, tensor).setCalcDerivatives(calcDerivatives).call();
   }
 
+  public static @SuppressWarnings("unused")
+  SimpleListEval[] addRefs(SimpleListEval[] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(SimpleListEval::addRef)
+        .toArray((x) -> new SimpleListEval[x]);
+  }
+
+  public static @SuppressWarnings("unused")
+  SimpleListEval[][] addRefs(SimpleListEval[][] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(SimpleListEval::addRefs)
+        .toArray((x) -> new SimpleListEval[x][]);
+  }
+
   @Nonnull
   @Override
   public SimpleResult call() {
@@ -114,12 +127,12 @@ public @com.simiacryptus.ref.lang.RefAware class SimpleListEval extends Referenc
           return true;
         }
 
-        public @SuppressWarnings("unused") void _free() {
+        public @SuppressWarnings("unused")
+        void _free() {
         }
       };
     }).toArray(i -> new Result[i]);
-    @Nullable
-    final Result eval = layer.eval(inputs);
+    @Nullable final Result eval = layer.eval(inputs);
     TensorList outputData = eval.getData().copy();
     eval.getData();
     this.layerDerivative = new DeltaSet<>();
@@ -139,21 +152,9 @@ public @com.simiacryptus.ref.lang.RefAware class SimpleListEval extends Referenc
   public void _free() {
   }
 
-  public @Override @SuppressWarnings("unused") SimpleListEval addRef() {
+  public @Override
+  @SuppressWarnings("unused")
+  SimpleListEval addRef() {
     return (SimpleListEval) super.addRef();
-  }
-
-  public static @SuppressWarnings("unused") SimpleListEval[] addRefs(SimpleListEval[] array) {
-    if (array == null)
-      return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(SimpleListEval::addRef)
-        .toArray((x) -> new SimpleListEval[x]);
-  }
-
-  public static @SuppressWarnings("unused") SimpleListEval[][] addRefs(SimpleListEval[][] array) {
-    if (array == null)
-      return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(SimpleListEval::addRefs)
-        .toArray((x) -> new SimpleListEval[x][]);
   }
 }

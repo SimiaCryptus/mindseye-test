@@ -24,17 +24,34 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public abstract @com.simiacryptus.ref.lang.RefAware class LayerTestBase extends StandardLayerTests {
+public abstract @com.simiacryptus.ref.lang.RefAware
+class LayerTestBase extends StandardLayerTests {
 
-  @Test(timeout = 15 * 60 * 1000)
-  public void test() {
-    run(this::run);
+  public static @SuppressWarnings("unused")
+  LayerTestBase[] addRefs(LayerTestBase[] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(LayerTestBase::addRef)
+        .toArray((x) -> new LayerTestBase[x]);
   }
 
   //  @Test(timeout = 15 * 60 * 1000)
   //  public void testMonteCarlo() throws Throwable {
   //    apply(this::monteCarlo);
   //  }
+
+  public static @SuppressWarnings("unused")
+  LayerTestBase[][] addRefs(LayerTestBase[][] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(LayerTestBase::addRefs)
+        .toArray((x) -> new LayerTestBase[x][]);
+  }
+
+  @Test(timeout = 15 * 60 * 1000)
+  public void test() {
+    run(this::run);
+  }
 
   @Before
   public void setup() {
@@ -48,25 +65,14 @@ public abstract @com.simiacryptus.ref.lang.RefAware class LayerTestBase extends 
     //GpuController.remove();
   }
 
-  public @SuppressWarnings("unused") void _free() {
+  public @SuppressWarnings("unused")
+  void _free() {
   }
 
-  public @Override @SuppressWarnings("unused") LayerTestBase addRef() {
+  public @Override
+  @SuppressWarnings("unused")
+  LayerTestBase addRef() {
     return (LayerTestBase) super.addRef();
-  }
-
-  public static @SuppressWarnings("unused") LayerTestBase[] addRefs(LayerTestBase[] array) {
-    if (array == null)
-      return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(LayerTestBase::addRef)
-        .toArray((x) -> new LayerTestBase[x]);
-  }
-
-  public static @SuppressWarnings("unused") LayerTestBase[][] addRefs(LayerTestBase[][] array) {
-    if (array == null)
-      return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(LayerTestBase::addRefs)
-        .toArray((x) -> new LayerTestBase[x][]);
   }
 
 }

@@ -30,12 +30,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.stream.IntStream;
-import com.simiacryptus.ref.wrappers.RefArrays;
-import com.simiacryptus.ref.wrappers.RefIntStream;
 
-public @com.simiacryptus.ref.lang.RefAware class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
+public @com.simiacryptus.ref.lang.RefAware
+class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
   private static final Logger log = LoggerFactory.getLogger(EquivalencyTester.class);
 
   private final Layer reference;
@@ -44,6 +41,22 @@ public @com.simiacryptus.ref.lang.RefAware class EquivalencyTester extends Compo
   public EquivalencyTester(final double tolerance, final Layer referenceLayer) {
     this.tolerance = tolerance;
     this.reference = referenceLayer;
+  }
+
+  public static @SuppressWarnings("unused")
+  EquivalencyTester[] addRefs(EquivalencyTester[] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(EquivalencyTester::addRef)
+        .toArray((x) -> new EquivalencyTester[x]);
+  }
+
+  public static @SuppressWarnings("unused")
+  EquivalencyTester[][] addRefs(EquivalencyTester[][] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(EquivalencyTester::addRefs)
+        .toArray((x) -> new EquivalencyTester[x][]);
   }
 
   public ToleranceStatistics test(@Nullable final Layer subject, @Nonnull final Tensor[] inputPrototype) {
@@ -61,8 +74,7 @@ public @com.simiacryptus.ref.lang.RefAware class EquivalencyTester extends Compo
       log.info(String.format("Reference Output: %s", referenceOutput.prettyPrint()));
       error = subjectOutput.minus(referenceOutput);
       log.info(String.format("Error: %s", error.prettyPrint()));
-      @Nonnull
-      final ToleranceStatistics result = com.simiacryptus.ref.wrappers.RefIntStream.range(0, subjectOutput.length())
+      @Nonnull final ToleranceStatistics result = com.simiacryptus.ref.wrappers.RefIntStream.range(0, subjectOutput.length())
           .mapToObj(i1 -> {
             return new ToleranceStatistics().accumulate(subjectOutput.getData()[i1], referenceOutput.getData()[i1]);
           }).reduce((a, b) -> a.combine(b)).get();
@@ -77,7 +89,7 @@ public @com.simiacryptus.ref.lang.RefAware class EquivalencyTester extends Compo
 
   @Override
   public ToleranceStatistics test(@Nonnull final NotebookOutput output, final Layer subject,
-      @Nonnull final Tensor... inputPrototype) {
+                                  @Nonnull final Tensor... inputPrototype) {
     output.h1("Reference Implementation");
     output.p("This key is an alternate implementation which is expected to behave the same as the following key:");
     output.run(() -> {
@@ -102,21 +114,9 @@ public @com.simiacryptus.ref.lang.RefAware class EquivalencyTester extends Compo
     super._free();
   }
 
-  public @Override @SuppressWarnings("unused") EquivalencyTester addRef() {
+  public @Override
+  @SuppressWarnings("unused")
+  EquivalencyTester addRef() {
     return (EquivalencyTester) super.addRef();
-  }
-
-  public static @SuppressWarnings("unused") EquivalencyTester[] addRefs(EquivalencyTester[] array) {
-    if (array == null)
-      return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(EquivalencyTester::addRef)
-        .toArray((x) -> new EquivalencyTester[x]);
-  }
-
-  public static @SuppressWarnings("unused") EquivalencyTester[][] addRefs(EquivalencyTester[][] array) {
-    if (array == null)
-      return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(EquivalencyTester::addRefs)
-        .toArray((x) -> new EquivalencyTester[x][]);
   }
 }

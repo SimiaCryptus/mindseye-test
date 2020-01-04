@@ -27,8 +27,9 @@ import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nonnull;
 
-public @com.simiacryptus.ref.lang.RefAware interface OptimizationStrategy {
+public @com.simiacryptus.ref.lang.RefAware
+interface OptimizationStrategy {
   @Nonnull
   ValidatingTrainer train(NotebookOutput log, SampledTrainable trainingSubject, Trainable validationSubject,
-      TrainingMonitor monitor);
+                          TrainingMonitor monitor);
 }

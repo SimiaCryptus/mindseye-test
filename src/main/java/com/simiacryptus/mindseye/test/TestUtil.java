@@ -52,16 +52,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.*;
 import java.util.function.*;
-import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
-import com.simiacryptus.ref.wrappers.RefCollectors;
-import com.simiacryptus.ref.wrappers.RefDoubleStream;
-import com.simiacryptus.ref.wrappers.RefIntStream;
-import com.simiacryptus.ref.wrappers.RefStream;
 
-public @com.simiacryptus.ref.lang.RefAware class TestUtil {
+public @com.simiacryptus.ref.lang.RefAware
+class TestUtil {
   public static final URI S3_ROOT = URI.create("https://s3-us-west-2.amazonaws.com/simiacryptus/");
   private static final Logger logger = LoggerFactory.getLogger(TestUtil.class);
 
@@ -89,14 +82,11 @@ public @com.simiacryptus.ref.lang.RefAware class TestUtil {
         logger.info("No Data");
         return null;
       }
-      @Nonnull
-      final double[] lowerBound = { xStatistics.getCount() == 0 ? 0 : xStatistics.getMin(),
-          yStatistics.getCount() < 2 ? 0 : yStatistics.getMin() };
-      @Nonnull
-      final double[] upperBound = { xStatistics.getCount() == 0 ? 1 : xStatistics.getMax(),
-          yStatistics.getCount() < 2 ? 1 : yStatistics.getMax() };
-      @Nonnull
-      final PlotCanvas canvas = new PlotCanvas(lowerBound, upperBound);
+      @Nonnull final double[] lowerBound = {xStatistics.getCount() == 0 ? 0 : xStatistics.getMin(),
+          yStatistics.getCount() < 2 ? 0 : yStatistics.getMin()};
+      @Nonnull final double[] upperBound = {xStatistics.getCount() == 0 ? 1 : xStatistics.getMax(),
+          yStatistics.getCount() < 2 ? 1 : yStatistics.getMax()};
+      @Nonnull final PlotCanvas canvas = new PlotCanvas(lowerBound, upperBound);
       canvas.setTitle(title);
       canvas.setAxisLabels("Iteration", "log10(Fitness)");
       canvas.setSize(600, 400);
@@ -112,10 +102,9 @@ public @com.simiacryptus.ref.lang.RefAware class TestUtil {
       logger.info(String.format("Plotting range=%s, %s; valueStats=%s",
           com.simiacryptus.ref.wrappers.RefArrays.toString(lowerBound),
           com.simiacryptus.ref.wrappers.RefArrays.toString(upperBound), valueStatistics));
-      for (@Nonnull
-      final ProblemRun trial : filtered) {
+      for (@Nonnull final ProblemRun trial : filtered) {
         final double[][] pts = trial.history.stream()
-            .map(step -> new double[] { step.iteration, Math.log10(Math.max(step.fitness, valueStatistics.getMin())) })
+            .map(step -> new double[]{step.iteration, Math.log10(Math.max(step.fitness, valueStatistics.getMin()))})
             .filter(x -> com.simiacryptus.ref.wrappers.RefArrays.stream(x).allMatch(Double::isFinite))
             .toArray(i -> new double[i][]);
         if (pts.length > 1) {
@@ -147,12 +136,9 @@ public @com.simiacryptus.ref.lang.RefAware class TestUtil {
         logger.info("No Data");
         return null;
       }
-      @Nonnull
-      final double[] lowerBound = { 0, yStatistics.getCount() == 0 ? 0 : yStatistics.getMin() };
-      @Nonnull
-      final double[] upperBound = { totalTime / 1000.0, yStatistics.getCount() == 1 ? 0 : yStatistics.getMax() };
-      @Nonnull
-      final PlotCanvas canvas = new PlotCanvas(lowerBound, upperBound);
+      @Nonnull final double[] lowerBound = {0, yStatistics.getCount() == 0 ? 0 : yStatistics.getMin()};
+      @Nonnull final double[] upperBound = {totalTime / 1000.0, yStatistics.getCount() == 1 ? 0 : yStatistics.getMax()};
+      @Nonnull final PlotCanvas canvas = new PlotCanvas(lowerBound, upperBound);
       canvas.setTitle(title);
       canvas.setAxisLabels("Time", "log10(Fitness)");
       canvas.setSize(600, 400);
@@ -172,8 +158,8 @@ public @com.simiacryptus.ref.lang.RefAware class TestUtil {
         final ProblemRun trial = filtered.get(t);
         final DoubleSummaryStatistics trialStats = xStatistics[t];
         final double[][] pts = trial.history.stream().map(step -> {
-          return new double[] { (step.epochTime - trialStats.getMin()) / 1000.0,
-              Math.log10(Math.max(step.fitness, valueStatistics.getMin())) };
+          return new double[]{(step.epochTime - trialStats.getMin()) / 1000.0,
+              Math.log10(Math.max(step.fitness, valueStatistics.getMin()))};
         }).filter(x -> com.simiacryptus.ref.wrappers.RefArrays.stream(x).allMatch(Double::isFinite))
             .toArray(i -> new double[i][]);
         if (pts.length > 1) {
@@ -193,12 +179,10 @@ public @com.simiacryptus.ref.lang.RefAware class TestUtil {
   public static void extractPerformance(@Nonnull final NotebookOutput log, @Nonnull final DAGNetwork network) {
     log.p("Per-key Performance Metrics:");
     log.run(() -> {
-      @Nonnull
-      final com.simiacryptus.ref.wrappers.RefMap<CharSequence, MonitoringWrapperLayer> metrics = new com.simiacryptus.ref.wrappers.RefHashMap<>();
+      @Nonnull final com.simiacryptus.ref.wrappers.RefMap<CharSequence, MonitoringWrapperLayer> metrics = new com.simiacryptus.ref.wrappers.RefHashMap<>();
       network.visitNodes(node -> {
         if (node.getLayer() instanceof MonitoringWrapperLayer) {
-          @Nullable
-          final MonitoringWrapperLayer layer = node.getLayer();
+          @Nullable final MonitoringWrapperLayer layer = node.getLayer();
           Layer inner = layer.getInner();
           String str = inner.toString();
           str += " class=" + inner.getClass().getName();
@@ -211,15 +195,13 @@ public @com.simiacryptus.ref.lang.RefAware class TestUtil {
       TestUtil.logger.info("Performance: \n\t" + metrics.entrySet().stream().sorted(
           com.simiacryptus.ref.wrappers.RefComparator.comparing(x -> -x.getValue().getForwardPerformance().getMean()))
           .map(e -> {
-            @Nonnull
-            final PercentileStatistics performanceF = e.getValue().getForwardPerformance();
-            @Nonnull
-            final PercentileStatistics performanceB = e.getValue().getBackwardPerformance();
+            @Nonnull final PercentileStatistics performanceF = e.getValue().getForwardPerformance();
+            @Nonnull final PercentileStatistics performanceB = e.getValue().getBackwardPerformance();
             return String.format("%.6fs +- %.6fs (%d) <- %s", performanceF.getMean(), performanceF.getStdDev(),
                 performanceF.getCount(), e.getKey())
                 + (performanceB.getCount() == 0 ? ""
-                    : String.format("%n\tBack: %.6fs +- %.6fs (%s)", performanceB.getMean(), performanceB.getStdDev(),
-                        performanceB.getCount()));
+                : String.format("%n\tBack: %.6fs +- %.6fs (%s)", performanceB.getMean(), performanceB.getStdDev(),
+                performanceB.getCount()));
           }).reduce((a, b) -> a + "\n\t" + b).get());
     });
     removeInstrumentation(network);
@@ -236,8 +218,7 @@ public @com.simiacryptus.ref.lang.RefAware class TestUtil {
 
   public static com.simiacryptus.ref.wrappers.RefMap<CharSequence, Object> samplePerformance(
       @Nonnull final DAGNetwork network) {
-    @Nonnull
-    final com.simiacryptus.ref.wrappers.RefMap<CharSequence, Object> metrics = new com.simiacryptus.ref.wrappers.RefHashMap<>();
+    @Nonnull final com.simiacryptus.ref.wrappers.RefMap<CharSequence, Object> metrics = new com.simiacryptus.ref.wrappers.RefHashMap<>();
     network.visitLayers(layer -> {
       if (layer instanceof MonitoringWrapperLayer) {
         MonitoringWrapperLayer monitoringWrapperLayer = (MonitoringWrapperLayer) layer;
@@ -253,12 +234,12 @@ public @com.simiacryptus.ref.lang.RefAware class TestUtil {
     return metrics;
   }
 
-  public static TrainingMonitor getMonitor(@Nonnull final com.simiacryptus.ref.wrappers.RefList<StepRecord> history) {
+  public static TrainingMonitor getMonitor(@Nonnull final List<StepRecord> history) {
     return getMonitor(history, null);
   }
 
-  public static TrainingMonitor getMonitor(@Nonnull final com.simiacryptus.ref.wrappers.RefList<StepRecord> history,
-      final Layer network) {
+  public static TrainingMonitor getMonitor(@Nonnull final List<StepRecord> history,
+                                           final Layer network) {
     return new TrainingMonitor() {
       @Override
       public void clear() {
@@ -293,31 +274,29 @@ public @com.simiacryptus.ref.lang.RefAware class TestUtil {
     });
   }
 
-  public static JPanel plot(@Nonnull final com.simiacryptus.ref.wrappers.RefList<StepRecord> history) {
+  public static JPanel plot(@Nonnull final List<StepRecord> history) {
     try {
       final DoubleSummaryStatistics valueStats = history.stream().mapToDouble(x -> x.fitness).summaryStatistics();
       double min = valueStats.getMin();
       if (0 < min) {
         double[][] data = history.stream()
-            .map(step -> new double[] { step.iteration, Math.log10(Math.max(min, step.fitness)) })
-            .filter(x -> com.simiacryptus.ref.wrappers.RefArrays.stream(x).allMatch(Double::isFinite))
+            .map(step -> new double[]{step.iteration, Math.log10(Math.max(min, step.fitness))})
+            .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
             .toArray(i -> new double[i][]);
-        if (com.simiacryptus.ref.wrappers.RefArrays.stream(data).mapToInt(x -> x.length).sum() == 0)
+        if (Arrays.stream(data).mapToInt(x -> x.length).sum() == 0)
           return null;
-        @Nonnull
-        final PlotCanvas plot = ScatterPlot.plot(data);
+        @Nonnull final PlotCanvas plot = ScatterPlot.plot(data);
         plot.setTitle("Convergence Plot");
         plot.setAxisLabels("Iteration", "log10(Fitness)");
         plot.setSize(600, 400);
         return plot;
       } else {
-        double[][] data = history.stream().map(step -> new double[] { step.iteration, step.fitness })
-            .filter(x -> com.simiacryptus.ref.wrappers.RefArrays.stream(x).allMatch(Double::isFinite))
+        double[][] data = history.stream().map(step -> new double[]{step.iteration, step.fitness})
+            .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
             .toArray(i -> new double[i][]);
-        if (com.simiacryptus.ref.wrappers.RefArrays.stream(data).mapToInt(x -> x.length).sum() == 0)
+        if (Arrays.stream(data).mapToInt(x -> x.length).sum() == 0)
           return null;
-        @Nonnull
-        final PlotCanvas plot = ScatterPlot.plot(data);
+        @Nonnull final PlotCanvas plot = ScatterPlot.plot(data);
         plot.setTitle("Convergence Plot");
         plot.setAxisLabels("Iteration", "Fitness");
         plot.setSize(600, 400);
@@ -329,16 +308,15 @@ public @com.simiacryptus.ref.lang.RefAware class TestUtil {
     }
   }
 
-  public static PlotCanvas plotTime(@Nonnull final com.simiacryptus.ref.wrappers.RefList<StepRecord> history) {
+  public static PlotCanvas plotTime(@Nonnull final List<StepRecord> history) {
     try {
       final LongSummaryStatistics timeStats = history.stream().mapToLong(x -> x.epochTime).summaryStatistics();
       final DoubleSummaryStatistics valueStats = history.stream().mapToDouble(x -> x.fitness).filter(x -> x > 0)
           .summaryStatistics();
-      @Nonnull
-      final PlotCanvas plot = ScatterPlot.plot(history.stream()
-          .map(step -> new double[] { (step.epochTime - timeStats.getMin()) / 1000.0,
-              Math.log10(Math.max(valueStats.getMin(), step.fitness)) })
-          .filter(x -> com.simiacryptus.ref.wrappers.RefArrays.stream(x).allMatch(Double::isFinite))
+      @Nonnull final PlotCanvas plot = ScatterPlot.plot(history.stream()
+          .map(step -> new double[]{(step.epochTime - timeStats.getMin()) / 1000.0,
+              Math.log10(Math.max(valueStats.getMin(), step.fitness))})
+          .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
           .toArray(i -> new double[i][]));
       plot.setTitle("Convergence Plot");
       plot.setAxisLabels("Time", "log10(Fitness)");
@@ -382,7 +360,7 @@ public @com.simiacryptus.ref.lang.RefAware class TestUtil {
         }));
     final com.simiacryptus.ref.wrappers.RefStream<UUID[]> stream = nodes.stream().flatMap(to -> {
       return com.simiacryptus.ref.wrappers.RefArrays.stream(to.getInputs()).map(from -> {
-        return new UUID[] { from.getId(), to.getId() };
+        return new UUID[]{from.getId(), to.getId()};
       });
     });
     final com.simiacryptus.ref.wrappers.RefMap<UUID, com.simiacryptus.ref.wrappers.RefList<UUID>> idMap = stream
@@ -403,8 +381,7 @@ public @com.simiacryptus.ref.lang.RefAware class TestUtil {
   @NotNull
   public static String getName(DAGNode node) {
     String name;
-    @Nullable
-    final Layer layer = node.getLayer();
+    @Nullable final Layer layer = node.getLayer();
     if (null == layer) {
       name = node.getId().toString();
     } else {
@@ -436,7 +413,7 @@ public @com.simiacryptus.ref.lang.RefAware class TestUtil {
   public static <T> Supplier<T> orElse(@Nonnull Supplier<T>... suppliers) {
     return () -> {
       for (@Nonnull
-      Supplier<T> supplier : suppliers) {
+          Supplier<T> supplier : suppliers) {
         T t = supplier.get();
         if (null != t)
           return t;
@@ -459,7 +436,7 @@ public @com.simiacryptus.ref.lang.RefAware class TestUtil {
 
   @Nonnull
   public static Supplier<com.simiacryptus.ref.wrappers.RefDoubleStream> geometricStream(final double start,
-      final double end, final int steps) {
+                                                                                        final double end, final int steps) {
     double step = Math.pow(end / start, 1.0 / (steps - 1));
     return () -> com.simiacryptus.ref.wrappers.RefDoubleStream.iterate(start, x -> x * step).limit(steps);
   }
@@ -507,14 +484,14 @@ public @com.simiacryptus.ref.lang.RefAware class TestUtil {
   }
 
   public static CharSequence render(@Nonnull final NotebookOutput log, @Nonnull final Tensor tensor,
-      final boolean normalize) {
+                                    final boolean normalize) {
     return ImageUtil.renderToImages(tensor, normalize).map(image -> {
       return log.png(image, "");
     }).reduce((a, b) -> a + b).get();
   }
 
   public static CharSequence animatedGif(@Nonnull final NotebookOutput log, final int loopTimeMs,
-      @Nonnull final BufferedImage... images) {
+                                         @Nonnull final BufferedImage... images) {
     try {
       @Nonnull
       String filename = UUID.randomUUID().toString() + ".gif";

@@ -23,10 +23,9 @@ import com.simiacryptus.util.data.DoubleStatistics;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.stream.IntStream;
-import com.simiacryptus.ref.wrappers.RefIntStream;
 
-public @com.simiacryptus.ref.lang.RefAware class ToleranceStatistics {
+public @com.simiacryptus.ref.lang.RefAware
+class ToleranceStatistics {
   public final DoubleStatistics absoluteTol;
   public final DoubleStatistics relativeTol;
 

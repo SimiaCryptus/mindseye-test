@@ -28,33 +28,44 @@ import com.simiacryptus.util.data.DoubleStatistics;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.HashMap;
-import com.simiacryptus.ref.wrappers.RefArrays;
-import com.simiacryptus.ref.wrappers.RefHashMap;
 
-public @com.simiacryptus.ref.lang.RefAware class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
+public @com.simiacryptus.ref.lang.RefAware
+class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
   final com.simiacryptus.ref.wrappers.RefHashMap<Tensor[], Tensor> referenceIO;
 
   public ReferenceIO(final com.simiacryptus.ref.wrappers.RefHashMap<Tensor[], Tensor> referenceIO) {
     this.referenceIO = referenceIO;
   }
 
+  public static @SuppressWarnings("unused")
+  ReferenceIO[] addRefs(ReferenceIO[] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(ReferenceIO::addRef)
+        .toArray((x) -> new ReferenceIO[x]);
+  }
+
+  public static @SuppressWarnings("unused")
+  ReferenceIO[][] addRefs(ReferenceIO[][] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(ReferenceIO::addRefs)
+        .toArray((x) -> new ReferenceIO[x][]);
+  }
+
   @Nullable
   @Override
   public ToleranceStatistics test(@Nonnull final NotebookOutput log, @Nonnull final Layer layer,
-      @Nonnull final Tensor... inputPrototype) {
+                                  @Nonnull final Tensor... inputPrototype) {
     if (!referenceIO.isEmpty()) {
       log.h1("Reference Input/Output Pairs");
       log.p("Display pre-setBytes input/output example pairs:");
       referenceIO.forEach((input, output) -> {
         log.eval(() -> {
-          @Nonnull
-          final SimpleEval eval = SimpleEval.run(layer, input);
+          @Nonnull final SimpleEval eval = SimpleEval.run(layer, input);
           Tensor evalOutput = eval.getOutput();
           Tensor difference = output.scale(-1).addAndFree(evalOutput);
-          @Nonnull
-          final DoubleStatistics error = new DoubleStatistics().accept(difference.getData());
+          @Nonnull final DoubleStatistics error = new DoubleStatistics().accept(difference.getData());
           return String.format(
               "--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n%s\nError: %s\n--------------------\nDerivative: \n%s",
               com.simiacryptus.ref.wrappers.RefArrays.stream(input)
@@ -70,8 +81,7 @@ public @com.simiacryptus.ref.lang.RefAware class ReferenceIO extends ComponentTe
       log.h1("Example Input/Output Pair");
       log.p("Display input/output pairs from random executions:");
       log.eval(() -> {
-        @Nonnull
-        final SimpleEval eval = SimpleEval.run(layer, inputPrototype);
+        @Nonnull final SimpleEval eval = SimpleEval.run(layer, inputPrototype);
         Tensor evalOutput = eval.getOutput();
         return String.format(
             "--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n%s\n--------------------\nDerivative: \n%s",
@@ -95,21 +105,9 @@ public @com.simiacryptus.ref.lang.RefAware class ReferenceIO extends ComponentTe
     super._free();
   }
 
-  public @Override @SuppressWarnings("unused") ReferenceIO addRef() {
+  public @Override
+  @SuppressWarnings("unused")
+  ReferenceIO addRef() {
     return (ReferenceIO) super.addRef();
-  }
-
-  public static @SuppressWarnings("unused") ReferenceIO[] addRefs(ReferenceIO[] array) {
-    if (array == null)
-      return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(ReferenceIO::addRef)
-        .toArray((x) -> new ReferenceIO[x]);
-  }
-
-  public static @SuppressWarnings("unused") ReferenceIO[][] addRefs(ReferenceIO[][] array) {
-    if (array == null)
-      return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(ReferenceIO::addRefs)
-        .toArray((x) -> new ReferenceIO[x][]);
   }
 }

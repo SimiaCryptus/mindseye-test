@@ -43,19 +43,14 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
-import java.util.stream.DoubleStream;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
-import com.simiacryptus.ref.wrappers.RefList;
-import com.simiacryptus.ref.wrappers.RefDoubleStream;
-import com.simiacryptus.ref.wrappers.RefIntStream;
-import com.simiacryptus.ref.wrappers.RefStream;
 
-public abstract @com.simiacryptus.ref.lang.RefAware class TrainingTester
+public abstract @com.simiacryptus.ref.lang.RefAware
+class TrainingTester
     extends ComponentTestBase<TrainingTester.ComponentResult> {
   static final Logger logger = LoggerFactory.getLogger(TrainingTester.class);
 
@@ -142,6 +137,22 @@ public abstract @com.simiacryptus.ref.lang.RefAware class TrainingTester
         .toArray(i -> new Tensor[i][]);
   }
 
+  public static @SuppressWarnings("unused")
+  TrainingTester[] addRefs(TrainingTester[] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(TrainingTester::addRef)
+        .toArray((x) -> new TrainingTester[x]);
+  }
+
+  public static @SuppressWarnings("unused")
+  TrainingTester[][] addRefs(TrainingTester[][] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(TrainingTester::addRefs)
+        .toArray((x) -> new TrainingTester[x][]);
+  }
+
   @Nonnull
   public ResultType getResultType(@Nonnull final com.simiacryptus.ref.wrappers.RefList<StepRecord> lbfgsmin) {
     return Math.abs(min(lbfgsmin)) < 1e-9 ? ResultType.Converged : ResultType.NonConverged;
@@ -149,7 +160,7 @@ public abstract @com.simiacryptus.ref.lang.RefAware class TrainingTester
 
   @Nonnull
   public JPanel grid(@Nullable final TestResult inputLearning, @Nullable final TestResult modelLearning,
-      @Nullable final TestResult completeLearning) {
+                     @Nullable final TestResult completeLearning) {
     int rows = 0;
     if (inputLearning != null) {
       rows++;
@@ -160,10 +171,8 @@ public abstract @com.simiacryptus.ref.lang.RefAware class TrainingTester
     if (completeLearning != null) {
       rows++;
     }
-    @Nonnull
-    final GridLayout layout = new GridLayout(rows, 2, 0, 0);
-    @Nonnull
-    final JPanel jPanel = new JPanel(layout);
+    @Nonnull final GridLayout layout = new GridLayout(rows, 2, 0, 0);
+    @Nonnull final JPanel jPanel = new JPanel(layout);
     jPanel.setSize(1200, 400 * rows);
     if (inputLearning != null) {
       jPanel.add(inputLearning.iterPlot == null ? new JPanel() : inputLearning.iterPlot);
@@ -193,7 +202,7 @@ public abstract @com.simiacryptus.ref.lang.RefAware class TrainingTester
 
   @Override
   public ComponentResult test(@Nonnull final NotebookOutput log, @Nonnull final Layer component,
-      @Nonnull final Tensor... inputPrototype) {
+                              @Nonnull final Tensor... inputPrototype) {
     printHeader(log);
     final boolean testModel = !component.state().isEmpty();
     if (testModel && isZero(
@@ -204,8 +213,7 @@ public abstract @com.simiacryptus.ref.lang.RefAware class TrainingTester
         .flatMapToDouble(x -> com.simiacryptus.ref.wrappers.RefArrays.stream(x.getData())))) {
       throw new AssertionError("Inputs are all zero?");
     }
-    @Nonnull
-    final Random random = new Random();
+    @Nonnull final Random random = new Random();
     final boolean testInput = com.simiacryptus.ref.wrappers.RefArrays.stream(inputPrototype)
         .anyMatch(x -> x.length() > 0);
     @Nullable
@@ -251,9 +259,8 @@ public abstract @com.simiacryptus.ref.lang.RefAware class TrainingTester
 
   @Nonnull
   public TestResult testCompleteLearning(@Nonnull final NotebookOutput log, @Nonnull final Layer component,
-      final Random random, @Nonnull final Tensor[] inputPrototype) {
-    @Nonnull
-    final Layer network_target = shuffle(random, component.copy()).freeze();
+                                         final Random random, @Nonnull final Tensor[] inputPrototype) {
+    @Nonnull final Layer network_target = shuffle(random, component.copy()).freeze();
     final Tensor[][] input_target = shuffleCopy(random, inputPrototype);
     log.p(
         "In this apply, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
@@ -282,9 +289,8 @@ public abstract @com.simiacryptus.ref.lang.RefAware class TrainingTester
   }
 
   public TestResult testInputLearning(@Nonnull final NotebookOutput log, @Nonnull final Layer component,
-      final Random random, @Nonnull final Tensor[] inputPrototype) {
-    @Nonnull
-    final Layer network = shuffle(random, component.copy()).freeze();
+                                      final Random random, @Nonnull final Tensor[] inputPrototype) {
+    @Nonnull final Layer network = shuffle(random, component.copy()).freeze();
     final Tensor[][] input_target = shuffleCopy(random, inputPrototype);
     log.p("In this apply, we use a network to learn this target input, given it's pre-evaluated output:");
     log.eval(() -> {
@@ -303,7 +309,7 @@ public abstract @com.simiacryptus.ref.lang.RefAware class TrainingTester
     }
 
     for (@Nonnull
-    Result nnResult : array) {
+        Result nnResult : array) {
       nnResult.getData();
     }
     //if (output_target.length != inputPrototype.length) return null;
@@ -312,9 +318,8 @@ public abstract @com.simiacryptus.ref.lang.RefAware class TrainingTester
   }
 
   public TestResult testModelLearning(@Nonnull final NotebookOutput log, @Nonnull final Layer component,
-      final Random random, final Tensor[] inputPrototype) {
-    @Nonnull
-    final Layer network_target = shuffle(random, component.copy()).freeze();
+                                      final Random random, final Tensor[] inputPrototype) {
+    @Nonnull final Layer network_target = shuffle(random, component.copy()).freeze();
     final Tensor[][] input_target = shuffleCopy(random, inputPrototype);
     log.p(
         "In this apply, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
@@ -340,8 +345,7 @@ public abstract @com.simiacryptus.ref.lang.RefAware class TrainingTester
 
   @Nonnull
   public boolean[] buildMask(int length) {
-    @Nonnull
-    final boolean[] mask = new boolean[length + 1];
+    @Nonnull final boolean[] mask = new boolean[length + 1];
     for (int i = 0; i < length; i++) {
       mask[i] = true;
     }
@@ -350,7 +354,7 @@ public abstract @com.simiacryptus.ref.lang.RefAware class TrainingTester
 
   @Nonnull
   public TestResult trainAll(CharSequence title, @Nonnull NotebookOutput log, @Nonnull Tensor[][] trainingInput,
-      @Nonnull Layer layer, boolean... mask) {
+                             @Nonnull Layer layer, boolean... mask) {
     {
       log.h3("Gradient Descent");
       final com.simiacryptus.ref.wrappers.RefList<StepRecord> gd = train(log, this::trainGD, layer.copy(),
@@ -361,10 +365,9 @@ public abstract @com.simiacryptus.ref.lang.RefAware class TrainingTester
       log.h3("Limited-Memory BFGS");
       final com.simiacryptus.ref.wrappers.RefList<StepRecord> lbfgs = train(log, this::trainLBFGS, layer.copy(),
           copy(trainingInput), mask);
-      @Nonnull
-      final ProblemRun[] runs = { new ProblemRun("GD", gd, Color.GRAY, ProblemRun.PlotType.Line),
+      @Nonnull final ProblemRun[] runs = {new ProblemRun("GD", gd, Color.GRAY, ProblemRun.PlotType.Line),
           new ProblemRun("CjGD", cjgd, Color.CYAN, ProblemRun.PlotType.Line),
-          new ProblemRun("LBFGS", lbfgs, Color.GREEN, ProblemRun.PlotType.Line) };
+          new ProblemRun("LBFGS", lbfgs, Color.GREEN, ProblemRun.PlotType.Line)};
       @Nonnull
       ProblemResult result = new ProblemResult();
       result.put("GD", new TrainingResult(getResultType(gd), min(gd)));
@@ -379,10 +382,8 @@ public abstract @com.simiacryptus.ref.lang.RefAware class TrainingTester
         });
         return new TestResult(iterPlot, timePlot, result);
       } else {
-        @Nullable
-        final PlotCanvas iterPlot = TestUtil.compare(title + " vs Iteration", runs);
-        @Nullable
-        final PlotCanvas timePlot = TestUtil.compareTime(title + " vs Time", runs);
+        @Nullable final PlotCanvas iterPlot = TestUtil.compare(title + " vs Iteration", runs);
+        @Nullable final PlotCanvas timePlot = TestUtil.compareTime(title + " vs Time", runs);
         return new TestResult(iterPlot, timePlot, result);
       }
     }
@@ -390,13 +391,11 @@ public abstract @com.simiacryptus.ref.lang.RefAware class TrainingTester
 
   @Nonnull
   public com.simiacryptus.ref.wrappers.RefList<StepRecord> trainCjGD(@Nonnull final NotebookOutput log,
-      final Trainable trainable) {
+                                                                     final Trainable trainable) {
     log.p(
         "First, we use a conjugate gradient descent method, which converges the fastest for purely linear functions.");
-    @Nonnull
-    final com.simiacryptus.ref.wrappers.RefList<StepRecord> history = new com.simiacryptus.ref.wrappers.RefArrayList<>();
-    @Nonnull
-    final TrainingMonitor monitor = TrainingTester.getMonitor(history);
+    @Nonnull final com.simiacryptus.ref.wrappers.RefList<StepRecord> history = new com.simiacryptus.ref.wrappers.RefArrayList<>();
+    @Nonnull final TrainingMonitor monitor = TrainingTester.getMonitor(history);
     try {
       log.eval(() -> {
         return new IterativeTrainer(trainable).setLineSearchFactory(label -> new QuadraticSearch())
@@ -412,12 +411,10 @@ public abstract @com.simiacryptus.ref.lang.RefAware class TrainingTester
 
   @Nonnull
   public com.simiacryptus.ref.wrappers.RefList<StepRecord> trainGD(@Nonnull final NotebookOutput log,
-      final Trainable trainable) {
+                                                                   final Trainable trainable) {
     log.p("First, we train using basic gradient descent method apply weak line search conditions.");
-    @Nonnull
-    final com.simiacryptus.ref.wrappers.RefList<StepRecord> history = new com.simiacryptus.ref.wrappers.RefArrayList<>();
-    @Nonnull
-    final TrainingMonitor monitor = TrainingTester.getMonitor(history);
+    @Nonnull final com.simiacryptus.ref.wrappers.RefList<StepRecord> history = new com.simiacryptus.ref.wrappers.RefArrayList<>();
+    @Nonnull final TrainingMonitor monitor = TrainingTester.getMonitor(history);
     try {
       log.eval(() -> {
         return new IterativeTrainer(trainable).setLineSearchFactory(label -> new ArmijoWolfeSearch())
@@ -433,13 +430,11 @@ public abstract @com.simiacryptus.ref.lang.RefAware class TrainingTester
 
   @Nonnull
   public com.simiacryptus.ref.wrappers.RefList<StepRecord> trainLBFGS(@Nonnull final NotebookOutput log,
-      final Trainable trainable) {
+                                                                      final Trainable trainable) {
     log.p(
         "Next, we apply the same optimization using L-BFGS, which is nearly ideal for purely second-order or quadratic functions.");
-    @Nonnull
-    final com.simiacryptus.ref.wrappers.RefList<StepRecord> history = new com.simiacryptus.ref.wrappers.RefArrayList<>();
-    @Nonnull
-    final TrainingMonitor monitor = TrainingTester.getMonitor(history);
+    @Nonnull final com.simiacryptus.ref.wrappers.RefList<StepRecord> history = new com.simiacryptus.ref.wrappers.RefArrayList<>();
+    @Nonnull final TrainingMonitor monitor = TrainingTester.getMonitor(history);
     try {
       log.eval(() -> {
         return new IterativeTrainer(trainable).setLineSearchFactory(label -> new ArmijoWolfeSearch())
@@ -460,6 +455,16 @@ public abstract @com.simiacryptus.ref.lang.RefAware class TrainingTester
         + verbose + ", throwExceptions=" + throwExceptions + '}';
   }
 
+  public @SuppressWarnings("unused")
+  void _free() {
+  }
+
+  public @Override
+  @SuppressWarnings("unused")
+  TrainingTester addRef() {
+    return (TrainingTester) super.addRef();
+  }
+
   protected void printHeader(@Nonnull NotebookOutput log) {
     log.h1("Training Characteristics");
   }
@@ -477,8 +482,7 @@ public abstract @com.simiacryptus.ref.lang.RefAware class TrainingTester
   private Tensor[][] shuffleCopy(final Random random, @Nonnull final Tensor... copy) {
     return com.simiacryptus.ref.wrappers.RefIntStream.range(0, getBatches()).mapToObj(i -> {
       return com.simiacryptus.ref.wrappers.RefArrays.stream(copy).map(tensor -> {
-        @Nonnull
-        final Tensor cpy = tensor.copy();
+        @Nonnull final Tensor cpy = tensor.copy();
         randomizationMode.shuffle(random, cpy.getData());
         return cpy;
       }).toArray(j -> new Tensor[j]);
@@ -486,12 +490,11 @@ public abstract @com.simiacryptus.ref.lang.RefAware class TrainingTester
   }
 
   private com.simiacryptus.ref.wrappers.RefList<StepRecord> train(@Nonnull NotebookOutput log,
-      @Nonnull BiFunction<NotebookOutput, Trainable, com.simiacryptus.ref.wrappers.RefList<StepRecord>> opt,
-      @Nonnull Layer layer, @Nonnull Tensor[][] data, @Nonnull boolean... mask) {
+                                                                  @Nonnull BiFunction<NotebookOutput, Trainable, com.simiacryptus.ref.wrappers.RefList<StepRecord>> opt,
+                                                                  @Nonnull Layer layer, @Nonnull Tensor[][] data, @Nonnull boolean... mask) {
     {
       int inputs = data[0].length;
-      @Nonnull
-      final PipelineNetwork network = new PipelineNetwork(inputs);
+      @Nonnull final PipelineNetwork network = new PipelineNetwork(inputs);
       Layer lossLayer = lossLayer();
       assert null != lossLayer : getClass().toString();
       network.add(lossLayer, network.add(layer, com.simiacryptus.ref.wrappers.RefIntStream.range(0, inputs - 1)
@@ -525,7 +528,7 @@ public abstract @com.simiacryptus.ref.lang.RefAware class TrainingTester
             @Nullable
             Result eval = layer.eval(array);
             for (@Nonnull
-            Result result : array) {
+                Result result : array) {
               result.getData();
             }
             TensorList tensorList = eval.getData();
@@ -578,7 +581,8 @@ public abstract @com.simiacryptus.ref.lang.RefAware class TrainingTester
     public abstract void shuffle(Random random, double[] buffer);
   }
 
-  public static @com.simiacryptus.ref.lang.RefAware class ComponentResult {
+  public static @com.simiacryptus.ref.lang.RefAware
+  class ComponentResult {
     final ProblemResult complete;
     final ProblemResult input;
     final ProblemResult model;
@@ -595,7 +599,8 @@ public abstract @com.simiacryptus.ref.lang.RefAware class TrainingTester
     }
   }
 
-  public static @com.simiacryptus.ref.lang.RefAware class TestResult {
+  public static @com.simiacryptus.ref.lang.RefAware
+  class TestResult {
     final PlotCanvas iterPlot;
     final PlotCanvas timePlot;
     final ProblemResult value;
@@ -607,7 +612,8 @@ public abstract @com.simiacryptus.ref.lang.RefAware class TrainingTester
     }
   }
 
-  public static @com.simiacryptus.ref.lang.RefAware class TrainingResult {
+  public static @com.simiacryptus.ref.lang.RefAware
+  final class TrainingResult {
     final ResultType type;
     final double value;
 
@@ -622,11 +628,12 @@ public abstract @com.simiacryptus.ref.lang.RefAware class TrainingTester
     }
   }
 
-  public static @com.simiacryptus.ref.lang.RefAware class ProblemResult {
-    final com.simiacryptus.ref.wrappers.RefMap<CharSequence, TrainingResult> map;
+  public static @com.simiacryptus.ref.lang.RefAware
+  class ProblemResult {
+    final Map<CharSequence, TrainingResult> map;
 
     public ProblemResult() {
-      this.map = new com.simiacryptus.ref.wrappers.RefHashMap<>();
+      this.map = new HashMap<>();
     }
 
     @Nonnull
@@ -641,26 +648,5 @@ public abstract @com.simiacryptus.ref.lang.RefAware class TrainingTester
         return String.format("\"%s\": %s", e.getKey(), e.getValue().toString());
       }).reduce((a, b) -> a + ", " + b).get();
     }
-  }
-
-  public @SuppressWarnings("unused") void _free() {
-  }
-
-  public @Override @SuppressWarnings("unused") TrainingTester addRef() {
-    return (TrainingTester) super.addRef();
-  }
-
-  public static @SuppressWarnings("unused") TrainingTester[] addRefs(TrainingTester[] array) {
-    if (array == null)
-      return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(TrainingTester::addRef)
-        .toArray((x) -> new TrainingTester[x]);
-  }
-
-  public static @SuppressWarnings("unused") TrainingTester[][] addRefs(TrainingTester[][] array) {
-    if (array == null)
-      return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(TrainingTester::addRefs)
-        .toArray((x) -> new TrainingTester[x][]);
   }
 }

@@ -21,27 +21,33 @@ package com.simiacryptus.mindseye.test.unit;
 
 import com.simiacryptus.ref.lang.ReferenceCountingBase;
 
-public abstract @com.simiacryptus.ref.lang.RefAware class ComponentTestBase<T> extends ReferenceCountingBase
+public abstract @com.simiacryptus.ref.lang.RefAware
+class ComponentTestBase<T> extends ReferenceCountingBase
     implements ComponentTest<T> {
 
-  public @SuppressWarnings("unused") void _free() {
-  }
-
-  public @Override @SuppressWarnings("unused") ComponentTestBase<T> addRef() {
-    return (ComponentTestBase<T>) super.addRef();
-  }
-
-  public static @SuppressWarnings("unused") ComponentTestBase[] addRefs(ComponentTestBase[] array) {
+  public static @SuppressWarnings("unused")
+  ComponentTestBase[] addRefs(ComponentTestBase[] array) {
     if (array == null)
       return null;
     return java.util.Arrays.stream(array).filter((x) -> x != null).map(ComponentTestBase::addRef)
         .toArray((x) -> new ComponentTestBase[x]);
   }
 
-  public static @SuppressWarnings("unused") ComponentTestBase[][] addRefs(ComponentTestBase[][] array) {
+  public static @SuppressWarnings("unused")
+  ComponentTestBase[][] addRefs(ComponentTestBase[][] array) {
     if (array == null)
       return null;
     return java.util.Arrays.stream(array).filter((x) -> x != null).map(ComponentTestBase::addRefs)
         .toArray((x) -> new ComponentTestBase[x][]);
+  }
+
+  public @SuppressWarnings("unused")
+  void _free() {
+  }
+
+  public @Override
+  @SuppressWarnings("unused")
+  ComponentTestBase<T> addRef() {
+    return (ComponentTestBase<T>) super.addRef();
   }
 }

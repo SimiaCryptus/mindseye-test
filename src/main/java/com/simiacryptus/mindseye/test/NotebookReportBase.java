@@ -34,10 +34,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Date;
 import java.util.UUID;
-import java.util.function.Consumer;
-import com.simiacryptus.ref.wrappers.RefConsumer;
 
-public abstract @com.simiacryptus.ref.lang.RefAware class NotebookReportBase extends ReferenceCountingBase {
+public abstract @com.simiacryptus.ref.lang.RefAware
+class NotebookReportBase extends ReferenceCountingBase {
 
   protected static final Logger logger = LoggerFactory.getLogger(NotebookReportBase.class);
 
@@ -58,7 +57,7 @@ public abstract @com.simiacryptus.ref.lang.RefAware class NotebookReportBase ext
 
   @Nullable
   public static CharSequence printHeader(@Nonnull NotebookOutput log, @Nullable Class<?> networkClass,
-      final CharSequence prefix) {
+                                         final CharSequence prefix) {
     if (null == networkClass)
       return null;
     @Nullable
@@ -71,7 +70,7 @@ public abstract @com.simiacryptus.ref.lang.RefAware class NotebookReportBase ext
 
   @Nonnull
   public static File getTestReportLocation(@Nonnull final Class<?> sourceClass, String reportingFolder,
-      @Nonnull final CharSequence... suffix) {
+                                           @Nonnull final CharSequence... suffix) {
     final StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[2];
     final CharSequence methodName = callingFrame.getMethodName();
     final String className = sourceClass.getCanonicalName();
@@ -90,7 +89,7 @@ public abstract @com.simiacryptus.ref.lang.RefAware class NotebookReportBase ext
   }
 
   public static void withRefLeakMonitor(NotebookOutput log,
-      @Nonnull com.simiacryptus.ref.wrappers.RefConsumer<NotebookOutput> fn) {
+                                        @Nonnull com.simiacryptus.ref.wrappers.RefConsumer<NotebookOutput> fn) {
     try (
         CodeUtil.LogInterception refLeakLog = CodeUtil.intercept(log, ReferenceCountingBase.class.getCanonicalName())) {
       fn.accept(log);
@@ -102,6 +101,22 @@ public abstract @com.simiacryptus.ref.lang.RefAware class NotebookReportBase ext
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public static @SuppressWarnings("unused")
+  NotebookReportBase[] addRefs(NotebookReportBase[] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(NotebookReportBase::addRef)
+        .toArray((x) -> new NotebookReportBase[x]);
+  }
+
+  public static @SuppressWarnings("unused")
+  NotebookReportBase[][] addRefs(NotebookReportBase[][] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(NotebookReportBase::addRefs)
+        .toArray((x) -> new NotebookReportBase[x][]);
   }
 
   public void printHeader(@Nonnull NotebookOutput log) {
@@ -118,9 +133,9 @@ public abstract @com.simiacryptus.ref.lang.RefAware class NotebookReportBase ext
   }
 
   public void run(@Nonnull com.simiacryptus.ref.wrappers.RefConsumer<NotebookOutput> fn,
-      @Nonnull CharSequence... logPath) {
+                  @Nonnull CharSequence... logPath) {
     try (@Nonnull
-    NotebookOutput log = getLog(logPath)) {
+         NotebookOutput log = getLog(logPath)) {
       withRefLeakMonitor(log, NotebookOutput.concat(this::printHeader, MarkdownNotebookOutput.wrapFrontmatter(fn)));
     } catch (RuntimeException e) {
       throw e;
@@ -132,7 +147,7 @@ public abstract @com.simiacryptus.ref.lang.RefAware class NotebookReportBase ext
   @Nonnull
   public NotebookOutput getLog(CharSequence... logPath) {
     if (null == logPath || logPath.length == 0)
-      logPath = new String[] { getClass().getSimpleName() };
+      logPath = new String[]{getClass().getSimpleName()};
     final File path = getTestReportLocation(getTargetClass(), reportingFolder, logPath);
     try {
       StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[3];
@@ -149,29 +164,18 @@ public abstract @com.simiacryptus.ref.lang.RefAware class NotebookReportBase ext
     }
   }
 
-  public enum ReportType {
-    Applications, Components, Models, Data, Optimizers, Experiments
+  public @SuppressWarnings("unused")
+  void _free() {
   }
 
-  public @SuppressWarnings("unused") void _free() {
-  }
-
-  public @Override @SuppressWarnings("unused") NotebookReportBase addRef() {
+  public @Override
+  @SuppressWarnings("unused")
+  NotebookReportBase addRef() {
     return (NotebookReportBase) super.addRef();
   }
 
-  public static @SuppressWarnings("unused") NotebookReportBase[] addRefs(NotebookReportBase[] array) {
-    if (array == null)
-      return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(NotebookReportBase::addRef)
-        .toArray((x) -> new NotebookReportBase[x]);
-  }
-
-  public static @SuppressWarnings("unused") NotebookReportBase[][] addRefs(NotebookReportBase[][] array) {
-    if (array == null)
-      return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(NotebookReportBase::addRefs)
-        .toArray((x) -> new NotebookReportBase[x][]);
+  public enum ReportType {
+    Applications, Components, Models, Data, Optimizers, Experiments
   }
 
 }

@@ -26,19 +26,10 @@ import com.simiacryptus.util.test.LabeledObject;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Random;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
-import com.simiacryptus.ref.wrappers.RefArrayList;
-import com.simiacryptus.ref.wrappers.RefArrays;
-import com.simiacryptus.ref.wrappers.RefCollections;
-import com.simiacryptus.ref.wrappers.RefIntStream;
-import com.simiacryptus.ref.wrappers.RefStream;
 
-public @com.simiacryptus.ref.lang.RefAware class SupplementedProblemData implements ImageProblemData {
+public @com.simiacryptus.ref.lang.RefAware
+class SupplementedProblemData implements ImageProblemData {
 
   private final int expansion = 10;
   private final ImageProblemData inner;
@@ -49,8 +40,7 @@ public @com.simiacryptus.ref.lang.RefAware class SupplementedProblemData impleme
   }
 
   public static void printSample(@Nonnull final NotebookOutput log, final Tensor[][] expanded, final int size) {
-    @Nonnull
-    final com.simiacryptus.ref.wrappers.RefArrayList<Tensor[]> list = new com.simiacryptus.ref.wrappers.RefArrayList<>(
+    @Nonnull final com.simiacryptus.ref.wrappers.RefArrayList<Tensor[]> list = new com.simiacryptus.ref.wrappers.RefArrayList<>(
         com.simiacryptus.ref.wrappers.RefArrays.asList(expanded));
     com.simiacryptus.ref.wrappers.RefCollections.shuffle(list);
     log.p("Expanded Training Data Sample: " + list.stream().limit(size).map(x -> {

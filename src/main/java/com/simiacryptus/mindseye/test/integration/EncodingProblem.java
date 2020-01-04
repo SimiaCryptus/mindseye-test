@@ -47,16 +47,13 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import com.simiacryptus.ref.wrappers.RefArrayList;
-import com.simiacryptus.ref.wrappers.RefArrays;
-import com.simiacryptus.ref.wrappers.RefLinkedHashMap;
-import com.simiacryptus.ref.wrappers.RefList;
 
-public abstract @com.simiacryptus.ref.lang.RefAware class EncodingProblem implements Problem {
+public abstract @com.simiacryptus.ref.lang.RefAware
+class EncodingProblem implements Problem {
 
   private static int modelNo = 0;
   private final ImageProblemData data;
-  private final com.simiacryptus.ref.wrappers.RefList<StepRecord> history = new com.simiacryptus.ref.wrappers.RefArrayList<>();
+  private final List<StepRecord> history = new ArrayList<>();
   private final OptimizationStrategy optimizer;
   private final RevNetworkFactory revFactory;
   private int batchSize = 10000;
@@ -65,7 +62,7 @@ public abstract @com.simiacryptus.ref.lang.RefAware class EncodingProblem implem
   private int trainingSize = 15000;
 
   public EncodingProblem(final RevNetworkFactory revFactory, final OptimizationStrategy optimizer,
-      final ImageProblemData data, final int features) {
+                         final ImageProblemData data, final int features) {
     this.revFactory = revFactory;
     this.optimizer = optimizer;
     this.data = data;
@@ -94,7 +91,7 @@ public abstract @com.simiacryptus.ref.lang.RefAware class EncodingProblem implem
 
   @Nonnull
   @Override
-  public com.simiacryptus.ref.wrappers.RefList<StepRecord> getHistory() {
+  public List<StepRecord> getHistory() {
     return history;
   }
 
@@ -125,19 +122,17 @@ public abstract @com.simiacryptus.ref.lang.RefAware class EncodingProblem implem
   @Nonnull
   @Override
   public EncodingProblem run(@Nonnull final NotebookOutput log) {
-    @Nonnull
-    final TrainingMonitor monitor = TestUtil.getMonitor(history);
+    @Nonnull final TrainingMonitor monitor = TestUtil.getMonitor(history);
     Tensor[][] trainingData;
     try {
       trainingData = data.trainingData().map(labeledObject -> {
-        return new Tensor[] { new Tensor(features).set(this::random), labeledObject.data };
+        return new Tensor[]{new Tensor(features).set(this::random), labeledObject.data};
       }).toArray(i -> new Tensor[i][]);
     } catch (@Nonnull final IOException e) {
       throw new RuntimeException(e);
     }
 
-    @Nonnull
-    final DAGNetwork imageNetwork = revFactory.vectorToImage(log, features);
+    @Nonnull final DAGNetwork imageNetwork = revFactory.vectorToImage(log, features);
     log.h3("Network Diagram");
     log.eval(() -> {
       return Graphviz.fromGraph((Graph) TestUtil.toGraph(imageNetwork)).height(400).width(600).render(Format.PNG)
@@ -148,10 +143,8 @@ public abstract @com.simiacryptus.ref.lang.RefAware class EncodingProblem implem
     log.h3("Training");
     log.p("We start by training apply a very small population to improve initial convergence performance:");
     TestUtil.instrumentPerformance(trainingNetwork);
-    @Nonnull
-    final Tensor[][] primingData = com.simiacryptus.ref.wrappers.RefArrays.copyOfRange(trainingData, 0, 1000);
-    @Nonnull
-    final ValidatingTrainer preTrainer = optimizer.train(log,
+    @Nonnull final Tensor[][] primingData = com.simiacryptus.ref.wrappers.RefArrays.copyOfRange(trainingData, 0, 1000);
+    @Nonnull final ValidatingTrainer preTrainer = optimizer.train(log,
         (SampledTrainable) new SampledArrayTrainable(primingData, trainingNetwork, trainingSize, batchSize)
             .setMinSamples(trainingSize).setMask(true, false),
         new ArrayTrainable(primingData, trainingNetwork, batchSize), monitor);
@@ -162,8 +155,7 @@ public abstract @com.simiacryptus.ref.lang.RefAware class EncodingProblem implem
 
     log.p("Then our main training phase:");
     TestUtil.instrumentPerformance(trainingNetwork);
-    @Nonnull
-    final ValidatingTrainer mainTrainer = optimizer.train(log,
+    @Nonnull final ValidatingTrainer mainTrainer = optimizer.train(log,
         (SampledTrainable) new SampledArrayTrainable(trainingData, trainingNetwork, trainingSize, batchSize)
             .setMinSamples(trainingSize).setMask(true, false),
         new ArrayTrainable(trainingData, trainingNetwork, batchSize), monitor);
@@ -191,23 +183,18 @@ public abstract @com.simiacryptus.ref.lang.RefAware class EncodingProblem implem
     }
 
     //log.file()
-    @Nonnull
-    final String modelName = "encoding_model_" + EncodingProblem.modelNo++ + ".json";
+    @Nonnull final String modelName = "encoding_model_" + EncodingProblem.modelNo++ + ".json";
     log.appendFrontMatterProperty("result_model", modelName, ";");
     log.p("Saved model as " + log.file(trainingNetwork.getJson().toString(), modelName, modelName));
 
     log.h3("Results");
-    @Nonnull
-    final PipelineNetwork testNetwork = new PipelineNetwork(2);
+    @Nonnull final PipelineNetwork testNetwork = new PipelineNetwork(2);
     testNetwork.add(imageNetwork, testNetwork.getInput(0));
     log.eval(() -> {
-      @Nonnull
-      final TableOutput table = new TableOutput();
+      @Nonnull final TableOutput table = new TableOutput();
       com.simiacryptus.ref.wrappers.RefArrays.stream(trainingData).map(tensorArray -> {
-        @Nullable
-        final Tensor predictionSignal = testNetwork.eval(tensorArray).getData().get(0);
-        @Nonnull
-        final com.simiacryptus.ref.wrappers.RefLinkedHashMap<CharSequence, Object> row = new com.simiacryptus.ref.wrappers.RefLinkedHashMap<>();
+        @Nullable final Tensor predictionSignal = testNetwork.eval(tensorArray).getData().get(0);
+        @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();
         row.put("Source", log.png(tensorArray[1].toImage(), ""));
         row.put("Echo", log.png(predictionSignal.toImage(), ""));
         return row;
@@ -217,17 +204,15 @@ public abstract @com.simiacryptus.ref.lang.RefAware class EncodingProblem implem
 
     log.p("Learned Model Statistics:");
     log.eval(() -> {
-      @Nonnull
-      final ScalarStatistics scalarStatistics = new ScalarStatistics();
-      trainingNetwork.state().stream().flatMapToDouble(x -> com.simiacryptus.ref.wrappers.RefArrays.stream(x))
+      @Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
+      trainingNetwork.state().stream().flatMapToDouble(x -> Arrays.stream(x))
           .forEach(v -> scalarStatistics.add(v));
       return scalarStatistics.getMetrics();
     });
 
     log.p("Learned Representation Statistics:");
     log.eval(() -> {
-      @Nonnull
-      final ScalarStatistics scalarStatistics = new ScalarStatistics();
+      @Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
       com.simiacryptus.ref.wrappers.RefArrays.stream(trainingData)
           .flatMapToDouble(row -> com.simiacryptus.ref.wrappers.RefArrays.stream(row[0].getData()))
           .forEach(v -> scalarStatistics.add(v));
@@ -236,10 +221,8 @@ public abstract @com.simiacryptus.ref.lang.RefAware class EncodingProblem implem
 
     log.p("Some rendered unit vectors:");
     for (int featureNumber = 0; featureNumber < features; featureNumber++) {
-      @Nonnull
-      final Tensor input = new Tensor(features).set(featureNumber, 1);
-      @Nullable
-      final Tensor tensor = imageNetwork.eval(input).getData().get(0);
+      @Nonnull final Tensor input = new Tensor(features).set(featureNumber, 1);
+      @Nullable final Tensor tensor = imageNetwork.eval(input).getData().get(0);
       ImageUtil.renderToImages(tensor, true).forEach(img -> {
         log.out(log.png(img, ""));
       });
