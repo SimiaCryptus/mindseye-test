@@ -208,7 +208,7 @@ class ClassifyProblem implements Problem {
 
   @Nullable
   public LinkedHashMap<CharSequence, Object> toRow(@Nonnull final NotebookOutput log,
-                                                                                    @Nonnull final LabeledObject<Tensor> labeledObject, final double[] predictionSignal) {
+                                                   @Nonnull final LabeledObject<Tensor> labeledObject, final double[] predictionSignal) {
     final int actualCategory = parse(labeledObject.label);
     final int[] predictionList = IntStream.range(0, categories).mapToObj(x -> x)
         .sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x)
