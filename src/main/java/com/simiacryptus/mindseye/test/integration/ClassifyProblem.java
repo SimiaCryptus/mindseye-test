@@ -50,8 +50,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import com.simiacryptus.ref.wrappers.RefLists;
+import com.simiacryptus.ref.wrappers.RefCollectors;
+import com.simiacryptus.ref.wrappers.RefIntStream;
+import com.simiacryptus.ref.wrappers.RefStream;
 
-public abstract class ClassifyProblem implements Problem {
+public abstract @com.simiacryptus.ref.lang.RefAware class ClassifyProblem implements Problem {
 
   private static final Logger logger = LoggerFactory.getLogger(ClassifyProblem.class);
 
@@ -59,19 +63,21 @@ public abstract class ClassifyProblem implements Problem {
   private final int categories;
   private final ImageProblemData data;
   private final FwdNetworkFactory fwdFactory;
-  private final List<StepRecord> history = new ArrayList<>();
+  private final com.simiacryptus.ref.wrappers.RefList<StepRecord> history = new com.simiacryptus.ref.wrappers.RefArrayList<>();
   private final OptimizationStrategy optimizer;
-  private final List<CharSequence> labels;
+  private final com.simiacryptus.ref.wrappers.RefList<CharSequence> labels;
   private int batchSize = 10000;
   private int timeoutMinutes = 1;
 
-  public ClassifyProblem(final FwdNetworkFactory fwdFactory, final OptimizationStrategy optimizer, final ImageProblemData data, final int categories) {
+  public ClassifyProblem(final FwdNetworkFactory fwdFactory, final OptimizationStrategy optimizer,
+      final ImageProblemData data, final int categories) {
     this.fwdFactory = fwdFactory;
     this.optimizer = optimizer;
     this.data = data;
     this.categories = categories;
     try {
-      this.labels = Stream.concat(this.data.trainingData(), this.data.validationData()).map(x -> x.label).distinct().sorted().collect(Collectors.toList());
+      this.labels = com.simiacryptus.ref.wrappers.RefStream.concat(this.data.trainingData(), this.data.validationData())
+          .map(x -> x.label).distinct().sorted().collect(com.simiacryptus.ref.wrappers.RefCollectors.toList());
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -89,7 +95,7 @@ public abstract class ClassifyProblem implements Problem {
 
   @Nonnull
   @Override
-  public List<StepRecord> getHistory() {
+  public com.simiacryptus.ref.wrappers.RefList<StepRecord> getHistory() {
     return history;
   }
 
@@ -106,10 +112,11 @@ public abstract class ClassifyProblem implements Problem {
   public Tensor[][] getTrainingData(final NotebookOutput log) {
     try {
       return data.trainingData().map(labeledObject -> {
-        @Nonnull final Tensor categoryTensor = new Tensor(categories);
+        @Nonnull
+        final Tensor categoryTensor = new Tensor(categories);
         final int category = parse(labeledObject.label);
         categoryTensor.set(category, 1);
-        return new Tensor[]{labeledObject.data, categoryTensor};
+        return new Tensor[] { labeledObject.data, categoryTensor };
       }).toArray(i -> new Tensor[i][]);
     } catch (@Nonnull final IOException e) {
       throw new RuntimeException(e);
@@ -121,28 +128,34 @@ public abstract class ClassifyProblem implements Problem {
   }
 
   public int[] predict(@Nonnull final Layer network, @Nonnull final LabeledObject<Tensor> labeledObject) {
-    @Nullable final double[] predictionSignal = network.eval(labeledObject.data).getData().get(0).getData();
-    return IntStream.range(0, categories).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
+    @Nullable
+    final double[] predictionSignal = network.eval(labeledObject.data).getData().get(0).getData();
+    return com.simiacryptus.ref.wrappers.RefIntStream.range(0, categories).mapToObj(x -> x)
+        .sorted(com.simiacryptus.ref.wrappers.RefComparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x)
+        .toArray();
   }
 
   @Nonnull
   @Override
   public ClassifyProblem run(@Nonnull final NotebookOutput log) {
-    @Nonnull final TrainingMonitor monitor = TestUtil.getMonitor(history);
+    @Nonnull
+    final TrainingMonitor monitor = TestUtil.getMonitor(history);
     final Tensor[][] trainingData = getTrainingData(log);
 
-    @Nonnull final DAGNetwork network = fwdFactory.imageToVector(log, categories);
+    @Nonnull
+    final DAGNetwork network = fwdFactory.imageToVector(log, categories);
     log.h3("Network Diagram");
     log.eval(() -> {
-      return Graphviz.fromGraph((Graph) TestUtil.toGraph(network))
-          .height(400).width(600).render(Format.PNG).toImage();
+      return Graphviz.fromGraph((Graph) TestUtil.toGraph(network)).height(400).width(600).render(Format.PNG).toImage();
     });
 
     log.h3("Training");
-    @Nonnull final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, lossLayer());
+    @Nonnull
+    final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, lossLayer());
     TestUtil.instrumentPerformance(supervisedNetwork);
     int initialSampleSize = Math.max(trainingData.length / 5, Math.min(10, trainingData.length / 2));
-    @Nonnull final ValidatingTrainer trainer = optimizer.train(log,
+    @Nonnull
+    final ValidatingTrainer trainer = optimizer.train(log,
         new SampledArrayTrainable(trainingData, supervisedNetwork, initialSampleSize, getBatchSize()),
         new ArrayTrainable(trainingData, supervisedNetwork, getBatchSize()), monitor);
     log.run(() -> {
@@ -157,38 +170,45 @@ public abstract class ClassifyProblem implements Problem {
       });
     }
 
-    @Nonnull String training_name = log.getName() + "_" + ClassifyProblem.modelNo++ + "_plot.png";
+    @Nonnull
+    String training_name = log.getName() + "_" + ClassifyProblem.modelNo++ + "_plot.png";
     try {
       BufferedImage image = Util.toImage(TestUtil.plot(history));
-      if (null != image) ImageIO.write(image, "png", log.file(training_name));
+      if (null != image)
+        ImageIO.write(image, "png", log.file(training_name));
     } catch (IOException e) {
       logger.warn("Error writing result images", e);
     }
     log.appendFrontMatterProperty("result_plot", new File(log.getResourceDir(), training_name).toString(), ";");
 
     TestUtil.extractPerformance(log, supervisedNetwork);
-    @Nonnull final String modelName = "classification_model_" + ClassifyProblem.modelNo++ + ".json";
+    @Nonnull
+    final String modelName = "classification_model_" + ClassifyProblem.modelNo++ + ".json";
     log.appendFrontMatterProperty("result_model", modelName, ";");
     log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
 
     log.h3("Validation");
     log.p("If we apply our model against the entire validation dataset, we get this accuracy:");
     log.eval(() -> {
-      return data.validationData().mapToDouble(labeledObject ->
-          predict(network, labeledObject)[0] == parse(labeledObject.label) ? 1 : 0)
+      return data.validationData()
+          .mapToDouble(labeledObject -> predict(network, labeledObject)[0] == parse(labeledObject.label) ? 1 : 0)
           .average().getAsDouble() * 100;
     });
 
     log.p("Let's examine some incorrectly predicted results in more detail:");
     log.eval(() -> {
       try {
-        @Nonnull final TableOutput table = new TableOutput();
-        Lists.partition(data.validationData().collect(Collectors.toList()), 100).stream().flatMap(batch -> {
-          @Nonnull TensorList batchIn = new TensorArray(batch.stream().map(x -> x.data).toArray(i1 -> new Tensor[i1]));
-          TensorList batchOut = network.eval(new ConstantResult(batchIn)).getData();
-          return IntStream.range(0, batchOut.length())
-              .mapToObj(i -> toRow(log, batch.get(i), batchOut.get(i).getData()));
-        }).filter(x -> null != x).limit(10).forEach(table::putRow);
+        @Nonnull
+        final TableOutput table = new TableOutput();
+        com.simiacryptus.ref.wrappers.RefLists
+            .partition(data.validationData().collect(com.simiacryptus.ref.wrappers.RefCollectors.toList()), 100)
+            .stream().flatMap(batch -> {
+              @Nonnull
+              TensorList batchIn = new TensorArray(batch.stream().map(x -> x.data).toArray(i1 -> new Tensor[i1]));
+              TensorList batchOut = network.eval(new ConstantResult(batchIn)).getData();
+              return com.simiacryptus.ref.wrappers.RefIntStream.range(0, batchOut.length())
+                  .mapToObj(i -> toRow(log, batch.get(i), batchOut.get(i).getData()));
+            }).filter(x -> null != x).limit(10).forEach(table::putRow);
         return table;
       } catch (@Nonnull final IOException e) {
         throw new RuntimeException(e);
@@ -198,15 +218,21 @@ public abstract class ClassifyProblem implements Problem {
   }
 
   @Nullable
-  public LinkedHashMap<CharSequence, Object> toRow(@Nonnull final NotebookOutput log, @Nonnull final LabeledObject<Tensor> labeledObject, final double[] predictionSignal) {
+  public com.simiacryptus.ref.wrappers.RefLinkedHashMap<CharSequence, Object> toRow(@Nonnull final NotebookOutput log,
+      @Nonnull final LabeledObject<Tensor> labeledObject, final double[] predictionSignal) {
     final int actualCategory = parse(labeledObject.label);
-    final int[] predictionList = IntStream.range(0, categories).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
-    if (predictionList[0] == actualCategory) return null; // We will only examine mispredicted rows
-    @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();
+    final int[] predictionList = com.simiacryptus.ref.wrappers.RefIntStream.range(0, categories).mapToObj(x -> x)
+        .sorted(com.simiacryptus.ref.wrappers.RefComparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x)
+        .toArray();
+    if (predictionList[0] == actualCategory)
+      return null; // We will only examine mispredicted rows
+    @Nonnull
+    final com.simiacryptus.ref.wrappers.RefLinkedHashMap<CharSequence, Object> row = new com.simiacryptus.ref.wrappers.RefLinkedHashMap<>();
     row.put("Image", log.png(labeledObject.data.toImage(), labeledObject.label));
-    row.put("Prediction", Arrays.stream(predictionList).limit(3)
-        .mapToObj(i -> String.format("%d (%.1f%%)", i, 100.0 * predictionSignal[i]))
-        .reduce((a, b) -> a + ", " + b).get());
+    row.put("Prediction",
+        com.simiacryptus.ref.wrappers.RefArrays.stream(predictionList).limit(3)
+            .mapToObj(i -> String.format("%d (%.1f%%)", i, 100.0 * predictionSignal[i])).reduce((a, b) -> a + ", " + b)
+            .get());
     return row;
   }
 

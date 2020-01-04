@@ -26,18 +26,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.stream.Stream;
+import com.simiacryptus.ref.wrappers.RefStream;
 
-public class CIFARProblemData implements ImageProblemData {
+public @com.simiacryptus.ref.lang.RefAware class CIFARProblemData implements ImageProblemData {
   private static final Logger log = LoggerFactory.getLogger(CIFARProblemData.class);
 
   @Override
-  public Stream<LabeledObject<Tensor>> trainingData() {
+  public com.simiacryptus.ref.wrappers.RefStream<LabeledObject<Tensor>> trainingData() {
     log.info(String.format("Loaded %d items", CIFAR10.trainingDataStream().count()));
     return CIFAR10.trainingDataStream();
   }
 
   @Override
-  public Stream<LabeledObject<Tensor>> validationData() {
+  public com.simiacryptus.ref.wrappers.RefStream<LabeledObject<Tensor>> validationData() {
     return CIFAR10.trainingDataStream();
   }
 

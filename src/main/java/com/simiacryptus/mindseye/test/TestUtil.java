@@ -56,26 +56,32 @@ import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import com.simiacryptus.ref.wrappers.RefCollectors;
+import com.simiacryptus.ref.wrappers.RefDoubleStream;
+import com.simiacryptus.ref.wrappers.RefIntStream;
+import com.simiacryptus.ref.wrappers.RefStream;
 
-public class TestUtil {
+public @com.simiacryptus.ref.lang.RefAware class TestUtil {
   public static final URI S3_ROOT = URI.create("https://s3-us-west-2.amazonaws.com/simiacryptus/");
   private static final Logger logger = LoggerFactory.getLogger(TestUtil.class);
 
-  public static Map<String, List<String>> getStackInfo() {
-    return Thread.getAllStackTraces().entrySet().stream().collect(Collectors.toMap(entry -> {
-      Thread key = entry.getKey();
-      return String.format("%s@%d", key.getName(), key.getId());
-    }, entry -> {
-      return Arrays.stream(entry.getValue()).map(StackTraceElement::toString).collect(Collectors.toList());
-    }));
+  public static com.simiacryptus.ref.wrappers.RefMap<String, com.simiacryptus.ref.wrappers.RefList<String>> getStackInfo() {
+    return Thread.getAllStackTraces().entrySet().stream()
+        .collect(com.simiacryptus.ref.wrappers.RefCollectors.toMap(entry -> {
+          Thread key = entry.getKey();
+          return String.format("%s@%d", key.getName(), key.getId());
+        }, entry -> {
+          return com.simiacryptus.ref.wrappers.RefArrays.stream(entry.getValue()).map(StackTraceElement::toString)
+              .collect(com.simiacryptus.ref.wrappers.RefCollectors.toList());
+        }));
   }
 
   public static PlotCanvas compare(final String title, @Nonnull final ProblemRun... trials) {
     try {
-      final DoubleSummaryStatistics xStatistics = Arrays.stream(trials)
+      final DoubleSummaryStatistics xStatistics = com.simiacryptus.ref.wrappers.RefArrays.stream(trials)
           .flatMapToDouble(x -> x.history.stream().mapToDouble(step -> step.iteration)).filter(Double::isFinite)
           .summaryStatistics();
-      final DoubleSummaryStatistics yStatistics = Arrays.stream(trials)
+      final DoubleSummaryStatistics yStatistics = com.simiacryptus.ref.wrappers.RefArrays.stream(trials)
           .flatMapToDouble(
               x -> x.history.stream().filter(y -> y.fitness > 0).mapToDouble(step -> Math.log10(step.fitness)))
           .filter(Double::isFinite).summaryStatistics();
@@ -83,28 +89,35 @@ public class TestUtil {
         logger.info("No Data");
         return null;
       }
-      @Nonnull final double[] lowerBound = {xStatistics.getCount() == 0 ? 0 : xStatistics.getMin(),
-          yStatistics.getCount() < 2 ? 0 : yStatistics.getMin()};
-      @Nonnull final double[] upperBound = {xStatistics.getCount() == 0 ? 1 : xStatistics.getMax(),
-          yStatistics.getCount() < 2 ? 1 : yStatistics.getMax()};
-      @Nonnull final PlotCanvas canvas = new PlotCanvas(lowerBound, upperBound);
+      @Nonnull
+      final double[] lowerBound = { xStatistics.getCount() == 0 ? 0 : xStatistics.getMin(),
+          yStatistics.getCount() < 2 ? 0 : yStatistics.getMin() };
+      @Nonnull
+      final double[] upperBound = { xStatistics.getCount() == 0 ? 1 : xStatistics.getMax(),
+          yStatistics.getCount() < 2 ? 1 : yStatistics.getMax() };
+      @Nonnull
+      final PlotCanvas canvas = new PlotCanvas(lowerBound, upperBound);
       canvas.setTitle(title);
       canvas.setAxisLabels("Iteration", "log10(Fitness)");
       canvas.setSize(600, 400);
-      final List<ProblemRun> filtered = Arrays.stream(trials).filter(x -> !x.history.isEmpty())
-          .collect(Collectors.toList());
+      final com.simiacryptus.ref.wrappers.RefList<ProblemRun> filtered = com.simiacryptus.ref.wrappers.RefArrays
+          .stream(trials).filter(x -> !x.history.isEmpty())
+          .collect(com.simiacryptus.ref.wrappers.RefCollectors.toList());
       if (filtered.isEmpty()) {
         logger.info("No Data");
         return null;
       }
       DoubleSummaryStatistics valueStatistics = filtered.stream().flatMap(x -> x.history.stream())
           .mapToDouble(x -> x.fitness).filter(x -> x > 0).summaryStatistics();
-      logger.info(String.format("Plotting range=%s, %s; valueStats=%s", Arrays.toString(lowerBound),
-          Arrays.toString(upperBound), valueStatistics));
-      for (@Nonnull final ProblemRun trial : filtered) {
+      logger.info(String.format("Plotting range=%s, %s; valueStats=%s",
+          com.simiacryptus.ref.wrappers.RefArrays.toString(lowerBound),
+          com.simiacryptus.ref.wrappers.RefArrays.toString(upperBound), valueStatistics));
+      for (@Nonnull
+      final ProblemRun trial : filtered) {
         final double[][] pts = trial.history.stream()
-            .map(step -> new double[]{step.iteration, Math.log10(Math.max(step.fitness, valueStatistics.getMin()))})
-            .filter(x -> Arrays.stream(x).allMatch(Double::isFinite)).toArray(i -> new double[i][]);
+            .map(step -> new double[] { step.iteration, Math.log10(Math.max(step.fitness, valueStatistics.getMin())) })
+            .filter(x -> com.simiacryptus.ref.wrappers.RefArrays.stream(x).allMatch(Double::isFinite))
+            .toArray(i -> new double[i][]);
         if (pts.length > 1) {
           logger.info(String.format("Plotting %s points for %s", pts.length, trial.name));
           canvas.add(trial.plot(pts));
@@ -121,11 +134,12 @@ public class TestUtil {
 
   public static PlotCanvas compareTime(final String title, @Nonnull final ProblemRun... trials) {
     try {
-      final DoubleSummaryStatistics[] xStatistics = Arrays.stream(trials)
+      final DoubleSummaryStatistics[] xStatistics = com.simiacryptus.ref.wrappers.RefArrays.stream(trials)
           .map(x -> x.history.stream().mapToDouble(step -> step.epochTime).filter(Double::isFinite).summaryStatistics())
           .toArray(i -> new DoubleSummaryStatistics[i]);
-      final double totalTime = Arrays.stream(xStatistics).mapToDouble(x -> x.getMax() - x.getMin()).max().getAsDouble();
-      final DoubleSummaryStatistics yStatistics = Arrays.stream(trials)
+      final double totalTime = com.simiacryptus.ref.wrappers.RefArrays.stream(xStatistics)
+          .mapToDouble(x -> x.getMax() - x.getMin()).max().getAsDouble();
+      final DoubleSummaryStatistics yStatistics = com.simiacryptus.ref.wrappers.RefArrays.stream(trials)
           .flatMapToDouble(
               x -> x.history.stream().filter(y -> y.fitness > 0).mapToDouble(step -> Math.log10(step.fitness)))
           .filter(Double::isFinite).summaryStatistics();
@@ -133,29 +147,35 @@ public class TestUtil {
         logger.info("No Data");
         return null;
       }
-      @Nonnull final double[] lowerBound = {0, yStatistics.getCount() == 0 ? 0 : yStatistics.getMin()};
-      @Nonnull final double[] upperBound = {totalTime / 1000.0, yStatistics.getCount() == 1 ? 0 : yStatistics.getMax()};
-      @Nonnull final PlotCanvas canvas = new PlotCanvas(lowerBound, upperBound);
+      @Nonnull
+      final double[] lowerBound = { 0, yStatistics.getCount() == 0 ? 0 : yStatistics.getMin() };
+      @Nonnull
+      final double[] upperBound = { totalTime / 1000.0, yStatistics.getCount() == 1 ? 0 : yStatistics.getMax() };
+      @Nonnull
+      final PlotCanvas canvas = new PlotCanvas(lowerBound, upperBound);
       canvas.setTitle(title);
       canvas.setAxisLabels("Time", "log10(Fitness)");
       canvas.setSize(600, 400);
-      final List<ProblemRun> filtered = Arrays.stream(trials).filter(x -> !x.history.isEmpty())
-          .collect(Collectors.toList());
+      final com.simiacryptus.ref.wrappers.RefList<ProblemRun> filtered = com.simiacryptus.ref.wrappers.RefArrays
+          .stream(trials).filter(x -> !x.history.isEmpty())
+          .collect(com.simiacryptus.ref.wrappers.RefCollectors.toList());
       if (filtered.isEmpty()) {
         logger.info("No Data");
         return null;
       }
       DoubleSummaryStatistics valueStatistics = filtered.stream().flatMap(x -> x.history.stream())
           .mapToDouble(x -> x.fitness).filter(x -> x > 0).summaryStatistics();
-      logger.info(String.format("Plotting range=%s, %s; valueStats=%s", Arrays.toString(lowerBound),
-          Arrays.toString(upperBound), valueStatistics));
+      logger.info(String.format("Plotting range=%s, %s; valueStats=%s",
+          com.simiacryptus.ref.wrappers.RefArrays.toString(lowerBound),
+          com.simiacryptus.ref.wrappers.RefArrays.toString(upperBound), valueStatistics));
       for (int t = 0; t < filtered.size(); t++) {
         final ProblemRun trial = filtered.get(t);
         final DoubleSummaryStatistics trialStats = xStatistics[t];
         final double[][] pts = trial.history.stream().map(step -> {
-          return new double[]{(step.epochTime - trialStats.getMin()) / 1000.0,
-              Math.log10(Math.max(step.fitness, valueStatistics.getMin()))};
-        }).filter(x -> Arrays.stream(x).allMatch(Double::isFinite)).toArray(i -> new double[i][]);
+          return new double[] { (step.epochTime - trialStats.getMin()) / 1000.0,
+              Math.log10(Math.max(step.fitness, valueStatistics.getMin())) };
+        }).filter(x -> com.simiacryptus.ref.wrappers.RefArrays.stream(x).allMatch(Double::isFinite))
+            .toArray(i -> new double[i][]);
         if (pts.length > 1) {
           logger.info(String.format("Plotting %s points for %s", pts.length, trial.name));
           canvas.add(trial.plot(pts));
@@ -173,10 +193,12 @@ public class TestUtil {
   public static void extractPerformance(@Nonnull final NotebookOutput log, @Nonnull final DAGNetwork network) {
     log.p("Per-key Performance Metrics:");
     log.run(() -> {
-      @Nonnull final Map<CharSequence, MonitoringWrapperLayer> metrics = new HashMap<>();
+      @Nonnull
+      final com.simiacryptus.ref.wrappers.RefMap<CharSequence, MonitoringWrapperLayer> metrics = new com.simiacryptus.ref.wrappers.RefHashMap<>();
       network.visitNodes(node -> {
         if (node.getLayer() instanceof MonitoringWrapperLayer) {
-          @Nullable final MonitoringWrapperLayer layer = node.getLayer();
+          @Nullable
+          final MonitoringWrapperLayer layer = node.getLayer();
           Layer inner = layer.getInner();
           String str = inner.toString();
           str += " class=" + inner.getClass().getName();
@@ -186,15 +208,18 @@ public class TestUtil {
           metrics.put(str, layer);
         }
       });
-      TestUtil.logger.info("Performance: \n\t" + metrics.entrySet().stream()
-          .sorted(Comparator.comparing(x -> -x.getValue().getForwardPerformance().getMean())).map(e -> {
-            @Nonnull final PercentileStatistics performanceF = e.getValue().getForwardPerformance();
-            @Nonnull final PercentileStatistics performanceB = e.getValue().getBackwardPerformance();
+      TestUtil.logger.info("Performance: \n\t" + metrics.entrySet().stream().sorted(
+          com.simiacryptus.ref.wrappers.RefComparator.comparing(x -> -x.getValue().getForwardPerformance().getMean()))
+          .map(e -> {
+            @Nonnull
+            final PercentileStatistics performanceF = e.getValue().getForwardPerformance();
+            @Nonnull
+            final PercentileStatistics performanceB = e.getValue().getBackwardPerformance();
             return String.format("%.6fs +- %.6fs (%d) <- %s", performanceF.getMean(), performanceF.getStdDev(),
                 performanceF.getCount(), e.getKey())
                 + (performanceB.getCount() == 0 ? ""
-                : String.format("%n\tBack: %.6fs +- %.6fs (%s)", performanceB.getMean(), performanceB.getStdDev(),
-                performanceB.getCount()));
+                    : String.format("%n\tBack: %.6fs +- %.6fs (%s)", performanceB.getMean(), performanceB.getStdDev(),
+                        performanceB.getCount()));
           }).reduce((a, b) -> a + "\n\t" + b).get());
     });
     removeInstrumentation(network);
@@ -209,15 +234,17 @@ public class TestUtil {
     });
   }
 
-  public static Map<CharSequence, Object> samplePerformance(@Nonnull final DAGNetwork network) {
-    @Nonnull final Map<CharSequence, Object> metrics = new HashMap<>();
+  public static com.simiacryptus.ref.wrappers.RefMap<CharSequence, Object> samplePerformance(
+      @Nonnull final DAGNetwork network) {
+    @Nonnull
+    final com.simiacryptus.ref.wrappers.RefMap<CharSequence, Object> metrics = new com.simiacryptus.ref.wrappers.RefHashMap<>();
     network.visitLayers(layer -> {
       if (layer instanceof MonitoringWrapperLayer) {
         MonitoringWrapperLayer monitoringWrapperLayer = (MonitoringWrapperLayer) layer;
         Layer inner = monitoringWrapperLayer.getInner();
         String str = inner.toString();
         str += " class=" + inner.getClass().getName();
-        HashMap<CharSequence, Object> row = new HashMap<>();
+        com.simiacryptus.ref.wrappers.RefHashMap<CharSequence, Object> row = new com.simiacryptus.ref.wrappers.RefHashMap<>();
         row.put("fwd", monitoringWrapperLayer.getForwardPerformance().getMetrics());
         row.put("rev", monitoringWrapperLayer.getBackwardPerformance().getMetrics());
         metrics.put(str, row);
@@ -226,11 +253,12 @@ public class TestUtil {
     return metrics;
   }
 
-  public static TrainingMonitor getMonitor(@Nonnull final List<StepRecord> history) {
+  public static TrainingMonitor getMonitor(@Nonnull final com.simiacryptus.ref.wrappers.RefList<StepRecord> history) {
     return getMonitor(history, null);
   }
 
-  public static TrainingMonitor getMonitor(@Nonnull final List<StepRecord> history, final Layer network) {
+  public static TrainingMonitor getMonitor(@Nonnull final com.simiacryptus.ref.wrappers.RefList<StepRecord> history,
+      final Layer network) {
     return new TrainingMonitor() {
       @Override
       public void clear() {
@@ -265,27 +293,31 @@ public class TestUtil {
     });
   }
 
-  public static JPanel plot(@Nonnull final List<StepRecord> history) {
+  public static JPanel plot(@Nonnull final com.simiacryptus.ref.wrappers.RefList<StepRecord> history) {
     try {
       final DoubleSummaryStatistics valueStats = history.stream().mapToDouble(x -> x.fitness).summaryStatistics();
       double min = valueStats.getMin();
       if (0 < min) {
         double[][] data = history.stream()
-            .map(step -> new double[]{step.iteration, Math.log10(Math.max(min, step.fitness))})
-            .filter(x -> Arrays.stream(x).allMatch(Double::isFinite)).toArray(i -> new double[i][]);
-        if (Arrays.stream(data).mapToInt(x -> x.length).sum() == 0)
+            .map(step -> new double[] { step.iteration, Math.log10(Math.max(min, step.fitness)) })
+            .filter(x -> com.simiacryptus.ref.wrappers.RefArrays.stream(x).allMatch(Double::isFinite))
+            .toArray(i -> new double[i][]);
+        if (com.simiacryptus.ref.wrappers.RefArrays.stream(data).mapToInt(x -> x.length).sum() == 0)
           return null;
-        @Nonnull final PlotCanvas plot = ScatterPlot.plot(data);
+        @Nonnull
+        final PlotCanvas plot = ScatterPlot.plot(data);
         plot.setTitle("Convergence Plot");
         plot.setAxisLabels("Iteration", "log10(Fitness)");
         plot.setSize(600, 400);
         return plot;
       } else {
-        double[][] data = history.stream().map(step -> new double[]{step.iteration, step.fitness})
-            .filter(x -> Arrays.stream(x).allMatch(Double::isFinite)).toArray(i -> new double[i][]);
-        if (Arrays.stream(data).mapToInt(x -> x.length).sum() == 0)
+        double[][] data = history.stream().map(step -> new double[] { step.iteration, step.fitness })
+            .filter(x -> com.simiacryptus.ref.wrappers.RefArrays.stream(x).allMatch(Double::isFinite))
+            .toArray(i -> new double[i][]);
+        if (com.simiacryptus.ref.wrappers.RefArrays.stream(data).mapToInt(x -> x.length).sum() == 0)
           return null;
-        @Nonnull final PlotCanvas plot = ScatterPlot.plot(data);
+        @Nonnull
+        final PlotCanvas plot = ScatterPlot.plot(data);
         plot.setTitle("Convergence Plot");
         plot.setAxisLabels("Iteration", "Fitness");
         plot.setSize(600, 400);
@@ -297,15 +329,17 @@ public class TestUtil {
     }
   }
 
-  public static PlotCanvas plotTime(@Nonnull final List<StepRecord> history) {
+  public static PlotCanvas plotTime(@Nonnull final com.simiacryptus.ref.wrappers.RefList<StepRecord> history) {
     try {
       final LongSummaryStatistics timeStats = history.stream().mapToLong(x -> x.epochTime).summaryStatistics();
       final DoubleSummaryStatistics valueStats = history.stream().mapToDouble(x -> x.fitness).filter(x -> x > 0)
           .summaryStatistics();
-      @Nonnull final PlotCanvas plot = ScatterPlot.plot(history.stream()
-          .map(step -> new double[]{(step.epochTime - timeStats.getMin()) / 1000.0,
-              Math.log10(Math.max(valueStats.getMin(), step.fitness))})
-          .filter(x -> Arrays.stream(x).allMatch(Double::isFinite)).toArray(i -> new double[i][]));
+      @Nonnull
+      final PlotCanvas plot = ScatterPlot.plot(history.stream()
+          .map(step -> new double[] { (step.epochTime - timeStats.getMin()) / 1000.0,
+              Math.log10(Math.max(valueStats.getMin(), step.fitness)) })
+          .filter(x -> com.simiacryptus.ref.wrappers.RefArrays.stream(x).allMatch(Double::isFinite))
+          .toArray(i -> new double[i][]));
       plot.setTitle("Convergence Plot");
       plot.setAxisLabels("Time", "log10(Fitness)");
       plot.setSize(600, 400);
@@ -340,22 +374,26 @@ public class TestUtil {
   }
 
   public static Object toGraph(@Nonnull final DAGNetwork network, Function<DAGNode, String> fn) {
-    final List<DAGNode> nodes = network.getNodes();
-    final Map<UUID, MutableNode> graphNodes = nodes.stream().collect(Collectors.toMap(node -> node.getId(), node -> {
-      String name = fn.apply(node);
-      return Factory.mutNode(Label.html(name + "<!-- " + node.getId().toString() + " -->"));
-    }));
-    final Stream<UUID[]> stream = nodes.stream().flatMap(to -> {
-      return Arrays.stream(to.getInputs()).map(from -> {
-        return new UUID[]{from.getId(), to.getId()};
+    final com.simiacryptus.ref.wrappers.RefList<DAGNode> nodes = network.getNodes();
+    final com.simiacryptus.ref.wrappers.RefMap<UUID, MutableNode> graphNodes = nodes.stream()
+        .collect(com.simiacryptus.ref.wrappers.RefCollectors.toMap(node -> node.getId(), node -> {
+          String name = fn.apply(node);
+          return Factory.mutNode(Label.html(name + "<!-- " + node.getId().toString() + " -->"));
+        }));
+    final com.simiacryptus.ref.wrappers.RefStream<UUID[]> stream = nodes.stream().flatMap(to -> {
+      return com.simiacryptus.ref.wrappers.RefArrays.stream(to.getInputs()).map(from -> {
+        return new UUID[] { from.getId(), to.getId() };
       });
     });
-    final Map<UUID, List<UUID>> idMap = stream
-        .collect(Collectors.groupingBy(x -> x[0], Collectors.mapping(x -> x[1], Collectors.toList())));
+    final com.simiacryptus.ref.wrappers.RefMap<UUID, com.simiacryptus.ref.wrappers.RefList<UUID>> idMap = stream
+        .collect(com.simiacryptus.ref.wrappers.RefCollectors.groupingBy(x -> x[0],
+            com.simiacryptus.ref.wrappers.RefCollectors.mapping(x -> x[1],
+                com.simiacryptus.ref.wrappers.RefCollectors.toList())));
     nodes.forEach(to -> {
-      graphNodes.get(to.getId()).addLink(idMap.getOrDefault(to.getId(), Arrays.asList()).stream().map(from -> {
-        return Link.to(graphNodes.get(from));
-      }).<LinkTarget>toArray(i -> new LinkTarget[i]));
+      graphNodes.get(to.getId()).addLink(
+          idMap.getOrDefault(to.getId(), com.simiacryptus.ref.wrappers.RefArrays.asList()).stream().map(from -> {
+            return Link.to(graphNodes.get(from));
+          }).<LinkTarget>toArray(i -> new LinkTarget[i]));
     });
     final LinkSource[] nodeArray = graphNodes.values().stream().map(x -> (LinkSource) x)
         .toArray(i -> new LinkSource[i]);
@@ -365,7 +403,8 @@ public class TestUtil {
   @NotNull
   public static String getName(DAGNode node) {
     String name;
-    @Nullable final Layer layer = node.getLayer();
+    @Nullable
+    final Layer layer = node.getLayer();
     if (null == layer) {
       name = node.getId().toString();
     } else {
@@ -375,7 +414,8 @@ public class TestUtil {
     return name;
   }
 
-  public static IntStream shuffle(@Nonnull IntStream stream) {
+  public static com.simiacryptus.ref.wrappers.RefIntStream shuffle(
+      @Nonnull com.simiacryptus.ref.wrappers.RefIntStream stream) {
     // http://primes.utm.edu/lists/small/10000.txt
     long coprimeA = 41387;
     long coprimeB = 9967;
@@ -396,7 +436,7 @@ public class TestUtil {
   public static <T> Supplier<T> orElse(@Nonnull Supplier<T>... suppliers) {
     return () -> {
       for (@Nonnull
-          Supplier<T> supplier : suppliers) {
+      Supplier<T> supplier : suppliers) {
         T t = supplier.get();
         if (null != t)
           return t;
@@ -410,21 +450,24 @@ public class TestUtil {
   }
 
   @Nonnull
-  public static <K, V> Map<K, V> buildMap(Consumer<Map<K, V>> configure) {
-    Map<K, V> map = new HashMap<>();
+  public static <K, V> com.simiacryptus.ref.wrappers.RefMap<K, V> buildMap(
+      com.simiacryptus.ref.wrappers.RefConsumer<com.simiacryptus.ref.wrappers.RefMap<K, V>> configure) {
+    com.simiacryptus.ref.wrappers.RefMap<K, V> map = new com.simiacryptus.ref.wrappers.RefHashMap<>();
     configure.accept(map);
     return map;
   }
 
   @Nonnull
-  public static Supplier<DoubleStream> geometricStream(final double start, final double end, final int steps) {
+  public static Supplier<com.simiacryptus.ref.wrappers.RefDoubleStream> geometricStream(final double start,
+      final double end, final int steps) {
     double step = Math.pow(end / start, 1.0 / (steps - 1));
-    return () -> DoubleStream.iterate(start, x -> x * step).limit(steps);
+    return () -> com.simiacryptus.ref.wrappers.RefDoubleStream.iterate(start, x -> x * step).limit(steps);
   }
 
-  public static <T> List<T> shuffle(final List<T> list) {
-    ArrayList<T> copy = new ArrayList<>(list);
-    Collections.shuffle(copy);
+  public static <T> com.simiacryptus.ref.wrappers.RefList<T> shuffle(
+      final com.simiacryptus.ref.wrappers.RefList<T> list) {
+    com.simiacryptus.ref.wrappers.RefArrayList<T> copy = new com.simiacryptus.ref.wrappers.RefArrayList<>(list);
+    com.simiacryptus.ref.wrappers.RefCollections.shuffle(copy);
     return copy;
   }
 
@@ -443,35 +486,35 @@ public class TestUtil {
   }
 
   @NotNull
-  public static Tensor sum(Collection<Tensor> tensorStream) {
+  public static Tensor sum(com.simiacryptus.ref.wrappers.RefCollection<Tensor> tensorStream) {
     return tensorStream.stream().reduce((a, b) -> {
       return a.addAndFree(b);
     }).get();
   }
 
   @NotNull
-  public static Tensor sum(Stream<Tensor> tensorStream) {
+  public static Tensor sum(com.simiacryptus.ref.wrappers.RefStream<Tensor> tensorStream) {
     return tensorStream.reduce((a, b) -> {
       return a.addAndFree(b);
     }).get();
   }
 
   @NotNull
-  public static Tensor avg(Collection<? extends Tensor> values) {
+  public static Tensor avg(com.simiacryptus.ref.wrappers.RefCollection<? extends Tensor> values) {
     return sum(values.stream().map(x -> {
       return x;
     })).scaleInPlace(1.0 / values.size());
   }
 
   public static CharSequence render(@Nonnull final NotebookOutput log, @Nonnull final Tensor tensor,
-                                    final boolean normalize) {
+      final boolean normalize) {
     return ImageUtil.renderToImages(tensor, normalize).map(image -> {
       return log.png(image, "");
     }).reduce((a, b) -> a + b).get();
   }
 
   public static CharSequence animatedGif(@Nonnull final NotebookOutput log, final int loopTimeMs,
-                                         @Nonnull final BufferedImage... images) {
+      @Nonnull final BufferedImage... images) {
     try {
       @Nonnull
       String filename = UUID.randomUUID().toString() + ".gif";

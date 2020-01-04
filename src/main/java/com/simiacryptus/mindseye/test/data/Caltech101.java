@@ -39,15 +39,19 @@ import java.util.List;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import com.simiacryptus.ref.wrappers.RefList;
+import com.simiacryptus.ref.wrappers.RefStream;
 
-public class Caltech101 {
+public @com.simiacryptus.ref.lang.RefAware class Caltech101 {
 
   @Nullable
   private static final DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>> training = new DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>>() {
     @Override
-    protected void read(@Nonnull final List<LabeledObject<SupplierWeakCache<BufferedImage>>> queue) {
+    protected void read(
+        @Nonnull final com.simiacryptus.ref.wrappers.RefList<LabeledObject<SupplierWeakCache<BufferedImage>>> queue) {
       try {
-        @Nullable InputStream stream = null;
+        @Nullable
+        InputStream stream = null;
         try {
           // Repackaging as a zip is needed - the tar format classes dont work here
           stream = Util.cacheStream(TestUtil.S3_ROOT.resolve("101_ObjectCategories.zip"));
@@ -55,7 +59,8 @@ public class Caltech101 {
           throw new RuntimeException(e);
         }
         final boolean continueLoop = true;
-        @Nullable final ZipInputStream tar = new ZipInputStream(stream);
+        @Nullable
+        final ZipInputStream tar = new ZipInputStream(stream);
         while (continueLoop) {
           if (Thread.interrupted()) {
             break;
@@ -93,9 +98,8 @@ public class Caltech101 {
     Caltech101.training.stop();
   }
 
-  public static Stream<LabeledObject<SupplierWeakCache<BufferedImage>>> trainingDataStream() {
+  public static com.simiacryptus.ref.wrappers.RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> trainingDataStream() {
     return Caltech101.training.stream();
   }
-
 
 }

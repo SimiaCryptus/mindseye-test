@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.test.data;
 
-
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.io.DataLoader;
 
@@ -36,61 +35,80 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import com.simiacryptus.ref.wrappers.RefArrayList;
+import com.simiacryptus.ref.wrappers.RefArrays;
+import com.simiacryptus.ref.wrappers.RefCollections;
+import com.simiacryptus.ref.wrappers.RefList;
+import com.simiacryptus.ref.wrappers.RefCollectors;
+import com.simiacryptus.ref.wrappers.RefStream;
 
-public class ImageTiles {
+public @com.simiacryptus.ref.lang.RefAware class ImageTiles {
 
   @Nonnull
-  public static Tensor read(@Nonnull final BufferedImage image, final int width, final int height, final int x, final int y) {
-    @Nonnull final Tensor tensor = new Tensor(width, height, 3);
+  public static Tensor read(@Nonnull final BufferedImage image, final int width, final int height, final int x,
+      final int y) {
+    @Nonnull
+    final Tensor tensor = new Tensor(width, height, 3);
     for (int xx = 0; xx < width; xx++) {
       for (int yy = 0; yy < height; yy++) {
-        @Nonnull final Color rgb = new Color(image.getRGB(x + xx, y + yy));
-        tensor.set(new int[]{xx, yy, 0}, rgb.getRed());
-        tensor.set(new int[]{xx, yy, 1}, rgb.getGreen());
-        tensor.set(new int[]{xx, yy, 2}, rgb.getBlue());
+        @Nonnull
+        final Color rgb = new Color(image.getRGB(x + xx, y + yy));
+        tensor.set(new int[] { xx, yy, 0 }, rgb.getRed());
+        tensor.set(new int[] { xx, yy, 1 }, rgb.getGreen());
+        tensor.set(new int[] { xx, yy, 2 }, rgb.getBlue());
       }
     }
     return tensor;
   }
 
-  public static Stream<File> readFiles(@Nonnull final File dir) {
-    if (dir.isFile()) return Arrays.asList(dir).stream();
-    return Arrays.stream(dir.listFiles()).flatMap(ImageTiles::readFiles);
+  public static com.simiacryptus.ref.wrappers.RefStream<File> readFiles(@Nonnull final File dir) {
+    if (dir.isFile())
+      return com.simiacryptus.ref.wrappers.RefArrays.asList(dir).stream();
+    return com.simiacryptus.ref.wrappers.RefArrays.stream(dir.listFiles()).flatMap(ImageTiles::readFiles);
   }
 
   public static Tensor[] tilesRgb(@Nonnull final BufferedImage image, final int width, final int height) {
     return ImageTiles.tilesRgb(image, width, height, false);
   }
 
-  public static Tensor[] tilesRgb(@Nonnull final BufferedImage image, final int width, final int height, final boolean overlap) {
+  public static Tensor[] tilesRgb(@Nonnull final BufferedImage image, final int width, final int height,
+      final boolean overlap) {
     return ImageTiles.tilesRgb(image, width, height, overlap ? 1 : width, overlap ? 1 : height);
   }
 
-  public static Tensor[] tilesRgb(@Nonnull final BufferedImage image, final int width, final int height, final int xStep, final int yStep) {
-    @Nonnull final List<Tensor> tensors = new ArrayList<>();
+  public static Tensor[] tilesRgb(@Nonnull final BufferedImage image, final int width, final int height,
+      final int xStep, final int yStep) {
+    @Nonnull
+    final com.simiacryptus.ref.wrappers.RefList<Tensor> tensors = new com.simiacryptus.ref.wrappers.RefArrayList<>();
     for (int y = 0; y < image.getHeight(); y += yStep) {
       for (int x = 0; x < image.getWidth(); x += xStep) {
         try {
-          @Nonnull final Tensor tensor = ImageTiles.read(image, width, height, y, x);
+          @Nonnull
+          final Tensor tensor = ImageTiles.read(image, width, height, y, x);
           tensors.add(tensor);
         } catch (@Nonnull final ArrayIndexOutOfBoundsException e) {
           // Ignore
         }
       }
     }
-    return tensors.toArray(new Tensor[]{});
+    return tensors.toArray(new Tensor[] {});
   }
 
   @Nonnull
-  public static List<Tensor> toTiles(@Nullable final BufferedImage image, final int tileWidth, final int tileHeight, final int minSpacingWidth, final int minSpacingHeight, final int maxTileCols, final int maxTileRows) {
-    @Nonnull final List<Tensor> queue = new ArrayList<>();
+  public static com.simiacryptus.ref.wrappers.RefList<Tensor> toTiles(@Nullable final BufferedImage image,
+      final int tileWidth, final int tileHeight, final int minSpacingWidth, final int minSpacingHeight,
+      final int maxTileCols, final int maxTileRows) {
+    @Nonnull
+    final com.simiacryptus.ref.wrappers.RefList<Tensor> queue = new com.simiacryptus.ref.wrappers.RefArrayList<>();
     if (null != image) {
       final int xMax = image.getWidth() - tileWidth;
       final int yMax = image.getHeight() - tileHeight;
       final int cols = Math.min(maxTileCols, xMax / minSpacingWidth);
       final int rows = Math.min(maxTileRows, yMax / minSpacingHeight);
-      if (cols < 1) return queue;
-      if (rows < 1) return queue;
+      if (cols < 1)
+        return queue;
+      if (rows < 1)
+        return queue;
       final int xStep = xMax / cols;
       final int yStep = yMax / rows;
       for (int x = 0; x < xMax; x += xStep) {
@@ -103,11 +121,14 @@ public class ImageTiles {
   }
 
   @Nonnull
-  public static List<Tensor> toTiles(@Nonnull final File file, final int tileWidth, final int tileHeight, final int minSpacingWidth, final int minSpacingHeight, final int maxTileCols, final int maxTileRows) throws IOException {
-    return ImageTiles.toTiles(ImageIO.read(file), tileWidth, tileHeight, minSpacingWidth, minSpacingHeight, maxTileCols, maxTileRows);
+  public static com.simiacryptus.ref.wrappers.RefList<Tensor> toTiles(@Nonnull final File file, final int tileWidth,
+      final int tileHeight, final int minSpacingWidth, final int minSpacingHeight, final int maxTileCols,
+      final int maxTileRows) throws IOException {
+    return ImageTiles.toTiles(ImageIO.read(file), tileWidth, tileHeight, minSpacingWidth, minSpacingHeight, maxTileCols,
+        maxTileRows);
   }
 
-  public static class ImageTensorLoader extends DataLoader<Tensor> {
+  public static @com.simiacryptus.ref.lang.RefAware class ImageTensorLoader extends DataLoader<Tensor> {
 
     public final int maxTileCols;
     public final int maxTileRows;
@@ -117,7 +138,8 @@ public class ImageTiles {
     public final int tileHeight;
     public final int tileWidth;
 
-    public ImageTensorLoader(final File parentDirectiory, final int tileWidth, final int tileHeight, final int minSpacingWidth, final int minSpacingHeight, final int maxTileRows, final int maxTileCols) {
+    public ImageTensorLoader(final File parentDirectiory, final int tileWidth, final int tileHeight,
+        final int minSpacingWidth, final int minSpacingHeight, final int maxTileRows, final int maxTileCols) {
       this.parentDirectiory = parentDirectiory;
       this.tileWidth = tileWidth;
       this.tileHeight = tileHeight;
@@ -128,15 +150,19 @@ public class ImageTiles {
     }
 
     @Override
-    protected void read(@Nonnull final List<Tensor> queue) {
-      @Nonnull final ArrayList<File> files = new ArrayList<>(ImageTiles.readFiles(parentDirectiory).collect(Collectors.toList()));
-      Collections.shuffle(files);
-      for (@Nonnull final File f : files) {
+    protected void read(@Nonnull final com.simiacryptus.ref.wrappers.RefList<Tensor> queue) {
+      @Nonnull
+      final com.simiacryptus.ref.wrappers.RefArrayList<File> files = new com.simiacryptus.ref.wrappers.RefArrayList<>(
+          ImageTiles.readFiles(parentDirectiory).collect(com.simiacryptus.ref.wrappers.RefCollectors.toList()));
+      com.simiacryptus.ref.wrappers.RefCollections.shuffle(files);
+      for (@Nonnull
+      final File f : files) {
         if (Thread.interrupted()) {
           break;
         }
         try {
-          queue.addAll(ImageTiles.toTiles(f, tileWidth, tileHeight, minSpacingWidth, minSpacingHeight, maxTileCols, maxTileRows));
+          queue.addAll(ImageTiles.toTiles(f, tileWidth, tileHeight, minSpacingWidth, minSpacingHeight, maxTileCols,
+              maxTileRows));
         } catch (@Nonnull final Throwable e) {
           throw new RuntimeException(e);
         }

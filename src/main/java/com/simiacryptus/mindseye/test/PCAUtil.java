@@ -33,13 +33,20 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import com.simiacryptus.ref.wrappers.RefComparator;
+import com.simiacryptus.ref.wrappers.RefList;
+import com.simiacryptus.ref.wrappers.RefCollectors;
+import com.simiacryptus.ref.wrappers.RefIntStream;
+import com.simiacryptus.ref.wrappers.RefStream;
 
-public class PCAUtil {
+public @com.simiacryptus.ref.lang.RefAware class PCAUtil {
   @Nonnull
-  public static RealMatrix getCovariance(@Nonnull final Supplier<Stream<double[]>> stream) {
+  public static RealMatrix getCovariance(
+      @Nonnull final Supplier<com.simiacryptus.ref.wrappers.RefStream<double[]>> stream) {
     final int dimension = stream.get().findAny().get().length;
-    final List<DoubleStatistics> statList = IntStream.range(0, dimension * dimension)
-        .mapToObj(i -> new DoubleStatistics()).collect(Collectors.toList());
+    final com.simiacryptus.ref.wrappers.RefList<DoubleStatistics> statList = com.simiacryptus.ref.wrappers.RefIntStream
+        .range(0, dimension * dimension).mapToObj(i -> new DoubleStatistics())
+        .collect(com.simiacryptus.ref.wrappers.RefCollectors.toList());
     stream.get().forEach(array -> {
       for (int i = 0; i < dimension; i++) {
         for (int j = 0; j <= i; j++) {
@@ -48,7 +55,8 @@ public class PCAUtil {
       }
       RecycleBin.DOUBLES.recycle(array, array.length);
     });
-    @Nonnull final RealMatrix covariance = new BlockRealMatrix(dimension, dimension);
+    @Nonnull
+    final RealMatrix covariance = new BlockRealMatrix(dimension, dimension);
     for (int i = 0; i < dimension; i++) {
       for (int j = 0; j <= i; j++) {
         final double v = statList.get(i + dimension * j).getAverage();
@@ -59,24 +67,28 @@ public class PCAUtil {
     return covariance;
   }
 
-  public static Tensor[] pcaFeatures(final RealMatrix covariance, final int components, final int[] featureDimensions, final double power) {
-    @Nonnull final EigenDecomposition decomposition = new EigenDecomposition(covariance);
-    final int[] orderedVectors = IntStream.range(0, components).mapToObj(x -> x)
-        .sorted(Comparator.comparing(x -> -decomposition.getRealEigenvalue(x))).mapToInt(x -> x).toArray();
-    return IntStream.range(0, orderedVectors.length)
-        .mapToObj(i -> {
-              @Nonnull final Tensor src = new Tensor(decomposition.getEigenvector(orderedVectors[i]).toArray(), featureDimensions).copy();
-              return src
-                  .scale(1.0 / src.rms())
-                  .scale((Math.pow(decomposition.getRealEigenvalue(orderedVectors[i]) / decomposition.getRealEigenvalue(orderedVectors[0]), power)))
-                  ;
-            }
-        ).toArray(i -> new Tensor[i]);
+  public static Tensor[] pcaFeatures(final RealMatrix covariance, final int components, final int[] featureDimensions,
+      final double power) {
+    @Nonnull
+    final EigenDecomposition decomposition = new EigenDecomposition(covariance);
+    final int[] orderedVectors = com.simiacryptus.ref.wrappers.RefIntStream.range(0, components).mapToObj(x -> x)
+        .sorted(com.simiacryptus.ref.wrappers.RefComparator.comparing(x -> -decomposition.getRealEigenvalue(x)))
+        .mapToInt(x -> x).toArray();
+    return com.simiacryptus.ref.wrappers.RefIntStream.range(0, orderedVectors.length).mapToObj(i -> {
+      @Nonnull
+      final Tensor src = new Tensor(decomposition.getEigenvector(orderedVectors[i]).toArray(), featureDimensions)
+          .copy();
+      return src.scale(1.0 / src.rms())
+          .scale((Math.pow(
+              decomposition.getRealEigenvalue(orderedVectors[i]) / decomposition.getRealEigenvalue(orderedVectors[0]),
+              power)));
+    }).toArray(i -> new Tensor[i]);
   }
 
   public static void populatePCAKernel_1(final Tensor kernel, final Tensor[] featureSpaceVectors) {
     final int outputBands = featureSpaceVectors.length;
-    @Nonnull final int[] filterDimensions = kernel.getDimensions();
+    @Nonnull
+    final int[] filterDimensions = kernel.getDimensions();
     kernel.setByCoord(c -> {
       final int kband = c.getCoords()[2];
       final int outband = kband % outputBands;
@@ -92,7 +104,8 @@ public class PCAUtil {
 
   public static void populatePCAKernel_2(final Tensor kernel, final Tensor[] featureSpaceVectors) {
     final int outputBands = featureSpaceVectors.length;
-    @Nonnull final int[] filterDimensions = kernel.getDimensions();
+    @Nonnull
+    final int[] filterDimensions = kernel.getDimensions();
     kernel.setByCoord(c -> {
       final int kband = c.getCoords()[2];
       final int outband = kband % outputBands;

@@ -26,8 +26,9 @@ import com.simiacryptus.util.test.LabeledObject;
 import javax.annotation.Nonnull;
 import java.awt.image.BufferedImage;
 import java.util.stream.Stream;
+import com.simiacryptus.ref.wrappers.RefStream;
 
-public class CaltechDatasetDemo extends ImageCategoryDatasetDemo {
+public @com.simiacryptus.ref.lang.RefAware class CaltechDatasetDemo extends ImageCategoryDatasetDemo {
 
   @Nonnull
   @Override
@@ -36,9 +37,31 @@ public class CaltechDatasetDemo extends ImageCategoryDatasetDemo {
   }
 
   @Override
-  public Stream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(@Nonnull NotebookOutput log) {
+  public com.simiacryptus.ref.wrappers.RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(
+      @Nonnull NotebookOutput log) {
     return log.eval(() -> {
       return Caltech101.trainingDataStream();
     });
+  }
+
+  public @SuppressWarnings("unused") void _free() {
+  }
+
+  public @Override @SuppressWarnings("unused") CaltechDatasetDemo addRef() {
+    return (CaltechDatasetDemo) super.addRef();
+  }
+
+  public static @SuppressWarnings("unused") CaltechDatasetDemo[] addRefs(CaltechDatasetDemo[] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(CaltechDatasetDemo::addRef)
+        .toArray((x) -> new CaltechDatasetDemo[x]);
+  }
+
+  public static @SuppressWarnings("unused") CaltechDatasetDemo[][] addRefs(CaltechDatasetDemo[][] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(CaltechDatasetDemo::addRefs)
+        .toArray((x) -> new CaltechDatasetDemo[x][]);
   }
 }

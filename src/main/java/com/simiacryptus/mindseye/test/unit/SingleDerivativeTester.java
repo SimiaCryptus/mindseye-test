@@ -34,8 +34,10 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import com.simiacryptus.ref.wrappers.RefCollectors;
+import com.simiacryptus.ref.wrappers.RefIntStream;
 
-public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistics> {
+public @com.simiacryptus.ref.lang.RefAware class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistics> {
   private static final Logger log = LoggerFactory.getLogger(SingleDerivativeTester.class);
 
   public final double probeSize;
@@ -92,18 +94,19 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
 
   @Override
   public ToleranceStatistics test(@Nonnull final NotebookOutput output, @Nonnull final Layer component,
-                                  @Nonnull final Tensor... inputPrototype) {
+      @Nonnull final Tensor... inputPrototype) {
     output.h1("Differential Validation");
     ToleranceStatistics _statistics = new ToleranceStatistics();
     final Tensor outputPrototype = SimpleEval.run(component, inputPrototype).getOutput();
     {
       if (verbose) {
         output.run(() -> {
-          log.info(String.format("Inputs: %s",
-              Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).orElse("")));
+          log.info(String.format("Inputs: %s", com.simiacryptus.ref.wrappers.RefArrays.stream(inputPrototype)
+              .map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).orElse("")));
           log.info(String.format("Inputs Statistics: %s",
-              Arrays.stream(inputPrototype).map(x -> new ScalarStatistics().add(x.getData()).toString())
-                  .reduce((a, b) -> a + ",\n" + b).orElse("")));
+              com.simiacryptus.ref.wrappers.RefArrays.stream(inputPrototype)
+                  .map(x -> new ScalarStatistics().add(x.getData()).toString()).reduce((a, b) -> a + ",\n" + b)
+                  .orElse("")));
           log.info(String.format("Output: %s", null == outputPrototype ? null : outputPrototype.prettyPrint()));
           log.info(String.format("Outputs Statistics: %s", new ScalarStatistics().add(outputPrototype.getData())));
         });
@@ -148,16 +151,18 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
   }
 
   public ToleranceStatistics testLearning(@Nonnull ToleranceStatistics prev, @Nonnull Layer component,
-                                          Tensor[] inputPrototype, @Nonnull Tensor outputPrototype) {
-    return IntStream.range(0, component.state().size()).mapToObj(i -> {
-      @Nullable final Tensor measuredGradient = !verify ? null
+      Tensor[] inputPrototype, @Nonnull Tensor outputPrototype) {
+    return com.simiacryptus.ref.wrappers.RefIntStream.range(0, component.state().size()).mapToObj(i -> {
+      @Nullable
+      final Tensor measuredGradient = !verify ? null
           : measureLearningGradient(component, i, outputPrototype, inputPrototype);
-      @Nonnull final Tensor implementedGradient = getLearningGradient(component, i, outputPrototype, inputPrototype);
+      @Nonnull
+      final Tensor implementedGradient = getLearningGradient(component, i, outputPrototype, inputPrototype);
       @Nonnull
       Tensor difference = measuredGradient.minus(implementedGradient);
       try {
-        final ToleranceStatistics result = IntStream.range(0, null == measuredGradient ? 0 : measuredGradient.length())
-            .mapToObj(i1 -> {
+        final ToleranceStatistics result = com.simiacryptus.ref.wrappers.RefIntStream
+            .range(0, null == measuredGradient ? 0 : measuredGradient.length()).mapToObj(i1 -> {
               return new ToleranceStatistics().accumulate(measuredGradient.getData()[i1],
                   implementedGradient.getData()[i1]);
             }).reduce((a, b) -> a.combine(b)).orElse(new ToleranceStatistics());
@@ -203,69 +208,81 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
 
   @Nonnull
   public ToleranceStatistics testFeedback(@Nonnull ToleranceStatistics statistics, @Nonnull Layer component,
-                                          @Nonnull Tensor[] inputPrototype, @Nonnull Tensor outputPrototype) {
-    Optional<ToleranceStatistics> optional = IntStream.range(0, inputPrototype.length).mapToObj(i -> {
-      @Nullable final Tensor measuredGradient = !verify ? null
-          : measureFeedbackGradient(component, i, outputPrototype, inputPrototype);
-      @Nonnull final Tensor implementedGradient = getFeedbackGradient(component, i, outputPrototype, inputPrototype);
-      Tensor maskedGradient = implementedGradient
-          .mapCoords(c -> Double.isNaN(measuredGradient.get(c.getCoords())) ? Double.NaN : implementedGradient.get(c));
-      @Nonnull
-      Tensor difference = measuredGradient.minus(maskedGradient);
-      try {
-        final ToleranceStatistics result = IntStream.range(0, null == measuredGradient ? 0 : measuredGradient.length())
-            .mapToObj(i1 -> {
-              return new ToleranceStatistics().accumulate(measuredGradient.getData()[i1], maskedGradient.getData()[i1]);
-            }).reduce((a, b) -> a.combine(b)).orElse(new ToleranceStatistics());
+      @Nonnull Tensor[] inputPrototype, @Nonnull Tensor outputPrototype) {
+    Optional<ToleranceStatistics> optional = com.simiacryptus.ref.wrappers.RefIntStream.range(0, inputPrototype.length)
+        .mapToObj(i -> {
+          @Nullable
+          final Tensor measuredGradient = !verify ? null
+              : measureFeedbackGradient(component, i, outputPrototype, inputPrototype);
+          @Nonnull
+          final Tensor implementedGradient = getFeedbackGradient(component, i, outputPrototype, inputPrototype);
+          Tensor maskedGradient = implementedGradient.mapCoords(
+              c -> Double.isNaN(measuredGradient.get(c.getCoords())) ? Double.NaN : implementedGradient.get(c));
+          @Nonnull
+          Tensor difference = measuredGradient.minus(maskedGradient);
+          try {
+            final ToleranceStatistics result = com.simiacryptus.ref.wrappers.RefIntStream
+                .range(0, null == measuredGradient ? 0 : measuredGradient.length()).mapToObj(i1 -> {
+                  return new ToleranceStatistics().accumulate(measuredGradient.getData()[i1],
+                      maskedGradient.getData()[i1]);
+                }).reduce((a, b) -> a.combine(b)).orElse(new ToleranceStatistics());
 
-        if (!(result.absoluteTol.getMax() < tolerance))
-          throw new AssertionError(result.toString());
-        //log.info(String.format("Component: %s", component));
-        if (verbose) {
-          log.info(String.format("Feedback for input %s", i));
-          log.info(String.format("Inputs Values: %s", inputPrototype[i].prettyPrint()));
-          log.info(String.format("Value Statistics: %s", new ScalarStatistics().add(inputPrototype[i].getData())));
-          log.info(String.format("Implemented Feedback: %s", implementedGradient.prettyPrint()));
-          log.info(
-              String.format("Implemented Statistics: %s", new ScalarStatistics().add(implementedGradient.getData())));
-          if (null != measuredGradient) {
-            log.info(String.format("Measured Feedback: %s", measuredGradient.prettyPrint()));
-            log.info(String.format("Measured Statistics: %s", new ScalarStatistics().add(measuredGradient.getData())));
-            log.info(String.format("Feedback Error: %s", difference.prettyPrint()));
-            log.info(String.format("Error Statistics: %s", new ScalarStatistics().add(difference.getData())));
+            if (!(result.absoluteTol.getMax() < tolerance))
+              throw new AssertionError(result.toString());
+            //log.info(String.format("Component: %s", component));
+            if (verbose) {
+              log.info(String.format("Feedback for input %s", i));
+              log.info(String.format("Inputs Values: %s", inputPrototype[i].prettyPrint()));
+              log.info(String.format("Value Statistics: %s", new ScalarStatistics().add(inputPrototype[i].getData())));
+              log.info(String.format("Implemented Feedback: %s", implementedGradient.prettyPrint()));
+              log.info(String.format("Implemented Statistics: %s",
+                  new ScalarStatistics().add(implementedGradient.getData())));
+              if (null != measuredGradient) {
+                log.info(String.format("Measured Feedback: %s", measuredGradient.prettyPrint()));
+                log.info(
+                    String.format("Measured Statistics: %s", new ScalarStatistics().add(measuredGradient.getData())));
+                log.info(String.format("Feedback Error: %s", difference.prettyPrint()));
+                log.info(String.format("Error Statistics: %s", new ScalarStatistics().add(difference.getData())));
+              }
+            }
+
+            return result;
+          } catch (@Nonnull final Throwable e) {
+            //log.info(String.format("Component: %s", component));
+            log.info(String.format("Feedback for input %s", i));
+            log.info(String.format("Inputs Values: %s", inputPrototype[i].prettyPrint()));
+            log.info(String.format("Value Statistics: %s", new ScalarStatistics().add(inputPrototype[i].getData())));
+            log.info(String.format("Implemented Feedback: %s", implementedGradient.prettyPrint()));
+            log.info(
+                String.format("Implemented Statistics: %s", new ScalarStatistics().add(implementedGradient.getData())));
+            if (null != measuredGradient) {
+              log.info(String.format("Measured: %s", measuredGradient.prettyPrint()));
+              log.info(
+                  String.format("Measured Statistics: %s", new ScalarStatistics().add(measuredGradient.getData())));
+              log.info(String.format("Feedback Error: %s", difference.prettyPrint()));
+              log.info(String.format("Error Statistics: %s", new ScalarStatistics().add(difference.getData())));
+            }
+            throw e;
+          } finally {
           }
-        }
-
-        return result;
-      } catch (@Nonnull final Throwable e) {
-        //log.info(String.format("Component: %s", component));
-        log.info(String.format("Feedback for input %s", i));
-        log.info(String.format("Inputs Values: %s", inputPrototype[i].prettyPrint()));
-        log.info(String.format("Value Statistics: %s", new ScalarStatistics().add(inputPrototype[i].getData())));
-        log.info(String.format("Implemented Feedback: %s", implementedGradient.prettyPrint()));
-        log.info(
-            String.format("Implemented Statistics: %s", new ScalarStatistics().add(implementedGradient.getData())));
-        if (null != measuredGradient) {
-          log.info(String.format("Measured: %s", measuredGradient.prettyPrint()));
-          log.info(String.format("Measured Statistics: %s", new ScalarStatistics().add(measuredGradient.getData())));
-          log.info(String.format("Feedback Error: %s", difference.prettyPrint()));
-          log.info(String.format("Error Statistics: %s", new ScalarStatistics().add(difference.getData())));
-        }
-        throw e;
-      } finally {
-      }
-    }).reduce((a, b) -> a.combine(b));
+        }).reduce((a, b) -> a.combine(b));
     if (!optional.isPresent())
       return statistics;
     return statistics.combine(optional.orElse(null));
   }
 
   public void testFrozen(@Nonnull final Layer component, @Nonnull Tensor[] inputPrototype) {
-    final int inElements = Arrays.stream(inputPrototype).mapToInt(x -> x.length()).sum();
-    inputPrototype = Arrays.stream(inputPrototype).map(tensor -> tensor.copy()).toArray(i -> new Tensor[i]);
-    @Nonnull final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
-    @Nonnull final Layer frozen = component.copy().freeze();
-    List<TensorArray> inputCopies = Arrays.stream(inputPrototype).map(data -> new TensorArray(data)).collect(Collectors.toList());
+    final int inElements = com.simiacryptus.ref.wrappers.RefArrays.stream(inputPrototype).mapToInt(x -> x.length())
+        .sum();
+    inputPrototype = com.simiacryptus.ref.wrappers.RefArrays.stream(inputPrototype).map(tensor -> tensor.copy())
+        .toArray(i -> new Tensor[i]);
+    @Nonnull
+    final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
+    @Nonnull
+    final Layer frozen = component.copy().freeze();
+    com.simiacryptus.ref.wrappers.RefList<TensorArray> inputCopies = com.simiacryptus.ref.wrappers.RefArrays
+        .stream(inputPrototype).map(data -> new TensorArray(data))
+        .collect(com.simiacryptus.ref.wrappers.RefCollectors.toList());
     Result[] input = inputCopies.stream().map((tensorArray) -> new Result(tensorArray,
         (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
           reachedInputFeedback.set(true);
@@ -276,10 +293,15 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
         return true;
       }
 
+      public @SuppressWarnings("unused") void _free() {
+      }
+
     }).toArray(i -> new Result[i]);
-    @Nullable final Result eval;
+    @Nullable
+    final Result eval;
     eval = frozen.eval(input);
-    @Nonnull final DeltaSet<UUID> buffer;
+    @Nonnull
+    final DeltaSet<UUID> buffer;
     TensorList tensorList;
     TensorList evalData = eval.getData();
     {
@@ -287,9 +309,9 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
       tensorList = evalData.copy();
       eval.accumulate(buffer, tensorList);
     }
-    final List<Delta<UUID>> deltas = component.state().stream().map(doubles -> {
+    final com.simiacryptus.ref.wrappers.RefList<Delta<UUID>> deltas = component.state().stream().map(doubles -> {
       return buffer.stream().filter(x -> x.target == doubles).findFirst().orElse(null);
-    }).filter(x -> x != null).collect(Collectors.toList());
+    }).filter(x -> x != null).collect(com.simiacryptus.ref.wrappers.RefCollectors.toList());
     if (!deltas.isEmpty() && !component.state().isEmpty()) {
       throw new AssertionError("Frozen component listed in evalInputDelta. Deltas: " + deltas);
     }
@@ -299,10 +321,15 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
   }
 
   public void testUnFrozen(@Nonnull final Layer component, Tensor[] inputPrototype) {
-    inputPrototype = Arrays.stream(inputPrototype).map(tensor -> tensor.copy()).toArray(i -> new Tensor[i]);
-    @Nonnull final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
-    @Nonnull final Layer frozen = component.copy().setFrozen(false);
-    List<TensorArray> inputCopies = Arrays.stream(inputPrototype).map(data -> new TensorArray(data)).collect(Collectors.toList());
+    inputPrototype = com.simiacryptus.ref.wrappers.RefArrays.stream(inputPrototype).map(tensor -> tensor.copy())
+        .toArray(i -> new Tensor[i]);
+    @Nonnull
+    final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
+    @Nonnull
+    final Layer frozen = component.copy().setFrozen(false);
+    com.simiacryptus.ref.wrappers.RefList<TensorArray> inputCopies = com.simiacryptus.ref.wrappers.RefArrays
+        .stream(inputPrototype).map(data -> new TensorArray(data))
+        .collect(com.simiacryptus.ref.wrappers.RefCollectors.toList());
     Result[] inputs = inputCopies.stream()
         .map(tensor -> new Result(tensor, (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
           reachedInputFeedback.set(true);
@@ -311,16 +338,22 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
           public boolean isAlive() {
             return true;
           }
+
+          public @SuppressWarnings("unused") void _free() {
+          }
         }).toArray(i -> new Result[i]);
-    @Nullable final Result eval;
+    @Nullable
+    final Result eval;
     eval = frozen.eval(inputs);
-    @Nonnull final DeltaSet<UUID> buffer = new DeltaSet<UUID>();
+    @Nonnull
+    final DeltaSet<UUID> buffer = new DeltaSet<UUID>();
     TensorList tensorList = eval.getData();
     eval.accumulate(buffer, tensorList);
-    @Nullable final List<double[]> stateList = frozen.state();
-    final List<Delta<UUID>> deltas = stateList.stream().map(doubles -> {
+    @Nullable
+    final com.simiacryptus.ref.wrappers.RefList<double[]> stateList = frozen.state();
+    final com.simiacryptus.ref.wrappers.RefList<Delta<UUID>> deltas = stateList.stream().map(doubles -> {
       return buffer.stream().filter(x -> x.target == doubles).findFirst().orElse(null);
-    }).filter(x -> x != null).collect(Collectors.toList());
+    }).filter(x -> x != null).collect(com.simiacryptus.ref.wrappers.RefCollectors.toList());
     if (deltas.isEmpty() && !stateList.isEmpty()) {
       throw new AssertionError("Nonfrozen component not listed in evalInputDelta. Deltas: " + deltas);
     }
@@ -337,21 +370,25 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
   }
 
   protected void measureFeedback(@Nonnull Layer component, int inputIndex, Tensor baseOutput,
-                                 @Nonnull Tensor[] inputPrototype, Tensor measuredGradient, int probeIndex) {
-    @Nonnull final Tensor inputProbe = inputPrototype[inputIndex].copy();
+      @Nonnull Tensor[] inputPrototype, Tensor measuredGradient, int probeIndex) {
+    @Nonnull
+    final Tensor inputProbe = inputPrototype[inputIndex].copy();
     inputProbe.add(probeIndex, probeSize * 1);
-    @Nonnull final Tensor[] copyInput = Arrays.copyOf(inputPrototype, inputPrototype.length);
+    @Nonnull
+    final Tensor[] copyInput = com.simiacryptus.ref.wrappers.RefArrays.copyOf(inputPrototype, inputPrototype.length);
     copyInput[inputIndex] = inputProbe;
-    Result[] input1 = ConstantResult.batchResultArray(new Tensor[][]{copyInput});
+    Result[] input1 = ConstantResult.batchResultArray(new Tensor[][] { copyInput });
     try {
-      @Nullable final Tensor evalProbe = component.eval(input1).getData().get(0);
-      @Nonnull final Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
+      @Nullable
+      final Tensor evalProbe = component.eval(input1).getData().get(0);
+      @Nonnull
+      final Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
       for (int j = 0; j < delta.length(); j++) {
-        measuredGradient.set(new int[]{probeIndex, j}, delta.getData()[j]);
+        measuredGradient.set(new int[] { probeIndex, j }, delta.getData()[j]);
       }
     } finally {
       for (@Nonnull
-          Result result : input1) {
+      Result result : input1) {
         result.getData();
       }
 
@@ -360,24 +397,30 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
 
   @Nonnull
   private Tensor getFeedbackGradient(@Nonnull final Layer component, final int inputIndex,
-                                     @Nonnull final Tensor outputPrototype, @Nonnull final Tensor... inputPrototype) {
+      @Nonnull final Tensor outputPrototype, @Nonnull final Tensor... inputPrototype) {
     final Tensor inputTensor = inputPrototype[inputIndex];
     final int inputDims = inputTensor.length();
-    @Nonnull final Tensor result = new Tensor(inputDims, outputPrototype.length());
+    @Nonnull
+    final Tensor result = new Tensor(inputDims, outputPrototype.length());
     for (int j = 0; j < outputPrototype.length(); j++) {
       final int j_ = j;
-      @Nonnull final PlaceholderLayer<Tensor> inputKey = new PlaceholderLayer<Tensor>(new Tensor(1));
+      @Nonnull
+      final PlaceholderLayer<Tensor> inputKey = new PlaceholderLayer<Tensor>(new Tensor(1));
       inputKey.getKey();
-      final Result[] copyInput = Arrays.stream(inputPrototype).map(x -> new Result(new TensorArray(x),
-          (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
-          }) {
+      final Result[] copyInput = com.simiacryptus.ref.wrappers.RefArrays.stream(inputPrototype)
+          .map(x -> new Result(new TensorArray(x),
+              (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
+              }) {
 
-        @Override
-        public boolean isAlive() {
-          return false;
-        }
+            @Override
+            public boolean isAlive() {
+              return false;
+            }
 
-      }).toArray(i -> new Result[i]);
+            public @SuppressWarnings("unused") void _free() {
+            }
+
+          }).toArray(i -> new Result[i]);
       copyInput[inputIndex].getData();
       double[] target = new double[inputDims * outputPrototype.length()];
       copyInput[inputIndex] = new Result(new TensorArray(inputTensor),
@@ -387,15 +430,16 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
                 throw new AssertionError();
               if (data.length() != 1)
                 throw new AssertionError();
-              @Nonnull final Tensor gradientBuffer = new Tensor(inputDims, outputPrototype.length());
-              if (!Arrays.equals(inputTensor.getDimensions(), data.getDimensions())) {
+              @Nonnull
+              final Tensor gradientBuffer = new Tensor(inputDims, outputPrototype.length());
+              if (!com.simiacryptus.ref.wrappers.RefArrays.equals(inputTensor.getDimensions(), data.getDimensions())) {
                 throw new AssertionError();
               }
-              IntStream.range(0, data.length()).forEach(dataIndex -> {
+              com.simiacryptus.ref.wrappers.RefIntStream.range(0, data.length()).forEach(dataIndex -> {
                 for (int i = 0; i < inputDims; i++) {
                   @Nullable
                   Tensor tensor = data.get(dataIndex);
-                  gradientBuffer.set(new int[]{i, j_}, tensor.getData()[i]);
+                  gradientBuffer.set(new int[] { i, j_ }, tensor.getData()[i]);
                 }
               });
               buffer.get(inputKey.getId(), target).addInPlace(gradientBuffer.getData());
@@ -406,22 +450,27 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
         public boolean isAlive() {
           return true;
         }
+
+        public @SuppressWarnings("unused") void _free() {
+        }
       };
-      @Nullable final Result eval;
+      @Nullable
+      final Result eval;
       try {
         eval = component.eval(copyInput);
       } finally {
         for (@Nonnull
-            Result nnResult : copyInput) {
+        Result nnResult : copyInput) {
           nnResult.getData();
         }
       }
-      @Nonnull final DeltaSet<UUID> deltaSet = new DeltaSet<UUID>();
+      @Nonnull
+      final DeltaSet<UUID> deltaSet = new DeltaSet<UUID>();
       @Nonnull
       TensorArray tensorArray = new TensorArray(new Tensor(outputPrototype.getDimensions()).set(j, 1));
       try {
         eval.accumulate(deltaSet, tensorArray);
-        Map<UUID, Delta<UUID>> map = deltaSet.getMap();
+        com.simiacryptus.ref.wrappers.RefMap<UUID, Delta<UUID>> map = deltaSet.getMap();
         final Delta<UUID> inputDelta = map.get(inputKey.getId());
         if (null != inputDelta) {
           @Nonnull
@@ -437,29 +486,33 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
 
   @Nonnull
   private Tensor getLearningGradient(@Nonnull final Layer component, final int layerNum,
-                                     @Nonnull final Tensor outputPrototype, final Tensor... inputPrototype) {
+      @Nonnull final Tensor outputPrototype, final Tensor... inputPrototype) {
     component.setFrozen(false);
     final double[] stateArray = component.state().get(layerNum);
     final int stateLen = stateArray.length;
-    @Nonnull final Tensor gradient = new Tensor(stateLen, outputPrototype.length());
+    @Nonnull
+    final Tensor gradient = new Tensor(stateLen, outputPrototype.length());
     for (int j = 0; j < outputPrototype.length(); j++) {
       final int j_ = j;
-      @Nonnull final DeltaSet<UUID> buffer = new DeltaSet<UUID>();
-      Result[] array = ConstantResult.batchResultArray(new Tensor[][]{inputPrototype});
-      @Nullable final Result eval = component.eval(array);
+      @Nonnull
+      final DeltaSet<UUID> buffer = new DeltaSet<UUID>();
+      Result[] array = ConstantResult.batchResultArray(new Tensor[][] { inputPrototype });
+      @Nullable
+      final Result eval = component.eval(array);
       for (@Nonnull
-          Result result : array) {
+      Result result : array) {
         result.getData();
       }
       @Nonnull
-      TensorArray tensorArray = new TensorArray(new Tensor(outputPrototype.getDimensions()).set((k) -> k == j_ ? 1 : 0));
+      TensorArray tensorArray = new TensorArray(
+          new Tensor(outputPrototype.getDimensions()).set((k) -> k == j_ ? 1 : 0));
       eval.accumulate(buffer, tensorArray);
       eval.getData();
       final DoubleBuffer<UUID> deltaFlushBuffer = buffer.getMap().values().stream().filter(x -> x.target == stateArray)
           .findFirst().orElse(null);
       if (null != deltaFlushBuffer) {
         for (int i = 0; i < stateLen; i++) {
-          gradient.set(new int[]{i, j_}, deltaFlushBuffer.getDelta()[i]);
+          gradient.set(new int[] { i, j_ }, deltaFlushBuffer.getDelta()[i]);
         }
       }
     }
@@ -468,12 +521,14 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
 
   @Nonnull
   private Tensor measureFeedbackGradient(@Nonnull final Layer component, final int inputIndex,
-                                         @Nonnull final Tensor outputPrototype, @Nonnull final Tensor... inputPrototype) {
-    @Nonnull final Tensor measuredGradient = new Tensor(inputPrototype[inputIndex].length(), outputPrototype.length());
-    Result[] input0 = ConstantResult.batchResultArray(new Tensor[][]{inputPrototype});
-    @Nullable final Tensor baseOutput = component.eval(input0).getData().get(0);
+      @Nonnull final Tensor outputPrototype, @Nonnull final Tensor... inputPrototype) {
+    @Nonnull
+    final Tensor measuredGradient = new Tensor(inputPrototype[inputIndex].length(), outputPrototype.length());
+    Result[] input0 = ConstantResult.batchResultArray(new Tensor[][] { inputPrototype });
+    @Nullable
+    final Tensor baseOutput = component.eval(input0).getData().get(0);
     for (@Nonnull
-        Result result : input0) {
+    Result result : input0) {
       result.getData();
     }
     outputPrototype.set(baseOutput);
@@ -485,26 +540,52 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
 
   @Nonnull
   private Tensor measureLearningGradient(@Nonnull final Layer component, final int layerNum,
-                                         @Nonnull final Tensor outputPrototype, final Tensor... inputPrototype) {
+      @Nonnull final Tensor outputPrototype, final Tensor... inputPrototype) {
     final int stateLen = component.state().get(layerNum).length;
-    @Nonnull final Tensor gradient = new Tensor(stateLen, outputPrototype.length());
+    @Nonnull
+    final Tensor gradient = new Tensor(stateLen, outputPrototype.length());
 
-    Result[] input2 = ConstantResult.batchResultArray(new Tensor[][]{inputPrototype});
-    @Nullable final Tensor baseOutput = component.eval(input2).getData().get(0);
+    Result[] input2 = ConstantResult.batchResultArray(new Tensor[][] { inputPrototype });
+    @Nullable
+    final Tensor baseOutput = component.eval(input2).getData().get(0);
 
     for (int i = 0; i < stateLen; i++) {
-      @Nonnull final Layer copy = component.copy();
+      @Nonnull
+      final Layer copy = component.copy();
       copy.state().get(layerNum)[i] += probeSize;
-      @Nullable final Tensor evalProbe = copy.eval(input2).getData().get(0);
-      @Nonnull final Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
+      @Nullable
+      final Tensor evalProbe = copy.eval(input2).getData().get(0);
+      @Nonnull
+      final Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
       for (int j = 0; j < delta.length(); j++) {
-        gradient.set(new int[]{i, j}, delta.getData()[j]);
+        gradient.set(new int[] { i, j }, delta.getData()[j]);
       }
     }
     for (@Nonnull
-        Result result : input2) {
+    Result result : input2) {
       result.getData();
     }
     return gradient;
+  }
+
+  public @SuppressWarnings("unused") void _free() {
+  }
+
+  public @Override @SuppressWarnings("unused") SingleDerivativeTester addRef() {
+    return (SingleDerivativeTester) super.addRef();
+  }
+
+  public static @SuppressWarnings("unused") SingleDerivativeTester[] addRefs(SingleDerivativeTester[] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(SingleDerivativeTester::addRef)
+        .toArray((x) -> new SingleDerivativeTester[x]);
+  }
+
+  public static @SuppressWarnings("unused") SingleDerivativeTester[][] addRefs(SingleDerivativeTester[][] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(SingleDerivativeTester::addRefs)
+        .toArray((x) -> new SingleDerivativeTester[x][]);
   }
 }

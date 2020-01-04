@@ -40,14 +40,16 @@ import java.util.HashMap;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
+import com.simiacryptus.ref.wrappers.RefArrays;
+import com.simiacryptus.ref.wrappers.RefHashMap;
 
-public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
+public @com.simiacryptus.ref.lang.RefAware class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
   @Nonnull
-  private final HashMap<SerialPrecision, Layer> models = new HashMap<>();
+  private final com.simiacryptus.ref.wrappers.RefHashMap<SerialPrecision, Layer> models = new com.simiacryptus.ref.wrappers.RefHashMap<>();
   private boolean persist = false;
 
   @Nonnull
-  public HashMap<SerialPrecision, Layer> getModels() {
+  public com.simiacryptus.ref.wrappers.RefHashMap<SerialPrecision, Layer> getModels() {
     return models;
   }
 
@@ -70,7 +72,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
     try {
       try (@Nonnull
-           GZIPOutputStream out = new GZIPOutputStream(byteArrayOutputStream)) {
+      GZIPOutputStream out = new GZIPOutputStream(byteArrayOutputStream)) {
         IOUtils.write(bytes, out);
       }
     } catch (IOException e) {
@@ -82,7 +84,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
   @Nullable
   @Override
   public ToleranceStatistics test(@Nonnull final NotebookOutput log, @Nonnull final Layer layer,
-                                  final Tensor... inputPrototype) {
+      final Tensor... inputPrototype) {
     log.h1("Serialization");
     log.p("This apply will demonstrate the key's JSON serialization, and verify deserialization integrity.");
 
@@ -91,7 +93,8 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
     try {
       prettyPrint = log.eval(() -> {
         final JsonObject json = layer.getJson().getAsJsonObject();
-        @Nonnull final Layer echo = Layer.fromJson(json);
+        @Nonnull
+        final Layer echo = Layer.fromJson(json);
         if (echo == null)
           throw new AssertionError("Failed to deserialize");
         if (layer == echo)
@@ -115,12 +118,13 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
     @Nonnull
     Object outSync = new Object();
     if (prettyPrint.isEmpty() || prettyPrint.length() > 1024 * 64)
-      Arrays.stream(SerialPrecision.values()).parallel().forEach(precision -> {
+      com.simiacryptus.ref.wrappers.RefArrays.stream(SerialPrecision.values()).parallel().forEach(precision -> {
         try {
           @Nonnull
           File file = new File(log.getResourceDir(), log.getName() + "_" + precision.name() + ".zip");
           layer.writeZip(file, precision);
-          @Nonnull final Layer echo = Layer.fromZip(new ZipFile(file));
+          @Nonnull
+          final Layer echo = Layer.fromZip(new ZipFile(file));
           getModels().put(precision, echo);
           synchronized (outSync) {
             log.h2(String.format("Zipfile %s", precision.name()));
@@ -153,5 +157,26 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
   @Override
   public String toString() {
     return "SerializationTest{" + "models=" + models + ", persist=" + persist + '}';
+  }
+
+  public @SuppressWarnings("unused") void _free() {
+  }
+
+  public @Override @SuppressWarnings("unused") SerializationTest addRef() {
+    return (SerializationTest) super.addRef();
+  }
+
+  public static @SuppressWarnings("unused") SerializationTest[] addRefs(SerializationTest[] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(SerializationTest::addRef)
+        .toArray((x) -> new SerializationTest[x]);
+  }
+
+  public static @SuppressWarnings("unused") SerializationTest[][] addRefs(SerializationTest[][] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(SerializationTest::addRefs)
+        .toArray((x) -> new SerializationTest[x][]);
   }
 }

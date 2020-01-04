@@ -43,9 +43,9 @@ import java.io.File;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public abstract class StandardLayerTests extends NotebookReportBase {
+public abstract @com.simiacryptus.ref.lang.RefAware class StandardLayerTests extends NotebookReportBase {
   public static final long seed = 51389; //System.nanoTime();
-  private static final HashMap<String, TreeMap<String, String>> javadocs = loadJavadoc();
+  private static final Map<String, ? extends NavigableMap<String, String>> javadocs = loadJavadoc();
 
   static {
     SysOutInterceptor.INSTANCE.init();
@@ -73,12 +73,16 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       public double getRandom() {
         return random();
       }
+
+      public @SuppressWarnings("unused") void _free() {
+      }
     }.setBatchSize(testingBatchSize);
   }
 
   @Nonnull
-  public List<ComponentTest<?>> getBigTests() {
-    return Arrays.asList(getPerformanceTester(), getBatchingTester(), getReferenceIOTester(), getEquivalencyTester());
+  public com.simiacryptus.ref.wrappers.RefList<ComponentTest<?>> getBigTests() {
+    return com.simiacryptus.ref.wrappers.RefArrays.asList(getPerformanceTester(), getBatchingTester(),
+        getReferenceIOTester(), getEquivalencyTester());
   }
 
   @Nullable
@@ -92,15 +96,16 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   public ComponentTest<ToleranceStatistics> getEquivalencyTester() {
     if (!testEquivalency)
       return null;
-    @Nullable final Layer referenceLayer = getReferenceLayer();
+    @Nullable
+    final Layer referenceLayer = getReferenceLayer();
     if (null == referenceLayer)
       return null;
     return new EquivalencyTester(1e-2, referenceLayer);
   }
 
   @Nonnull
-  public List<ComponentTest<?>> getFinalTests() {
-    return Arrays.asList(getTrainingTester());
+  public com.simiacryptus.ref.wrappers.RefList<ComponentTest<?>> getFinalTests() {
+    return com.simiacryptus.ref.wrappers.RefArrays.asList(getTrainingTester());
   }
 
   @Nullable
@@ -109,8 +114,8 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   }
 
   @Nonnull
-  public List<ComponentTest<?>> getLittleTests() {
-    return Arrays.asList(getJsonTester(), getDerivativeTester());
+  public com.simiacryptus.ref.wrappers.RefList<ComponentTest<?>> getLittleTests() {
+    return com.simiacryptus.ref.wrappers.RefArrays.asList(getJsonTester(), getDerivativeTester());
   }
 
   @Nullable
@@ -123,8 +128,8 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     return new Random(seed);
   }
 
-  protected HashMap<Tensor[], Tensor> getReferenceIO() {
-    return new HashMap<>();
+  protected com.simiacryptus.ref.wrappers.RefHashMap<Tensor[], Tensor> getReferenceIO() {
+    return new com.simiacryptus.ref.wrappers.RefHashMap<>();
   }
 
   @Nullable
@@ -171,6 +176,9 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       protected Layer lossLayer() {
         return StandardLayerTests.this.lossLayer();
       }
+
+      public @SuppressWarnings("unused") void _free() {
+      }
     } : null;
   }
 
@@ -184,14 +192,14 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   }
 
   @Nonnull
-  private static HashMap<String, TreeMap<String, String>> loadJavadoc() {
+  private static Map<String, ? extends NavigableMap<String, String>> loadJavadoc() {
     try {
       HashMap<String, TreeMap<String, String>> javadocData = Javadoc.loadModelSummary();
-      IOUtil.writeJson(new TreeMap<>(javadocData), new File("./javadoc.json"));
+      IOUtil.writeJson(new com.simiacryptus.ref.wrappers.RefTreeMap<>(javadocData), new File("./javadoc.json"));
       return javadocData;
     } catch (Throwable e) {
       logger.warn("Error loading javadocs", e);
-      return new HashMap<>();
+      return new com.simiacryptus.ref.wrappers.RefHashMap<>();
     }
   }
 
@@ -212,11 +220,12 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   }
 
   public Tensor[] randomize(@Nonnull final int[][] inputDims) {
-    return Arrays.stream(inputDims).map(dim -> new Tensor(dim).set(() -> random())).toArray(i -> new Tensor[i]);
+    return com.simiacryptus.ref.wrappers.RefArrays.stream(inputDims).map(dim -> new Tensor(dim).set(() -> random()))
+        .toArray(i -> new Tensor[i]);
   }
 
   public void run(@Nonnull final NotebookOutput log) {
-    TreeMap<String, String> javadoc = javadocs.get(getTargetClass().getCanonicalName());
+    NavigableMap<String, String> javadoc = javadocs.get(getTargetClass().getCanonicalName());
     if (null != javadoc) {
       log.p("Class Javadoc: " + javadoc.get(":class"));
       javadoc.remove(":class");
@@ -268,22 +277,22 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         }
       }
       @Nonnull
-      ArrayList<TestError> exceptions = standardTests(log, seed, results);
+      com.simiacryptus.ref.wrappers.RefArrayList<TestError> exceptions = standardTests(log, seed, results);
       if (!exceptions.isEmpty()) {
         if (smallLayer instanceof DAGNetwork) {
           for (@Nonnull
-              Invocation invocation : getInvocations(smallLayer, smallDims)) {
+          Invocation invocation : getInvocations(smallLayer, smallDims)) {
             log.h1("Small SubTests: " + invocation.getLayer().getClass().getSimpleName());
-            log.p(Arrays.deepToString(invocation.getDims()));
+            log.p(com.simiacryptus.ref.wrappers.RefArrays.deepToString(invocation.getDims()));
             tests(log, getLittleTests(), invocation, exceptions, results);
           }
         }
         if (largeLayer instanceof DAGNetwork) {
           testEquivalency = false;
           for (@Nonnull
-              Invocation invocation : getInvocations(largeLayer, largeDims)) {
+          Invocation invocation : getInvocations(largeLayer, largeDims)) {
             log.h1("Large SubTests: " + invocation.getLayer().getClass().getSimpleName());
-            log.p(Arrays.deepToString(invocation.getDims()));
+            log.p(com.simiacryptus.ref.wrappers.RefArrays.deepToString(invocation.getDims()));
             tests(log, getBigTests(), invocation, exceptions, results);
           }
         }
@@ -300,7 +309,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       Layer copy;
       copy = perfLayer.copy();
       Tensor[] randomize = randomize(largeDims);
-      HashMap<CharSequence, Object> testResultProps = new HashMap<>();
+      com.simiacryptus.ref.wrappers.RefHashMap<CharSequence, Object> testResultProps = new com.simiacryptus.ref.wrappers.RefHashMap<>();
       try {
         Class<? extends ComponentTest> testClass = test.getClass();
         String name = testClass.getCanonicalName();
@@ -325,11 +334,12 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   }
 
   @Nonnull
-  public Collection<Invocation> getInvocations(@Nonnull Layer smallLayer, @Nonnull int[][] smallDims) {
+  public com.simiacryptus.ref.wrappers.RefCollection<Invocation> getInvocations(@Nonnull Layer smallLayer,
+      @Nonnull int[][] smallDims) {
     @Nonnull
     DAGNetwork smallCopy = (DAGNetwork) smallLayer.copy();
     @Nonnull
-    HashSet<Invocation> invocations = new HashSet<>();
+    com.simiacryptus.ref.wrappers.RefHashSet<Invocation> invocations = new com.simiacryptus.ref.wrappers.RefHashSet<>();
     smallCopy.visitNodes(node -> {
       @Nullable
       Layer inner = node.getLayer();
@@ -342,37 +352,38 @@ public abstract class StandardLayerTests extends NotebookReportBase {
             return null;
           @Nullable
           Result result = inner.eval(array);
-          invocations.add(new Invocation(inner,
-              Arrays.stream(array).map(x -> x.getData().getDimensions()).toArray(i -> new int[i][])));
+          invocations.add(new Invocation(inner, com.simiacryptus.ref.wrappers.RefArrays.stream(array)
+              .map(x -> x.getData().getDimensions()).toArray(i -> new int[i][])));
           return result;
         }
 
         @Override
-        public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
+        public JsonObject getJson(com.simiacryptus.ref.wrappers.RefMap<CharSequence, byte[]> resources,
+            DataSerializer dataSerializer) {
           return inner.getJson(resources, dataSerializer).getAsJsonObject();
         }
 
         @Nullable
         @Override
-        public List<double[]> state() {
+        public com.simiacryptus.ref.wrappers.RefList<double[]> state() {
           return inner.state();
         }
 
-        @Override
-        protected void _free() {
+        public void _free() {
         }
       };
       node.setLayer(wrapper);
     });
-    Tensor[] input = Arrays.stream(smallDims).map(i -> new Tensor(i)).toArray(i -> new Tensor[i]);
+    Tensor[] input = com.simiacryptus.ref.wrappers.RefArrays.stream(smallDims).map(i -> new Tensor(i))
+        .toArray(i -> new Tensor[i]);
     Result eval = smallCopy.eval(input);
     eval.getData();
     return invocations;
   }
 
-  public void throwException(@Nonnull ArrayList<TestError> exceptions) {
+  public void throwException(@Nonnull com.simiacryptus.ref.wrappers.RefArrayList<TestError> exceptions) {
     for (@Nonnull
-        TestError exception : exceptions) {
+    TestError exception : exceptions) {
       logger.info(String.format("LayerBase: %s", exception.layer));
       logger.info("Error", exception);
     }
@@ -388,10 +399,11 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   }
 
   @Nonnull
-  public ArrayList<TestError> standardTests(@Nonnull NotebookOutput log, long seed, TableOutput results) {
+  public com.simiacryptus.ref.wrappers.RefArrayList<TestError> standardTests(@Nonnull NotebookOutput log, long seed,
+      TableOutput results) {
     log.p(String.format("Using Seed %d", seed));
     @Nonnull
-    ArrayList<TestError> exceptions = new ArrayList<>();
+    com.simiacryptus.ref.wrappers.RefArrayList<TestError> exceptions = new com.simiacryptus.ref.wrappers.RefArrayList<>();
     final Layer layer = getLayer(getSmallDims(new Random(seed)), new Random(seed));
     Invocation invocation = new Invocation(layer, getSmallDims(new Random(seed)));
     tests(log, getLittleTests(), invocation, exceptions, results);
@@ -401,13 +413,13 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   }
 
   public void bigTests(NotebookOutput log, long seed, @Nonnull Layer perfLayer,
-                       @Nonnull ArrayList<TestError> exceptions, TableOutput results) {
+      @Nonnull com.simiacryptus.ref.wrappers.RefArrayList<TestError> exceptions, TableOutput results) {
     getBigTests().stream().filter(x -> null != x).forEach(test -> {
       @Nonnull
       Layer layer = perfLayer.copy();
       try {
         Tensor[] input = randomize(getLargeDims(new Random(seed)));
-        LinkedHashMap<CharSequence, Object> testResultProps = new LinkedHashMap<>();
+        com.simiacryptus.ref.wrappers.RefLinkedHashMap<CharSequence, Object> testResultProps = new com.simiacryptus.ref.wrappers.RefLinkedHashMap<>();
         try {
           String testclass = test.getClass().getCanonicalName();
           if (null == testclass || testclass.isEmpty())
@@ -468,13 +480,14 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     }
   }
 
-  private void tests(final NotebookOutput log, final List<ComponentTest<?>> tests, @Nonnull final Invocation invocation,
-                     @Nonnull final ArrayList<TestError> exceptions, TableOutput results) {
+  private void tests(final NotebookOutput log, final com.simiacryptus.ref.wrappers.RefList<ComponentTest<?>> tests,
+      @Nonnull final Invocation invocation,
+      @Nonnull final com.simiacryptus.ref.wrappers.RefArrayList<TestError> exceptions, TableOutput results) {
     tests.stream().filter(x -> null != x).forEach((ComponentTest<?> test) -> {
       @Nonnull
       Layer layer = invocation.getLayer().copy();
       Tensor[] inputs = randomize(invocation.getDims());
-      LinkedHashMap<CharSequence, Object> testResultProps = new LinkedHashMap<>();
+      com.simiacryptus.ref.wrappers.RefLinkedHashMap<CharSequence, Object> testResultProps = new com.simiacryptus.ref.wrappers.RefLinkedHashMap<>();
       try {
         String testname = test.getClass().getCanonicalName();
         testResultProps.put("class", testname);
@@ -493,7 +506,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     });
   }
 
-  private static class Invocation extends ReferenceCountingBase {
+  private static @com.simiacryptus.ref.lang.RefAware class Invocation extends ReferenceCountingBase {
     private final Layer layer;
     private final int[][] smallDims;
 
@@ -522,19 +535,50 @@ public abstract class StandardLayerTests extends NotebookReportBase {
 
       if (layer != null ? !layer.getClass().equals(that.layer.getClass()) : that.layer != null)
         return false;
-      return Arrays.deepEquals(smallDims, that.smallDims);
+      return com.simiacryptus.ref.wrappers.RefArrays.deepEquals(smallDims, that.smallDims);
     }
 
     @Override
     public int hashCode() {
       int result = layer != null ? layer.getClass().hashCode() : 0;
-      result = 31 * result + Arrays.deepHashCode(smallDims);
+      result = 31 * result + com.simiacryptus.ref.wrappers.RefArrays.deepHashCode(smallDims);
       return result;
     }
 
-    @Override
-    protected void _free() {
+    public void _free() {
       super._free();
     }
+
+    public @Override @SuppressWarnings("unused") Invocation addRef() {
+      return (Invocation) super.addRef();
+    }
+
+    public static @SuppressWarnings("unused") Invocation[] addRefs(Invocation[] array) {
+      if (array == null)
+        return null;
+      return java.util.Arrays.stream(array).filter((x) -> x != null).map(Invocation::addRef)
+          .toArray((x) -> new Invocation[x]);
+    }
+  }
+
+  public @SuppressWarnings("unused") void _free() {
+  }
+
+  public @Override @SuppressWarnings("unused") StandardLayerTests addRef() {
+    return (StandardLayerTests) super.addRef();
+  }
+
+  public static @SuppressWarnings("unused") StandardLayerTests[] addRefs(StandardLayerTests[] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(StandardLayerTests::addRef)
+        .toArray((x) -> new StandardLayerTests[x]);
+  }
+
+  public static @SuppressWarnings("unused") StandardLayerTests[][] addRefs(StandardLayerTests[][] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(StandardLayerTests::addRefs)
+        .toArray((x) -> new StandardLayerTests[x][]);
   }
 }

@@ -20,10 +20,14 @@
 package com.simiacryptus.mindseye.test.unit;
 
 import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.ref.lang.RefIgnore;
+import com.simiacryptus.ref.lang.ReferenceCounting;
+import com.simiacryptus.ref.lang.ReferenceCountingBase;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 
-public class TestError extends RuntimeException {
+public @com.simiacryptus.ref.lang.RefAware class TestError extends RuntimeException implements ReferenceCounting {
   public final ComponentTest<?> test;
   @Nonnull
   public final Layer layer;
@@ -33,5 +37,72 @@ public class TestError extends RuntimeException {
     this.test = test;
     this.layer = layer;
     layer.detach();
+  }
+
+  @RefIgnore
+  private final ReferenceCountingBase refCounter = new ReferenceCountingBase() {
+    public void _free() {
+      TestError.this._free();
+    }
+  };
+
+  public void _free() {
+    layer.freeRef();
+    test.freeRef();
+  }
+
+  @RefIgnore
+  @Override
+  public boolean isFinalized() {
+    return refCounter.isFinalized();
+  }
+
+  @RefIgnore
+  @Override
+  public boolean assertAlive() {
+    return refCounter.assertAlive();
+  }
+
+  @RefIgnore
+  @Override
+  public int currentRefCount() {
+    return refCounter.currentRefCount();
+  }
+
+  @RefIgnore
+  @Override
+  public @NotNull ReferenceCounting detach() {
+    return refCounter.detach();
+  }
+
+  @RefIgnore
+  @Override
+  public void freeRefAsync() {
+    refCounter.freeRefAsync();
+  }
+
+  @RefIgnore
+  @Override
+  public boolean tryAddRef() {
+    return refCounter.tryAddRef();
+  }
+
+  public @Override @SuppressWarnings("unused") TestError addRef() {
+    refCounter.addRef();
+    return this;
+  }
+
+  public static @SuppressWarnings("unused") TestError[] addRefs(TestError[] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(TestError::addRef)
+        .toArray((x) -> new TestError[x]);
+  }
+
+  public static @SuppressWarnings("unused") TestError[][] addRefs(TestError[][] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(TestError::addRefs)
+        .toArray((x) -> new TestError[x][]);
   }
 }

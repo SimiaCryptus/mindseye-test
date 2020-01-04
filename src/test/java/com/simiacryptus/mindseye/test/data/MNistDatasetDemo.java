@@ -26,8 +26,9 @@ import com.simiacryptus.util.test.LabeledObject;
 import javax.annotation.Nonnull;
 import java.awt.image.BufferedImage;
 import java.util.stream.Stream;
+import com.simiacryptus.ref.wrappers.RefStream;
 
-public class MNistDatasetDemo extends ImageCategoryDatasetDemo {
+public @com.simiacryptus.ref.lang.RefAware class MNistDatasetDemo extends ImageCategoryDatasetDemo {
 
   @Nonnull
   @Override
@@ -36,9 +37,31 @@ public class MNistDatasetDemo extends ImageCategoryDatasetDemo {
   }
 
   @Override
-  public Stream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(@Nonnull NotebookOutput log) {
+  public com.simiacryptus.ref.wrappers.RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(
+      @Nonnull NotebookOutput log) {
     return log.eval(() -> {
       return MNIST.trainingDataStream().map(x -> x.map(y -> new SupplierWeakCache<>(() -> y.toImage())));
     });
+  }
+
+  public @SuppressWarnings("unused") void _free() {
+  }
+
+  public @Override @SuppressWarnings("unused") MNistDatasetDemo addRef() {
+    return (MNistDatasetDemo) super.addRef();
+  }
+
+  public static @SuppressWarnings("unused") MNistDatasetDemo[] addRefs(MNistDatasetDemo[] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(MNistDatasetDemo::addRef)
+        .toArray((x) -> new MNistDatasetDemo[x]);
+  }
+
+  public static @SuppressWarnings("unused") MNistDatasetDemo[][] addRefs(MNistDatasetDemo[][] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(MNistDatasetDemo::addRefs)
+        .toArray((x) -> new MNistDatasetDemo[x][]);
   }
 }

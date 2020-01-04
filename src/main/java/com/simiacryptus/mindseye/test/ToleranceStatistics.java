@@ -24,8 +24,9 @@ import com.simiacryptus.util.data.DoubleStatistics;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.stream.IntStream;
+import com.simiacryptus.ref.wrappers.RefIntStream;
 
-public class ToleranceStatistics {
+public @com.simiacryptus.ref.lang.RefAware class ToleranceStatistics {
   public final DoubleStatistics absoluteTol;
   public final DoubleStatistics relativeTol;
 
@@ -49,26 +50,22 @@ public class ToleranceStatistics {
 
   @Nonnull
   public ToleranceStatistics accumulate(@Nonnull final double[] target, @Nonnull final double[] val) {
-    if (target.length != val.length) throw new IllegalArgumentException();
-    IntStream.range(0, target.length).forEach(i -> accumulate(target[i], val[i]));
+    if (target.length != val.length)
+      throw new IllegalArgumentException();
+    com.simiacryptus.ref.wrappers.RefIntStream.range(0, target.length).forEach(i -> accumulate(target[i], val[i]));
     return this;
   }
 
   @Nonnull
   public ToleranceStatistics combine(@Nullable final ToleranceStatistics right) {
-    if (null == right) return this;
-    return new ToleranceStatistics(
-        absoluteTol.combine(right.absoluteTol),
-        relativeTol.combine(right.relativeTol)
-    );
+    if (null == right)
+      return this;
+    return new ToleranceStatistics(absoluteTol.combine(right.absoluteTol), relativeTol.combine(right.relativeTol));
   }
 
   @Nonnull
   @Override
   public String toString() {
-    return "ToleranceStatistics{" +
-        "absoluteTol=" + absoluteTol +
-        ", relativeTol=" + relativeTol +
-        '}';
+    return "ToleranceStatistics{" + "absoluteTol=" + absoluteTol + ", relativeTol=" + relativeTol + '}';
   }
 }

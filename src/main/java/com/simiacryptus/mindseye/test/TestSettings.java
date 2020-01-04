@@ -21,12 +21,13 @@ package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.lang.Settings;
 
-public class TestSettings implements Settings {
+public @com.simiacryptus.ref.lang.RefAware class TestSettings implements Settings {
   public static final TestSettings INSTANCE = new TestSettings();
   public final String tag;
 
   private TestSettings() {
-    if (TestSettings.INSTANCE != null) throw new RuntimeException();
+    if (TestSettings.INSTANCE != null)
+      throw new RuntimeException();
     tag = Settings.get("GIT_TAG", "master");
   }
 

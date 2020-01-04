@@ -38,8 +38,13 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import com.simiacryptus.ref.wrappers.RefArrays;
+import com.simiacryptus.ref.wrappers.RefList;
+import com.simiacryptus.ref.wrappers.RefCollectors;
+import com.simiacryptus.ref.wrappers.RefIntStream;
+import com.simiacryptus.ref.wrappers.RefStream;
 
-public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
+public @com.simiacryptus.ref.lang.RefAware class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   static final Logger log = LoggerFactory.getLogger(PerformanceTester.class);
 
   private int batches = 100;
@@ -94,19 +99,24 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   public void test(@Nonnull final Layer component, @Nonnull final Tensor[] inputPrototype) {
     log.info(String.format("%s batch length, %s trials", batches, samples));
     log.info("Input Dimensions:");
-    Arrays.stream(inputPrototype).map(t -> "\t" + Arrays.toString(t.getDimensions())).forEach(System.out::println);
+    com.simiacryptus.ref.wrappers.RefArrays.stream(inputPrototype)
+        .map(t -> "\t" + com.simiacryptus.ref.wrappers.RefArrays.toString(t.getDimensions()))
+        .forEach(System.out::println);
     log.info("Performance:");
-    List<Tuple2<Double, Double>> performance = IntStream.range(0, samples).mapToObj(i -> {
-      return testPerformance(component, inputPrototype);
-    }).collect(Collectors.toList());
+    com.simiacryptus.ref.wrappers.RefList<Tuple2<Double, Double>> performance = com.simiacryptus.ref.wrappers.RefIntStream
+        .range(0, samples).mapToObj(i -> {
+          return testPerformance(component, inputPrototype);
+        }).collect(com.simiacryptus.ref.wrappers.RefCollectors.toList());
     if (isTestEvaluation()) {
-      @Nonnull final DoubleStatistics statistics = new DoubleStatistics()
+      @Nonnull
+      final DoubleStatistics statistics = new DoubleStatistics()
           .accept(performance.stream().mapToDouble(x -> x._1).toArray());
       log.info(String.format("\tEvaluation performance: %.6fs +- %.6fs [%.6fs - %.6fs]", statistics.getAverage(),
           statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
     }
     if (isTestLearning()) {
-      @Nonnull final DoubleStatistics statistics = new DoubleStatistics()
+      @Nonnull
+      final DoubleStatistics statistics = new DoubleStatistics()
           .accept(performance.stream().mapToDouble(x -> x._2).toArray());
       if (null != statistics) {
         log.info(String.format("\tLearning performance: %.6fs +- %.6fs [%.6fs - %.6fs]", statistics.getAverage(),
@@ -118,7 +128,7 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   @Nullable
   @Override
   public ToleranceStatistics test(@Nonnull final NotebookOutput log, final Layer component,
-                                  @Nonnull final Tensor... inputPrototype) {
+      @Nonnull final Tensor... inputPrototype) {
     log.h1("Performance");
     if (component instanceof DAGNetwork) {
       TestUtil.instrumentPerformance((DAGNetwork) component);
@@ -142,8 +152,9 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
 
   @Nonnull
   protected Tuple2<Double, Double> testPerformance(@Nonnull final Layer component, final Tensor... inputPrototype) {
-    final Tensor[][] data = IntStream.range(0, batches).mapToObj(x -> x)
-        .flatMap(x -> Stream.<Tensor[]>of(inputPrototype)).toArray(i -> new Tensor[i][]);
+    final Tensor[][] data = com.simiacryptus.ref.wrappers.RefIntStream.range(0, batches).mapToObj(x -> x)
+        .flatMap(x -> com.simiacryptus.ref.wrappers.RefStream.<Tensor[]>of(inputPrototype))
+        .toArray(i -> new Tensor[i][]);
     @Nonnull
     TimedResult<Result> timedEval = TimedResult.time(() -> {
       Result[] input = ConstantResult.batchResultArray(data);
@@ -153,14 +164,15 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
         result = component.eval(input);
       } finally {
         for (@Nonnull
-            Result nnResult : input) {
+        Result nnResult : input) {
           nnResult.getData();
         }
       }
       return result;
     });
     final Result result = timedEval.result;
-    @Nonnull final DeltaSet<UUID> buffer = new DeltaSet<UUID>();
+    @Nonnull
+    final DeltaSet<UUID> buffer = new DeltaSet<UUID>();
     try {
       long timedBackprop = TimedResult.time(() -> {
         @Nonnull
@@ -174,5 +186,26 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
     } finally {
       result.getData();
     }
+  }
+
+  public @SuppressWarnings("unused") void _free() {
+  }
+
+  public @Override @SuppressWarnings("unused") PerformanceTester addRef() {
+    return (PerformanceTester) super.addRef();
+  }
+
+  public static @SuppressWarnings("unused") PerformanceTester[] addRefs(PerformanceTester[] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(PerformanceTester::addRef)
+        .toArray((x) -> new PerformanceTester[x]);
+  }
+
+  public static @SuppressWarnings("unused") PerformanceTester[][] addRefs(PerformanceTester[][] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(PerformanceTester::addRefs)
+        .toArray((x) -> new PerformanceTester[x][]);
   }
 }

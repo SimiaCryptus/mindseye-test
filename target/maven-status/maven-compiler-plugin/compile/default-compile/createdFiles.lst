@@ -8,6 +8,7 @@ com/simiacryptus/mindseye/test/SimpleListEval.class
 com/simiacryptus/mindseye/test/data/MNIST$1$1.class
 com/simiacryptus/mindseye/test/data/CIFAR10$1.class
 com/simiacryptus/mindseye/layers/ActivationLayerTestBase.class
+com/simiacryptus/mindseye/test/unit/TestError$1.class
 com/simiacryptus/mindseye/test/data/CIFAR10.class
 com/simiacryptus/mindseye/test/SimpleEval$1.class
 com/simiacryptus/mindseye/test/unit/StandardLayerTests$3.class

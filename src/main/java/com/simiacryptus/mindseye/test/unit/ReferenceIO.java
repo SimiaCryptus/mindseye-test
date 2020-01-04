@@ -30,46 +30,56 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.HashMap;
+import com.simiacryptus.ref.wrappers.RefArrays;
+import com.simiacryptus.ref.wrappers.RefHashMap;
 
-public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
-  final HashMap<Tensor[], Tensor> referenceIO;
+public @com.simiacryptus.ref.lang.RefAware class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
+  final com.simiacryptus.ref.wrappers.RefHashMap<Tensor[], Tensor> referenceIO;
 
-  public ReferenceIO(final HashMap<Tensor[], Tensor> referenceIO) {
+  public ReferenceIO(final com.simiacryptus.ref.wrappers.RefHashMap<Tensor[], Tensor> referenceIO) {
     this.referenceIO = referenceIO;
   }
 
   @Nullable
   @Override
   public ToleranceStatistics test(@Nonnull final NotebookOutput log, @Nonnull final Layer layer,
-                                  @Nonnull final Tensor... inputPrototype) {
+      @Nonnull final Tensor... inputPrototype) {
     if (!referenceIO.isEmpty()) {
       log.h1("Reference Input/Output Pairs");
       log.p("Display pre-setBytes input/output example pairs:");
       referenceIO.forEach((input, output) -> {
         log.eval(() -> {
-          @Nonnull final SimpleEval eval = SimpleEval.run(layer, input);
+          @Nonnull
+          final SimpleEval eval = SimpleEval.run(layer, input);
           Tensor evalOutput = eval.getOutput();
           Tensor difference = output.scale(-1).addAndFree(evalOutput);
-          @Nonnull final DoubleStatistics error = new DoubleStatistics().accept(difference.getData());
+          @Nonnull
+          final DoubleStatistics error = new DoubleStatistics().accept(difference.getData());
           return String.format(
               "--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n%s\nError: %s\n--------------------\nDerivative: \n%s",
-              Arrays.stream(input).map(t -> Arrays.toString(t.getDimensions()) + "\n" + t.prettyPrint())
+              com.simiacryptus.ref.wrappers.RefArrays.stream(input)
+                  .map(
+                      t -> com.simiacryptus.ref.wrappers.RefArrays.toString(t.getDimensions()) + "\n" + t.prettyPrint())
                   .reduce((a, b) -> a + ",\n" + b).get(),
-              Arrays.toString(evalOutput.getDimensions()), evalOutput.prettyPrint(), error,
-              Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
+              com.simiacryptus.ref.wrappers.RefArrays.toString(evalOutput.getDimensions()), evalOutput.prettyPrint(),
+              error, com.simiacryptus.ref.wrappers.RefArrays.stream(eval.getDerivative()).map(t -> t.prettyPrint())
+                  .reduce((a, b) -> a + ",\n" + b).get());
         });
       });
     } else {
       log.h1("Example Input/Output Pair");
       log.p("Display input/output pairs from random executions:");
       log.eval(() -> {
-        @Nonnull final SimpleEval eval = SimpleEval.run(layer, inputPrototype);
+        @Nonnull
+        final SimpleEval eval = SimpleEval.run(layer, inputPrototype);
         Tensor evalOutput = eval.getOutput();
         return String.format(
             "--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n%s\n--------------------\nDerivative: \n%s",
-            Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).orElse(""),
-            Arrays.toString(evalOutput.getDimensions()), evalOutput.prettyPrint(),
-            Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).orElse(""));
+            com.simiacryptus.ref.wrappers.RefArrays.stream(inputPrototype).map(t -> t.prettyPrint())
+                .reduce((a, b) -> a + ",\n" + b).orElse(""),
+            com.simiacryptus.ref.wrappers.RefArrays.toString(evalOutput.getDimensions()), evalOutput.prettyPrint(),
+            com.simiacryptus.ref.wrappers.RefArrays.stream(eval.getDerivative()).map(t -> t.prettyPrint())
+                .reduce((a, b) -> a + ",\n" + b).orElse(""));
       });
     }
     return null;
@@ -81,8 +91,25 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
     return "ReferenceIO{" + "referenceIO=" + referenceIO + '}';
   }
 
-  @Override
-  protected void _free() {
+  public void _free() {
     super._free();
+  }
+
+  public @Override @SuppressWarnings("unused") ReferenceIO addRef() {
+    return (ReferenceIO) super.addRef();
+  }
+
+  public static @SuppressWarnings("unused") ReferenceIO[] addRefs(ReferenceIO[] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(ReferenceIO::addRef)
+        .toArray((x) -> new ReferenceIO[x]);
+  }
+
+  public static @SuppressWarnings("unused") ReferenceIO[][] addRefs(ReferenceIO[][] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(ReferenceIO::addRefs)
+        .toArray((x) -> new ReferenceIO[x][]);
   }
 }

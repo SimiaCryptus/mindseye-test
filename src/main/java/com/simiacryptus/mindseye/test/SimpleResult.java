@@ -25,11 +25,28 @@ import com.simiacryptus.ref.lang.ReferenceCounting;
 
 import java.util.UUID;
 
-public interface SimpleResult extends ReferenceCounting {
+public @com.simiacryptus.ref.lang.RefAware interface SimpleResult extends ReferenceCounting {
   TensorList[] getInputDerivative();
 
   DeltaSet<UUID> getLayerDerivative();
 
-
   TensorList getOutput();
+
+  public void _free();
+
+  public SimpleResult addRef();
+
+  public static @SuppressWarnings("unused") SimpleResult[] addRefs(SimpleResult[] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(SimpleResult::addRef)
+        .toArray((x) -> new SimpleResult[x]);
+  }
+
+  public static @SuppressWarnings("unused") SimpleResult[][] addRefs(SimpleResult[][] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(SimpleResult::addRefs)
+        .toArray((x) -> new SimpleResult[x][]);
+  }
 }

@@ -25,15 +25,17 @@ import smile.plot.ScatterPlot;
 
 import java.awt.*;
 import java.util.List;
+import com.simiacryptus.ref.wrappers.RefList;
 
-public class ProblemRun {
+public @com.simiacryptus.ref.lang.RefAware class ProblemRun {
 
   public final Color color;
-  public final List<StepRecord> history;
+  public final com.simiacryptus.ref.wrappers.RefList<StepRecord> history;
   public final String name;
   public final PlotType type;
 
-  public ProblemRun(final String name, final List<StepRecord> history, final Color color, final PlotType type) {
+  public ProblemRun(final String name, final com.simiacryptus.ref.wrappers.RefList<StepRecord> history,
+      final Color color, final PlotType type) {
     this.history = history;
     this.name = name;
     this.color = color;
@@ -43,23 +45,22 @@ public class ProblemRun {
   public Plot plot(final double[][] pts) {
     Plot plot;
     switch (type) {
-      case Scatter:
-        plot = new ScatterPlot(pts);
-        plot.setID(name);
-        plot.setColor(color);
-        return plot;
-      case Line:
-        plot = new LinePlot(pts);
-        plot.setID(name);
-        plot.setColor(color);
-        return plot;
-      default:
-        throw new IllegalStateException(type.toString());
+    case Scatter:
+      plot = new ScatterPlot(pts);
+      plot.setID(name);
+      plot.setColor(color);
+      return plot;
+    case Line:
+      plot = new LinePlot(pts);
+      plot.setID(name);
+      plot.setColor(color);
+      return plot;
+    default:
+      throw new IllegalStateException(type.toString());
     }
   }
 
   public enum PlotType {
-    Line,
-    Scatter
+    Line, Scatter
   }
 }

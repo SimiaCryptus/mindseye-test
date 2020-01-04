@@ -33,17 +33,21 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import com.simiacryptus.ref.wrappers.RefComparator;
+import com.simiacryptus.ref.wrappers.RefList;
+import com.simiacryptus.ref.wrappers.RefCollectors;
+import com.simiacryptus.ref.wrappers.RefStream;
 
-public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
+public abstract @com.simiacryptus.ref.lang.RefAware class ImageCategoryDatasetDemo extends NotebookReportBase {
   @Nonnull
   @Override
   public ReportType getReportType() {
     return ReportType.Data;
   }
 
-  public <T> Comparator<T> getShuffleComparator() {
+  public <T> com.simiacryptus.ref.wrappers.RefComparator<T> getShuffleComparator() {
     final int seed = (int) ((System.nanoTime() >>> 8) % (Integer.MAX_VALUE - 84));
-    return Comparator.comparingInt(a1 -> System.identityHashCode(a1) ^ seed);
+    return com.simiacryptus.ref.wrappers.RefComparator.comparingInt(a1 -> System.identityHashCode(a1) ^ seed);
   }
 
   @Test
@@ -53,24 +57,49 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
 
   public void run(@Nonnull NotebookOutput log) {
     log.h3("Loading Data");
-    List<LabeledObject<SupplierWeakCache<BufferedImage>>> testData =
-        getTrainingStream(log).sorted(getShuffleComparator()).collect(Collectors.toList());
+    com.simiacryptus.ref.wrappers.RefList<LabeledObject<SupplierWeakCache<BufferedImage>>> testData = getTrainingStream(
+        log).sorted(getShuffleComparator()).collect(com.simiacryptus.ref.wrappers.RefCollectors.toList());
 
     log.h3("Categories");
     log.run(() -> {
-      testData.stream().collect(Collectors.groupingBy(x -> x.label, Collectors.counting()))
+      testData.stream()
+          .collect(com.simiacryptus.ref.wrappers.RefCollectors.groupingBy(x -> x.label,
+              com.simiacryptus.ref.wrappers.RefCollectors.counting()))
           .forEach((k, v) -> ImageCategoryDatasetDemo.logger.info(String.format("%s -> %d", k, v)));
     });
 
     log.h3("Sample Data");
     log.p(log.out(() -> {
       return testData.stream().map(labeledObj -> {
-        @Nullable BufferedImage img = labeledObj.data.get();
+        @Nullable
+        BufferedImage img = labeledObj.data.get();
         img = ImageUtil.resize(img, 224, true);
         return log.png(img, labeledObj.label);
       }).limit(20).reduce((a, b) -> a + b).get();
     }));
   }
 
-  public abstract Stream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(NotebookOutput log);
+  public abstract com.simiacryptus.ref.wrappers.RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(
+      NotebookOutput log);
+
+  public @SuppressWarnings("unused") void _free() {
+  }
+
+  public @Override @SuppressWarnings("unused") ImageCategoryDatasetDemo addRef() {
+    return (ImageCategoryDatasetDemo) super.addRef();
+  }
+
+  public static @SuppressWarnings("unused") ImageCategoryDatasetDemo[] addRefs(ImageCategoryDatasetDemo[] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(ImageCategoryDatasetDemo::addRef)
+        .toArray((x) -> new ImageCategoryDatasetDemo[x]);
+  }
+
+  public static @SuppressWarnings("unused") ImageCategoryDatasetDemo[][] addRefs(ImageCategoryDatasetDemo[][] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(ImageCategoryDatasetDemo::addRefs)
+        .toArray((x) -> new ImageCategoryDatasetDemo[x][]);
+  }
 }

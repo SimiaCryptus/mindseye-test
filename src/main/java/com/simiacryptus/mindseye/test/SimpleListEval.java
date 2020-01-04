@@ -28,8 +28,11 @@ import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.stream.IntStream;
+import com.simiacryptus.ref.wrappers.RefArrays;
+import com.simiacryptus.ref.wrappers.RefIntStream;
 
-public class SimpleListEval extends ReferenceCountingBase implements Callable<SimpleResult>, SimpleResult {
+public @com.simiacryptus.ref.lang.RefAware class SimpleListEval extends ReferenceCountingBase
+    implements Callable<SimpleResult>, SimpleResult {
   @Nonnull
   private final TensorList[] input;
   @Nonnull
@@ -74,7 +77,7 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
   }
 
   public static void accumulate(@Nonnull final TensorList buffer, @Nonnull final TensorList data) {
-    IntStream.range(0, data.length()).forEach(b -> {
+    com.simiacryptus.ref.wrappers.RefIntStream.range(0, data.length()).forEach(b -> {
       @Nullable
       Tensor r = data.get(b);
       @Nullable
@@ -96,11 +99,13 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
   @Nonnull
   @Override
   public SimpleResult call() {
-    TensorList[] inputCopy = Arrays.stream(input).map(x -> x.copy()).toArray(i -> new TensorList[i]);
-    inputDerivative = Arrays.stream(inputCopy).map(tensorList -> new TensorArray(tensorList.stream().map(i -> {
-              return new Tensor(i.getDimensions());
-            }).toArray(i -> new Tensor[i]))).toArray(i -> new TensorList[i]);
-    Result[] inputs = IntStream.range(0, inputCopy.length).mapToObj(i -> {
+    TensorList[] inputCopy = com.simiacryptus.ref.wrappers.RefArrays.stream(input).map(x -> x.copy())
+        .toArray(i -> new TensorList[i]);
+    inputDerivative = com.simiacryptus.ref.wrappers.RefArrays.stream(inputCopy)
+        .map(tensorList -> new TensorArray(tensorList.stream().map(i -> {
+          return new Tensor(i.getDimensions());
+        }).toArray(i -> new Tensor[i]))).toArray(i -> new TensorList[i]);
+    Result[] inputs = com.simiacryptus.ref.wrappers.RefIntStream.range(0, inputCopy.length).mapToObj(i -> {
       return new Result(inputCopy[i], (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
         SimpleListEval.accumulate(inputDerivative[i], data);
       }) {
@@ -108,9 +113,13 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
         public boolean isAlive() {
           return true;
         }
+
+        public @SuppressWarnings("unused") void _free() {
+        }
       };
     }).toArray(i -> new Result[i]);
-    @Nullable final Result eval = layer.eval(inputs);
+    @Nullable
+    final Result eval = layer.eval(inputs);
     TensorList outputData = eval.getData().copy();
     eval.getData();
     this.layerDerivative = new DeltaSet<>();
@@ -127,7 +136,24 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
     }).toArray(i -> new Tensor[i]));
   }
 
-  @Override
-  protected void _free() {
+  public void _free() {
+  }
+
+  public @Override @SuppressWarnings("unused") SimpleListEval addRef() {
+    return (SimpleListEval) super.addRef();
+  }
+
+  public static @SuppressWarnings("unused") SimpleListEval[] addRefs(SimpleListEval[] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(SimpleListEval::addRef)
+        .toArray((x) -> new SimpleListEval[x]);
+  }
+
+  public static @SuppressWarnings("unused") SimpleListEval[][] addRefs(SimpleListEval[][] array) {
+    if (array == null)
+      return null;
+    return java.util.Arrays.stream(array).filter((x) -> x != null).map(SimpleListEval::addRefs)
+        .toArray((x) -> new SimpleListEval[x][]);
   }
 }
