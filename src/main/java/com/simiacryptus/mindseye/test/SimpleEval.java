@@ -105,10 +105,13 @@ class SimpleEval extends ReferenceCountingBase
         .map(input -> new Tensor(input.getDimensions())).toArray(i -> new Tensor[i]);
     Result[] input = RefIntStream.range(0, inputCopy.length).mapToObj(i -> {
       return new Result(new TensorArray(inputCopy[i]),
-          (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
-            data.stream().forEach(t -> {
-              derivative[i].addInPlace(t);
-            });
+          new Result.Accumulator() {
+            @Override
+            public void accept(DeltaSet<UUID> buffer, TensorList data) {
+              data.stream().forEach(t -> {
+                derivative[i].addInPlace(t);
+              });
+            }
           }) {
         @Override
         public boolean isAlive() {

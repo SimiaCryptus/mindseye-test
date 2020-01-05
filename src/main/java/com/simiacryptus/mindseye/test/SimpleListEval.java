@@ -123,8 +123,11 @@ class SimpleListEval extends ReferenceCountingBase
           return new Tensor(i.getDimensions());
         }).toArray(i -> new Tensor[i]))).toArray(i -> new TensorList[i]);
     Result[] inputs = RefIntStream.range(0, inputCopy.length).mapToObj(i -> {
-      return new Result(inputCopy[i], (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
-        SimpleListEval.accumulate(inputDerivative[i], data);
+      return new Result(inputCopy[i], new Result.Accumulator() {
+        @Override
+        public void accept(DeltaSet<UUID> buffer, TensorList data) {
+          SimpleListEval.accumulate(inputDerivative[i], data);
+        }
       }) {
         @Override
         public boolean isAlive() {

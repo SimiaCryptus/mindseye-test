@@ -294,8 +294,11 @@ class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics> {
     @Nonnull final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
     @Nonnull final Layer frozen = component.copy().freeze();
     @Nullable final Result eval = frozen.eval(new Result(new TensorArray(inputPrototype),
-        (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
-          reachedInputFeedback.set(true);
+        new Result.Accumulator() {
+          @Override
+          public void accept(DeltaSet<UUID> buffer, TensorList data) {
+            reachedInputFeedback.set(true);
+          }
         }) {
 
       @Override
@@ -328,8 +331,11 @@ class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics> {
     @Nonnull final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
     @Nonnull final Layer frozen = component.copy().setFrozen(false);
     @Nullable final Result eval = frozen.eval(new Result(new TensorArray(inputPrototype),
-        (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
-          reachedInputFeedback.set(true);
+        new Result.Accumulator() {
+          @Override
+          public void accept(DeltaSet<UUID> buffer, TensorList data) {
+            reachedInputFeedback.set(true);
+          }
         }) {
 
       @Override
@@ -385,16 +391,19 @@ class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics> {
       final int j_ = j;
       @Nonnull final PlaceholderLayer<Tensor> inputKey = new PlaceholderLayer<Tensor>(new Tensor());
       @Nonnull final Result copyInput = new Result(new TensorArray(inputPrototype),
-          (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
-            @Nonnull final Tensor gradientBuffer = new Tensor(inputDims, outputPrototype.length());
-            if (!RefArrays.equals(inputTensor.getDimensions(),
-                data.get(inputIndex).getDimensions())) {
-              throw new AssertionError();
+          new Result.Accumulator() {
+            @Override
+            public void accept(DeltaSet<UUID> buffer, TensorList data) {
+              @Nonnull final Tensor gradientBuffer = new Tensor(inputDims, outputPrototype.length());
+              if (!RefArrays.equals(inputTensor.getDimensions(),
+                  data.get(inputIndex).getDimensions())) {
+                throw new AssertionError();
+              }
+              for (int i = 0; i < inputDims; i++) {
+                gradientBuffer.set(new int[]{i, j_}, data.get(inputIndex).getData()[i]);
+              }
+              buffer.get(inputKey.getId(), new double[gradientBuffer.length()]).addInPlace(gradientBuffer.getData());
             }
-            for (int i = 0; i < inputDims; i++) {
-              gradientBuffer.set(new int[]{i, j_}, data.get(inputIndex).getData()[i]);
-            }
-            buffer.get(inputKey.getId(), new double[gradientBuffer.length()]).addInPlace(gradientBuffer.getData());
           }) {
 
         @Override

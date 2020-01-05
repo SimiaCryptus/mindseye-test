@@ -295,8 +295,11 @@ class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistics> {
         .stream(inputPrototype).map(data -> new TensorArray(data))
         .collect(RefCollectors.toList());
     Result[] input = inputCopies.stream().map((tensorArray) -> new Result(tensorArray,
-        (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
-          reachedInputFeedback.set(true);
+        new Result.Accumulator() {
+          @Override
+          public void accept(DeltaSet<UUID> buffer, TensorList data) {
+            reachedInputFeedback.set(true);
+          }
         }) {
 
       @Override
@@ -339,8 +342,11 @@ class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistics> {
         .stream(inputPrototype).map(data -> new TensorArray(data))
         .collect(RefCollectors.toList());
     Result[] inputs = inputCopies.stream()
-        .map(tensor -> new Result(tensor, (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
-          reachedInputFeedback.set(true);
+        .map(tensor -> new Result(tensor, new Result.Accumulator() {
+          @Override
+          public void accept(DeltaSet<UUID> buffer, TensorList data) {
+            reachedInputFeedback.set(true);
+          }
         }) {
           @Override
           public boolean isAlive() {
@@ -419,7 +425,10 @@ class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistics> {
       inputKey.getKey();
       final Result[] copyInput = RefArrays.stream(inputPrototype)
           .map(x -> new Result(new TensorArray(x),
-              (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
+              new Result.Accumulator() {
+                @Override
+                public void accept(DeltaSet<UUID> buffer, TensorList data) {
+                }
               }) {
 
             @Override
@@ -435,24 +444,27 @@ class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistics> {
       copyInput[inputIndex].getData();
       double[] target = new double[inputDims * outputPrototype.length()];
       copyInput[inputIndex] = new Result(new TensorArray(inputTensor),
-          (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
-            {
-              if (1 != data.length())
-                throw new AssertionError();
-              if (data.length() != 1)
-                throw new AssertionError();
-              @Nonnull final Tensor gradientBuffer = new Tensor(inputDims, outputPrototype.length());
-              if (!RefArrays.equals(inputTensor.getDimensions(), data.getDimensions())) {
-                throw new AssertionError();
-              }
-              RefIntStream.range(0, data.length()).forEach(dataIndex -> {
-                for (int i = 0; i < inputDims; i++) {
-                  @Nullable
-                  Tensor tensor = data.get(dataIndex);
-                  gradientBuffer.set(new int[]{i, j_}, tensor.getData()[i]);
+          new Result.Accumulator() {
+            @Override
+            public void accept(DeltaSet<UUID> buffer, TensorList data) {
+              {
+                if (1 != data.length())
+                  throw new AssertionError();
+                if (data.length() != 1)
+                  throw new AssertionError();
+                @Nonnull final Tensor gradientBuffer = new Tensor(inputDims, outputPrototype.length());
+                if (!RefArrays.equals(inputTensor.getDimensions(), data.getDimensions())) {
+                  throw new AssertionError();
                 }
-              });
-              buffer.get(inputKey.getId(), target).addInPlace(gradientBuffer.getData());
+                RefIntStream.range(0, data.length()).forEach(dataIndex -> {
+                  for (int i = 0; i < inputDims; i++) {
+                    @Nullable
+                    Tensor tensor = data.get(dataIndex);
+                    gradientBuffer.set(new int[]{i, j_}, tensor.getData()[i]);
+                  }
+                });
+                buffer.get(inputKey.getId(), target).addInPlace(gradientBuffer.getData());
+              }
             }
           }) {
 
