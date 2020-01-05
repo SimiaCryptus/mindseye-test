@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.test.integration;
 
 import com.google.common.collect.Lists;
+import com.simiacryptus.lang.UncheckedSupplier;
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
 import com.simiacryptus.mindseye.lang.*;
@@ -32,6 +33,8 @@ import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.notebook.TableOutput;
 import com.simiacryptus.ref.lang.RefAware;
+import com.simiacryptus.ref.lang.RefUtil;
+import com.simiacryptus.ref.lang.ReferenceCounting;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.test.LabeledObject;
 import guru.nidi.graphviz.engine.Format;
@@ -48,6 +51,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.function.IntFunction;
+import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -74,8 +80,8 @@ class ClassifyProblem implements Problem {
     this.data = data;
     this.categories = categories;
     try {
-      this.labels = Stream.concat(this.data.trainingData(), this.data.validationData())
-          .map(x -> x.label).distinct().sorted().collect(Collectors.toList());
+      this.labels = Stream.concat(this.data.trainingData(), this.data.validationData()).map(x -> x.label).distinct()
+          .sorted().collect(Collectors.toList());
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -112,8 +118,10 @@ class ClassifyProblem implements Problem {
       return data.trainingData().map(labeledObject -> {
         @Nonnull final Tensor categoryTensor = new Tensor(categories);
         final int category = parse(labeledObject.label);
-        categoryTensor.set(category, 1);
-        return new Tensor[]{labeledObject.data, categoryTensor};
+        RefUtil.freeRef(categoryTensor.set(category, 1));
+        Tensor[] temp_12_0001 = new Tensor[]{labeledObject.data,
+            categoryTensor == null ? null : categoryTensor};
+        return temp_12_0001;
       }).toArray(i -> new Tensor[i][]);
     } catch (@Nonnull final IOException e) {
       throw new RuntimeException(e);
@@ -125,10 +133,19 @@ class ClassifyProblem implements Problem {
   }
 
   public int[] predict(@Nonnull final Layer network, @Nonnull final LabeledObject<Tensor> labeledObject) {
-    @Nullable final double[] predictionSignal = network.eval(labeledObject.data).getData().get(0).getData();
-    return IntStream.range(0, categories).mapToObj(x -> x)
-        .sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x)
-        .toArray();
+    Result temp_12_0003 = network.eval(labeledObject.data.addRef());
+    TensorList temp_12_0004 = temp_12_0003.getData();
+    Tensor temp_12_0005 = temp_12_0004.get(0);
+    @Nullable final double[] predictionSignal = temp_12_0005.getData();
+    if (null != temp_12_0005)
+      temp_12_0005.freeRef();
+    if (null != temp_12_0004)
+      temp_12_0004.freeRef();
+    if (null != temp_12_0003)
+      temp_12_0003.freeRef();
+    network.freeRef();
+    return IntStream.range(0, categories).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i]))
+        .mapToInt(x -> x).toArray();
   }
 
   @Nonnull
@@ -139,20 +156,35 @@ class ClassifyProblem implements Problem {
 
     @Nonnull final DAGNetwork network = fwdFactory.imageToVector(log, categories);
     log.h3("Network Diagram");
-    log.eval(() -> {
-      return Graphviz.fromGraph((Graph) TestUtil.toGraph(network)).height(400).width(600).render(Format.PNG).toImage();
-    });
+    log.eval(RefUtil
+        .wrapInterface((UncheckedSupplier<BufferedImage>) () -> {
+          return Graphviz.fromGraph((Graph) TestUtil.toGraph(network == null ? null : network.addRef())).height(400)
+              .width(600).render(Format.PNG).toImage();
+        }, network == null ? null : network.addRef()));
 
     log.h3("Training");
-    @Nonnull final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, lossLayer());
-    TestUtil.instrumentPerformance(supervisedNetwork);
+    @Nonnull final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network == null ? null : network.addRef(),
+        lossLayer());
+    TestUtil.instrumentPerformance(supervisedNetwork == null ? null : supervisedNetwork.addRef());
     int initialSampleSize = Math.max(trainingData.length / 5, Math.min(10, trainingData.length / 2));
     @Nonnull final ValidatingTrainer trainer = optimizer.train(log,
-        new SampledArrayTrainable(trainingData, supervisedNetwork, initialSampleSize, getBatchSize()),
-        new ArrayTrainable(trainingData, supervisedNetwork, getBatchSize()), monitor);
-    log.run(() -> {
-      trainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES).setMaxIterations(10000).run();
-    });
+        new SampledArrayTrainable(Tensor.addRefs(trainingData),
+            supervisedNetwork == null ? null : supervisedNetwork.addRef(), initialSampleSize, getBatchSize()),
+        new ArrayTrainable(Tensor.addRefs(trainingData),
+            supervisedNetwork == null ? null : supervisedNetwork.addRef(), getBatchSize()),
+        monitor);
+    if (null != trainingData)
+      ReferenceCounting.freeRefs(trainingData);
+    log.run(RefUtil.wrapInterface(() -> {
+      ValidatingTrainer temp_12_0006 = trainer.setTimeout(timeoutMinutes,
+          TimeUnit.MINUTES);
+      ValidatingTrainer temp_12_0007 = temp_12_0006.setMaxIterations(10000);
+      temp_12_0007.run();
+      if (null != temp_12_0007)
+        temp_12_0007.freeRef();
+      if (null != temp_12_0006)
+        temp_12_0006.freeRef();
+    }, trainer == null ? null : trainer));
     if (!history.isEmpty()) {
       log.eval(() -> {
         return TestUtil.plot(history);
@@ -173,37 +205,52 @@ class ClassifyProblem implements Problem {
     }
     log.appendFrontMatterProperty("result_plot", new File(log.getResourceDir(), training_name).toString(), ";");
 
-    TestUtil.extractPerformance(log, supervisedNetwork);
+    TestUtil.extractPerformance(log, supervisedNetwork == null ? null : supervisedNetwork);
     @Nonnull final String modelName = "classification_model_" + ClassifyProblem.modelNo++ + ".json";
     log.appendFrontMatterProperty("result_model", modelName, ";");
     log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
 
     log.h3("Validation");
     log.p("If we apply our model against the entire validation dataset, we get this accuracy:");
-    log.eval(() -> {
-      return data.validationData()
-          .mapToDouble(labeledObject -> predict(network, labeledObject)[0] == parse(labeledObject.label) ? 1 : 0)
-          .average().getAsDouble() * 100;
-    });
+    log.eval(RefUtil
+        .wrapInterface((UncheckedSupplier<Double>) () -> {
+          return data.validationData().mapToDouble(RefUtil.wrapInterface(
+              (ToDoubleFunction<? super LabeledObject<Tensor>>) labeledObject -> predict(
+                  network == null ? null : network.addRef(), labeledObject)[0] == parse(labeledObject.label) ? 1 : 0,
+              network == null ? null : network.addRef())).average().getAsDouble() * 100;
+        }, network == null ? null : network.addRef()));
 
     log.p("Let's examine some incorrectly predicted results in more detail:");
-    log.eval(() -> {
-      try {
-        @Nonnull final TableOutput table = new TableOutput();
-        Lists
-            .partition(data.validationData().collect(Collectors.toList()), 100)
-            .stream().flatMap(batch -> {
-          @Nonnull
-          TensorList batchIn = new TensorArray(batch.stream().map(x -> x.data).toArray(i1 -> new Tensor[i1]));
-          TensorList batchOut = network.eval(new ConstantResult(batchIn)).getData();
-          return IntStream.range(0, batchOut.length())
-              .mapToObj(i -> toRow(log, batch.get(i), batchOut.get(i).getData()));
-        }).filter(x -> null != x).limit(10).forEach(table::putRow);
-        return table;
-      } catch (@Nonnull final IOException e) {
-        throw new RuntimeException(e);
-      }
-    });
+    log.eval(RefUtil
+        .wrapInterface((UncheckedSupplier<TableOutput>) () -> {
+          try {
+            @Nonnull final TableOutput table = new TableOutput();
+            Lists.partition(data.validationData().collect(Collectors.toList()), 100).stream()
+                .flatMap(RefUtil.wrapInterface(
+                    (Function<? super List<LabeledObject<Tensor>>, ? extends Stream<? extends LinkedHashMap<CharSequence, Object>>>) batch -> {
+                      @Nonnull
+                      TensorList batchIn = new TensorArray(
+                          batch.stream().map(x -> x.data).toArray(i1 -> new Tensor[i1]));
+                      Result temp_12_0008 = network
+                          .eval(new ConstantResult(batchIn == null ? null : batchIn));
+                      TensorList batchOut = temp_12_0008.getData();
+                      if (null != temp_12_0008)
+                        temp_12_0008.freeRef();
+                      Stream<LinkedHashMap<CharSequence, Object>> temp_12_0002 = IntStream
+                          .range(0, batchOut.length()).mapToObj(RefUtil.wrapInterface(
+                              (IntFunction<? extends LinkedHashMap<CharSequence, Object>>) i -> {
+                                return toRow(log, batch.get(i), batchOut.get(i).getData());
+                              }, batchOut == null ? null : batchOut.addRef()));
+                      if (null != batchOut)
+                        batchOut.freeRef();
+                      return temp_12_0002;
+                    }, network == null ? null : network.addRef()))
+                .filter(x -> null != x).limit(10).forEach(table::putRow);
+            return table;
+          } catch (@Nonnull final IOException e) {
+            throw new RuntimeException(e);
+          }
+        }, network == null ? null : network));
     return this;
   }
 
@@ -212,8 +259,7 @@ class ClassifyProblem implements Problem {
                                                    @Nonnull final LabeledObject<Tensor> labeledObject, final double[] predictionSignal) {
     final int actualCategory = parse(labeledObject.label);
     final int[] predictionList = IntStream.range(0, categories).mapToObj(x -> x)
-        .sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x)
-        .toArray();
+        .sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
     if (predictionList[0] == actualCategory)
       return null; // We will only examine mispredicted rows
     @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();

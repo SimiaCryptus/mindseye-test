@@ -26,6 +26,8 @@ import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.ref.lang.RefAware;
+import com.simiacryptus.ref.lang.RefUtil;
+import com.simiacryptus.ref.lang.ReferenceCounting;
 import com.simiacryptus.ref.wrappers.RefArrays;
 import com.simiacryptus.ref.wrappers.RefIntStream;
 import org.slf4j.Logger;
@@ -34,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.function.IntFunction;
 
 public @RefAware
 class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
@@ -44,7 +47,14 @@ class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
 
   public EquivalencyTester(final double tolerance, final Layer referenceLayer) {
     this.tolerance = tolerance;
-    this.reference = referenceLayer;
+    {
+      Layer temp_08_0001 = referenceLayer == null ? null : referenceLayer.addRef();
+      this.reference = temp_08_0001 == null ? null : temp_08_0001.addRef();
+      if (null != temp_08_0001)
+        temp_08_0001.freeRef();
+    }
+    if (null != referenceLayer)
+      referenceLayer.freeRef();
   }
 
   public static @SuppressWarnings("unused")
@@ -64,29 +74,65 @@ class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
   }
 
   public ToleranceStatistics test(@Nullable final Layer subject, @Nonnull final Tensor[] inputPrototype) {
-    if (null == reference || null == subject)
+    if (null == reference || null == subject) {
+      if (null != subject)
+        subject.freeRef();
+      ReferenceCounting.freeRefs(inputPrototype);
       return new ToleranceStatistics();
+    }
     reference.assertAlive();
-    final Tensor subjectOutput = SimpleEval.run(subject, inputPrototype).getOutput();
-    final Tensor referenceOutput = SimpleEval.run(reference, false, inputPrototype).getOutput();
+    SimpleEval temp_08_0004 = SimpleEval.run(subject == null ? null : subject.addRef(),
+        Tensor.addRefs(inputPrototype));
+    final Tensor subjectOutput = temp_08_0004.getOutput();
+    if (null != temp_08_0004)
+      temp_08_0004.freeRef();
+    if (null != subject)
+      subject.freeRef();
+    SimpleEval temp_08_0005 = SimpleEval.run(
+        reference == null ? null : reference.addRef(), false,
+        Tensor.addRefs(inputPrototype));
+    final Tensor referenceOutput = temp_08_0005.getOutput();
+    if (null != temp_08_0005)
+      temp_08_0005.freeRef();
     @Nonnull
     Tensor error = null;
     {
-      log.info(String.format("Inputs: %s", RefArrays.stream(inputPrototype)
-          .map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get()));
+      log.info(String.format("Inputs: %s",
+          RefArrays.stream(Tensor.addRefs(inputPrototype)).map(t -> {
+            String temp_08_0002 = t.prettyPrint();
+            if (null != t)
+              t.freeRef();
+            return temp_08_0002;
+          }).reduce((a, b) -> a + ",\n" + b).get()));
       log.info(String.format("Subject Output: %s", subjectOutput.prettyPrint()));
       log.info(String.format("Reference Output: %s", referenceOutput.prettyPrint()));
-      error = subjectOutput.minus(referenceOutput);
+      error = subjectOutput.minus(referenceOutput == null ? null : referenceOutput.addRef());
       log.info(String.format("Error: %s", error.prettyPrint()));
       @Nonnull final ToleranceStatistics result = RefIntStream.range(0, subjectOutput.length())
-          .mapToObj(i1 -> {
-            return new ToleranceStatistics().accumulate(subjectOutput.getData()[i1], referenceOutput.getData()[i1]);
-          }).reduce((a, b) -> a.combine(b)).get();
+          .mapToObj(RefUtil.wrapInterface(
+              (IntFunction<? extends ToleranceStatistics>) i1 -> {
+                return new ToleranceStatistics().accumulate(subjectOutput.getData()[i1], referenceOutput.getData()[i1]);
+              }, subjectOutput == null ? null : subjectOutput.addRef(),
+              referenceOutput == null ? null : referenceOutput.addRef()))
+          .reduce((a, b) -> a.combine(b)).get();
       log.info(String.format("Accuracy:"));
       log.info(String.format("absoluteTol: %s", result.absoluteTol.toString()));
       log.info(String.format("relativeTol: %s", result.relativeTol.toString()));
-      if (!(result.absoluteTol.getMax() < tolerance))
+      if (!(result.absoluteTol.getMax() < tolerance)) {
+        if (null != subjectOutput)
+          subjectOutput.freeRef();
+        if (null != referenceOutput)
+          referenceOutput.freeRef();
+        error.freeRef();
+        ReferenceCounting.freeRefs(inputPrototype);
         throw new AssertionError(result.toString());
+      }
+      if (null != subjectOutput)
+        subjectOutput.freeRef();
+      if (null != referenceOutput)
+        referenceOutput.freeRef();
+      error.freeRef();
+      ReferenceCounting.freeRefs(inputPrototype);
       return result;
     }
   }
@@ -99,13 +145,21 @@ class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
     output.run(() -> {
       log.info(new GsonBuilder().setPrettyPrinting().create().toJson(reference.getJson()));
     });
-    output.run(() -> {
+    output.run(RefUtil.wrapInterface(() -> {
       log.info(new GsonBuilder().setPrettyPrinting().create().toJson(subject.getJson()));
-    });
+    }, subject == null ? null : subject.addRef()));
     output.p("We measureStyle the agreement between the two layers in a random execution:");
-    return output.eval(() -> {
-      return test(subject, inputPrototype);
-    });
+    ToleranceStatistics temp_08_0003 = output
+        .eval(RefUtil.wrapInterface(
+            () -> {
+              return test(subject == null ? null : subject.addRef(),
+                  Tensor.addRefs(inputPrototype));
+            }, Tensor.addRefs(inputPrototype),
+            subject == null ? null : subject.addRef()));
+    ReferenceCounting.freeRefs(inputPrototype);
+    if (null != subject)
+      subject.freeRef();
+    return temp_08_0003;
   }
 
   @Nonnull
@@ -115,6 +169,8 @@ class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
   }
 
   public void _free() {
+    if (null != reference)
+      reference.freeRef();
     super._free();
   }
 

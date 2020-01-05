@@ -29,10 +29,9 @@ import com.simiacryptus.mindseye.test.SimpleResult;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.ref.lang.RefAware;
-import com.simiacryptus.ref.wrappers.RefArrays;
-import com.simiacryptus.ref.wrappers.RefCollectors;
-import com.simiacryptus.ref.wrappers.RefIntStream;
-import com.simiacryptus.ref.wrappers.RefList;
+import com.simiacryptus.ref.lang.RefUtil;
+import com.simiacryptus.ref.lang.ReferenceCounting;
+import com.simiacryptus.ref.wrappers.*;
 import com.simiacryptus.util.data.ScalarStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +61,7 @@ class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
   @Nonnull
   public BatchingTester setBatchSize(int batchSize) {
     this.batchSize = batchSize;
-    return this;
+    return this.addRef();
   }
 
   public double getRandom() {
@@ -87,68 +86,161 @@ class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
 
   @Nonnull
   public ToleranceStatistics test(@Nullable final Layer reference, @Nonnull final Tensor[] inputPrototype) {
-    if (null == reference)
+    if (null == reference) {
+      if (null != reference)
+        reference.freeRef();
+      ReferenceCounting.freeRefs(inputPrototype);
       return new ToleranceStatistics();
+    }
 
     final TensorList[] inputTensorLists = RefArrays
-        .stream(inputPrototype).map(t -> new TensorArray(RefIntStream
-            .range(0, getBatchSize()).mapToObj(i -> t.map(v -> getRandom())).toArray(i -> new Tensor[i])))
-        .toArray(i -> new TensorList[i]);
+        .stream(Tensor.addRefs(inputPrototype)).map(t -> {
+          TensorArray temp_15_0001 = new TensorArray(
+              RefIntStream.range(0, getBatchSize())
+                  .mapToObj(RefUtil.wrapInterface(
+                      (IntFunction<? extends Tensor>) i -> t
+                          .map(v -> getRandom()),
+                      t == null ? null : t.addRef()))
+                  .toArray(i -> new Tensor[i]));
+          if (null != t)
+            t.freeRef();
+          return temp_15_0001;
+        }).toArray(i -> new TensorList[i]);
     @Nonnull final SimpleResult asABatch;
     final RefList<SimpleEval> oneAtATime;
     {
-      asABatch = SimpleListEval.run(reference, validateDerivatives, inputTensorLists);
-      oneAtATime = RefIntStream.range(0, getBatchSize()).mapToObj(batch -> {
-        Tensor[] inputTensors = RefIntStream.range(0, inputTensorLists.length)
-            .mapToObj(i -> inputTensorLists[i].get(batch)).toArray(i -> new Tensor[i]);
-        return SimpleEval.run(reference, validateDerivatives, inputTensors);
-      }).collect(RefCollectors.toList());
+      asABatch = SimpleListEval.run(reference == null ? null : reference.addRef(), validateDerivatives,
+          TensorList.addRefs(inputTensorLists));
+      oneAtATime = RefIntStream.range(0, getBatchSize()).mapToObj(RefUtil.wrapInterface(
+          (IntFunction<? extends SimpleEval>) batch -> {
+            Tensor[] inputTensors = RefIntStream.range(0, inputTensorLists.length)
+                .mapToObj(RefUtil.wrapInterface(
+                    (IntFunction<? extends Tensor>) i -> inputTensorLists[i]
+                        .get(batch),
+                    TensorList.addRefs(inputTensorLists)))
+                .toArray(i -> new Tensor[i]);
+            SimpleEval temp_15_0002 = SimpleEval.run(
+                reference == null ? null : reference.addRef(), validateDerivatives,
+                Tensor.addRefs(inputTensors));
+            if (null != inputTensors)
+              ReferenceCounting.freeRefs(inputTensors);
+            return temp_15_0002;
+          }, TensorList.addRefs(inputTensorLists),
+          reference == null ? null : reference.addRef())).collect(RefCollectors.toList());
     }
 
+    if (null != reference)
+      reference.freeRef();
+    if (null != inputTensorLists)
+      ReferenceCounting.freeRefs(inputTensorLists);
     TensorList batchOutput = asABatch.getOutput();
     @Nonnull
-    IntFunction<ToleranceStatistics> toleranceStatisticsIntFunction = batch -> {
-      @Nullable
-      Tensor batchTensor = batchOutput.get(batch);
-      return new ToleranceStatistics().accumulate(batchTensor.getData(), oneAtATime.get(batch).getOutput().getData());
-    };
+    IntFunction<ToleranceStatistics> toleranceStatisticsIntFunction = RefUtil
+        .wrapInterface(batch -> {
+          @Nullable
+          Tensor batchTensor = batchOutput.get(batch);
+          SimpleEval temp_15_0008 = oneAtATime.get(batch);
+          Tensor temp_15_0009 = temp_15_0008.getOutput();
+          ToleranceStatistics temp_15_0003 = new ToleranceStatistics()
+              .accumulate(batchTensor.getData(), temp_15_0009.getData());
+          if (null != temp_15_0009)
+            temp_15_0009.freeRef();
+          if (null != temp_15_0008)
+            temp_15_0008.freeRef();
+          if (null != batchTensor)
+            batchTensor.freeRef();
+          return temp_15_0003;
+        }, oneAtATime == null ? null : oneAtATime.addRef(), batchOutput == null ? null : batchOutput.addRef());
     int batchLength = batchOutput.length();
-    @Nonnull final ToleranceStatistics outputAgreement = RefIntStream
-        .range(0, Math.min(getBatchSize(), batchLength)).mapToObj(toleranceStatisticsIntFunction)
-        .reduce((a, b) -> a.combine(b)).get();
+    @Nonnull final ToleranceStatistics outputAgreement = RefIntStream.range(0, Math.min(getBatchSize(), batchLength))
+        .mapToObj(toleranceStatisticsIntFunction).reduce((a, b) -> a.combine(b)).get();
     if (!(outputAgreement.absoluteTol.getMax() < tolerance)) {
-      logger.info("Batch Output: " + batchOutput.stream().map(x -> {
-        return x.prettyPrint();
-      }).collect(RefCollectors.toList()));
-      logger.info("Singular Output: " + oneAtATime.stream().map(x -> x.getOutput().prettyPrint())
-          .collect(RefCollectors.toList()));
+      RefList<String> temp_15_0010 = batchOutput.stream().map(x -> {
+        String temp_15_0004 = x.prettyPrint();
+        if (null != x)
+          x.freeRef();
+        return temp_15_0004;
+      }).collect(RefCollectors.toList());
+      logger.info("Batch Output: " + temp_15_0010);
+      if (null != temp_15_0010)
+        temp_15_0010.freeRef();
+      RefList<String> temp_15_0012 = oneAtATime.stream().map(x -> {
+        Tensor temp_15_0011 = x.getOutput();
+        String temp_15_0005 = temp_15_0011.prettyPrint();
+        if (null != temp_15_0011)
+          temp_15_0011.freeRef();
+        if (null != x)
+          x.freeRef();
+        return temp_15_0005;
+      }).collect(RefCollectors.toList());
+      logger.info("Singular Output: " + temp_15_0012);
+      if (null != temp_15_0012)
+        temp_15_0012.freeRef();
+      asABatch.freeRef();
+      if (null != oneAtATime)
+        oneAtATime.freeRef();
+      if (null != batchOutput)
+        batchOutput.freeRef();
+      ReferenceCounting.freeRefs(inputPrototype);
       throw new AssertionError("Output Corrupt: " + outputAgreement);
     }
 
+    if (null != batchOutput)
+      batchOutput.freeRef();
     if (validateDerivatives) {
-      ToleranceStatistics derivativeAgreement = RefIntStream
-          .range(0, Math.min(getBatchSize(), batchLength)).mapToObj(batch -> {
-            IntFunction<ToleranceStatistics> statisticsFunction = input -> {
-              @Nullable
-              Tensor a = asABatch.getInputDerivative()[input].get(batch);
-              Tensor b = oneAtATime.get(batch).getDerivative()[input];
-              @Nonnull
-              Tensor diff = a.minus(b);
-              logger.info("Error: " + diff.prettyPrint());
-              logger.info("Scalar Statistics: " + new ScalarStatistics().add(diff.getData()).getMetrics());
-              double[][] points = RefArrays.stream(diff.getData())
-                  .mapToObj(x -> new double[]{x}).toArray(i -> new double[i][]);
-              return new ToleranceStatistics().accumulate(a.getData(), b.getData());
-            };
-            return RefIntStream.range(0, Math.min(inputPrototype.length, batchLength))
-                .mapToObj(statisticsFunction).reduce((a, b) -> a.combine(b)).orElse(null);
-          }).filter(x -> x != null).reduce((a, b) -> a.combine(b)).orElse(null);
+      ToleranceStatistics derivativeAgreement = RefIntStream.range(0, Math.min(getBatchSize(), batchLength))
+          .mapToObj(RefUtil.wrapInterface(
+              (IntFunction<? extends ToleranceStatistics>) batch -> {
+                IntFunction<ToleranceStatistics> statisticsFunction = RefUtil.wrapInterface(
+                    input -> {
+                      @Nullable
+                      Tensor a = asABatch.getInputDerivative()[input].get(batch);
+                      SimpleEval temp_15_0013 = oneAtATime.get(batch);
+                      Tensor b = temp_15_0013.getDerivative()[input].addRef();
+                      if (null != temp_15_0013)
+                        temp_15_0013.freeRef();
+                      @Nonnull
+                      Tensor diff = a.minus(b == null ? null : b.addRef());
+                      logger.info("Error: " + diff.prettyPrint());
+                      RefMap<CharSequence, Object> temp_15_0014 = new ScalarStatistics()
+                          .add(diff.getData()).getMetrics();
+                      logger.info("Scalar Statistics: " + temp_15_0014);
+                      if (null != temp_15_0014)
+                        temp_15_0014.freeRef();
+                      double[][] points = RefArrays.stream(diff.getData()).mapToObj(x -> new double[]{x})
+                          .toArray(i -> new double[i][]);
+                      diff.freeRef();
+                      ToleranceStatistics temp_15_0006 = new ToleranceStatistics()
+                          .accumulate(a.getData(), b.getData());
+                      if (null != b)
+                        b.freeRef();
+                      if (null != a)
+                        a.freeRef();
+                      return temp_15_0006;
+                    }, oneAtATime == null ? null : oneAtATime.addRef(), asABatch == null ? null : asABatch.addRef());
+                return RefIntStream.range(0, Math.min(inputPrototype.length, batchLength)).mapToObj(statisticsFunction)
+                    .reduce((a, b) -> a.combine(b)).orElse(null);
+              }, Tensor.addRefs(inputPrototype),
+              oneAtATime == null ? null : oneAtATime.addRef(), asABatch == null ? null : asABatch.addRef()))
+          .filter(x -> x != null).reduce((a, b) -> a.combine(b)).orElse(null);
 
       if (null != derivativeAgreement && !(derivativeAgreement.absoluteTol.getMax() < tolerance)) {
+        asABatch.freeRef();
+        if (null != oneAtATime)
+          oneAtATime.freeRef();
+        ReferenceCounting.freeRefs(inputPrototype);
         throw new AssertionError("Derivatives Corrupt: " + derivativeAgreement);
       }
+      asABatch.freeRef();
+      if (null != oneAtATime)
+        oneAtATime.freeRef();
+      ReferenceCounting.freeRefs(inputPrototype);
       return null != derivativeAgreement ? derivativeAgreement.combine(outputAgreement) : outputAgreement;
     } else {
+      asABatch.freeRef();
+      if (null != oneAtATime)
+        oneAtATime.freeRef();
+      ReferenceCounting.freeRefs(inputPrototype);
       return outputAgreement;
     }
   }
@@ -159,9 +251,17 @@ class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
     log.h1("Batch Execution");
     log.p(
         "Most layers, including this one, should behave the same no matter how the items are split between batches. We verify this:");
-    return log.eval(() -> {
-      return test(reference, inputPrototype);
-    });
+    ToleranceStatistics temp_15_0007 = log
+        .eval(RefUtil.wrapInterface(
+            () -> {
+              return test(reference == null ? null : reference.addRef(),
+                  Tensor.addRefs(inputPrototype));
+            }, Tensor.addRefs(inputPrototype),
+            reference == null ? null : reference.addRef()));
+    ReferenceCounting.freeRefs(inputPrototype);
+    if (null != reference)
+      reference.freeRef();
+    return temp_15_0007;
   }
 
   @Nonnull

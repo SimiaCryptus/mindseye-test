@@ -20,10 +20,7 @@
 package com.simiacryptus.mindseye.test.unit;
 
 import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.ref.lang.RefAware;
-import com.simiacryptus.ref.lang.RefIgnore;
-import com.simiacryptus.ref.lang.ReferenceCounting;
-import com.simiacryptus.ref.lang.ReferenceCountingBase;
+import com.simiacryptus.ref.lang.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -36,6 +33,9 @@ class TestError extends RuntimeException implements ReferenceCounting {
   public final Layer layer;
   @RefIgnore
   private final ReferenceCountingBase refCounter = new ReferenceCountingBase() {
+    {
+    }
+
     public void _free() {
       TestError.this._free();
     }
@@ -43,9 +43,22 @@ class TestError extends RuntimeException implements ReferenceCounting {
 
   public TestError(Throwable cause, ComponentTest<?> test, @Nonnull Layer layer) {
     super(String.format("Error in %s apply %s", test, layer), cause);
-    this.test = test;
-    this.layer = layer;
-    layer.detach();
+    {
+      ComponentTest<?> temp_04_0001 = test == null ? null : test.addRef();
+      this.test = temp_04_0001 == null ? null : temp_04_0001.addRef();
+      if (null != temp_04_0001)
+        temp_04_0001.freeRef();
+    }
+    if (null != test)
+      test.freeRef();
+    {
+      Layer temp_04_0002 = layer == null ? null : layer.addRef();
+      this.layer = temp_04_0002 == null ? null : temp_04_0002.addRef();
+      if (null != temp_04_0002)
+        temp_04_0002.freeRef();
+    }
+    RefUtil.freeRef(layer.detach());
+    layer.freeRef();
   }
 
   @RefIgnore
@@ -71,8 +84,11 @@ class TestError extends RuntimeException implements ReferenceCounting {
   }
 
   public void _free() {
+    if (null != refCounter)
+      refCounter.freeRef();
     layer.freeRef();
-    test.freeRef();
+    if (null != test)
+      test.freeRef();
   }
 
   @RefIgnore

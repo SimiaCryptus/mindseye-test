@@ -21,12 +21,15 @@ package com.simiacryptus.mindseye.test.unit;
 
 import com.simiacryptus.lang.TimedResult;
 import com.simiacryptus.lang.Tuple2;
+import com.simiacryptus.lang.UncheckedSupplier;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.ref.lang.RefAware;
+import com.simiacryptus.ref.lang.RefUtil;
+import com.simiacryptus.ref.lang.ReferenceCounting;
 import com.simiacryptus.ref.wrappers.*;
 import com.simiacryptus.util.data.DoubleStatistics;
 import org.slf4j.Logger;
@@ -36,6 +39,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.function.IntFunction;
+import java.util.stream.Stream;
 
 public @RefAware
 class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
@@ -57,7 +63,7 @@ class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   @Nonnull
   public PerformanceTester setBatches(final int batches) {
     this.batches = batches;
-    return this;
+    return this.addRef();
   }
 
   public int getSamples() {
@@ -67,7 +73,7 @@ class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   @Nonnull
   public PerformanceTester setSamples(final int samples) {
     this.samples = samples;
-    return this;
+    return this.addRef();
   }
 
   public boolean isTestEvaluation() {
@@ -77,7 +83,7 @@ class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   @Nonnull
   public PerformanceTester setTestEvaluation(final boolean testEvaluation) {
     this.testEvaluation = testEvaluation;
-    return this;
+    return this.addRef();
   }
 
   public boolean isTestLearning() {
@@ -103,20 +109,27 @@ class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   @Nonnull
   public ComponentTest<ToleranceStatistics> setTestLearning(final boolean testLearning) {
     this.testLearning = testLearning;
-    return this;
+    return this.addRef();
   }
 
   public void test(@Nonnull final Layer component, @Nonnull final Tensor[] inputPrototype) {
     log.info(String.format("%s batch length, %s trials", batches, samples));
     log.info("Input Dimensions:");
-    RefArrays.stream(inputPrototype)
-        .map(t -> "\t" + RefArrays.toString(t.getDimensions()))
-        .forEach(System.out::println);
+    RefArrays.stream(Tensor.addRefs(inputPrototype)).map(t -> {
+      String temp_10_0001 = "\t" + RefArrays.toString(t.getDimensions());
+      if (null != t)
+        t.freeRef();
+      return temp_10_0001;
+    }).forEach(System.out::println);
     log.info("Performance:");
-    RefList<Tuple2<Double, Double>> performance = RefIntStream
-        .range(0, samples).mapToObj(i -> {
-          return testPerformance(component, inputPrototype);
-        }).collect(RefCollectors.toList());
+    RefList<Tuple2<Double, Double>> performance = RefIntStream.range(0, samples)
+        .mapToObj(RefUtil.wrapInterface(
+            (IntFunction<? extends Tuple2<Double, Double>>) i -> {
+              return testPerformance(component == null ? null : component.addRef(),
+                  Tensor.addRefs(inputPrototype));
+            }, component == null ? null : component, Tensor.addRefs(inputPrototype)))
+        .collect(RefCollectors.toList());
+    ReferenceCounting.freeRefs(inputPrototype);
     if (isTestEvaluation()) {
       @Nonnull final DoubleStatistics statistics = new DoubleStatistics()
           .accept(performance.stream().mapToDouble(x -> x._1).toArray());
@@ -131,6 +144,8 @@ class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
             statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
       }
     }
+    if (null != performance)
+      performance.freeRef();
   }
 
   @Nullable
@@ -139,15 +154,19 @@ class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
                                   @Nonnull final Tensor... inputPrototype) {
     log.h1("Performance");
     if (component instanceof DAGNetwork) {
-      TestUtil.instrumentPerformance((DAGNetwork) component);
+      TestUtil.instrumentPerformance(((DAGNetwork) component).addRef());
     }
     log.p("Now we execute larger-scale runs to benchmark performance:");
-    log.run(() -> {
-      test(component, inputPrototype);
-    });
+    log.run(RefUtil.wrapInterface(() -> {
+      test(component == null ? null : component.addRef(),
+          Tensor.addRefs(inputPrototype));
+    }, Tensor.addRefs(inputPrototype), component == null ? null : component.addRef()));
+    ReferenceCounting.freeRefs(inputPrototype);
     if (component instanceof DAGNetwork) {
-      TestUtil.extractPerformance(log, (DAGNetwork) component);
+      TestUtil.extractPerformance(log, ((DAGNetwork) component).addRef());
     }
+    if (null != component)
+      component.freeRef();
     return null;
   }
 
@@ -171,37 +190,56 @@ class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   @Nonnull
   protected Tuple2<Double, Double> testPerformance(@Nonnull final Layer component, final Tensor... inputPrototype) {
     final Tensor[][] data = RefIntStream.range(0, batches).mapToObj(x -> x)
-        .flatMap(x -> RefStream.<Tensor[]>of(inputPrototype))
+        .flatMap(RefUtil.wrapInterface(
+            (Function<? super Integer, ? extends Stream<? extends Tensor[]>>) x -> RefStream
+                .<Tensor[]>of(Tensor.addRefs(inputPrototype)),
+            Tensor.addRefs(inputPrototype)))
         .toArray(i -> new Tensor[i][]);
+    if (null != inputPrototype)
+      ReferenceCounting.freeRefs(inputPrototype);
     @Nonnull
-    TimedResult<Result> timedEval = TimedResult.time(() -> {
-      Result[] input = ConstantResult.batchResultArray(data);
-      @Nullable
-      Result result;
-      try {
-        result = component.eval(input);
-      } finally {
-        for (@Nonnull
-            Result nnResult : input) {
-          nnResult.getData();
-        }
-      }
-      return result;
-    });
-    final Result result = timedEval.result;
+    TimedResult<Result> timedEval = TimedResult.time(RefUtil
+        .wrapInterface((UncheckedSupplier<Result>) () -> {
+          Result[] input = ConstantResult.batchResultArray(Tensor.addRefs(data));
+          @Nullable
+          Result result;
+          try {
+            result = component.eval(Result.addRefs(input));
+          } finally {
+            for (@Nonnull
+                Result nnResult : input) {
+              RefUtil.freeRef(nnResult.getData());
+            }
+          }
+          if (null != input)
+            ReferenceCounting.freeRefs(input);
+          return result;
+        }, Tensor.addRefs(data), component == null ? null : component));
+    if (null != data)
+      ReferenceCounting.freeRefs(data);
+    final Result result = timedEval.result.addRef();
     @Nonnull final DeltaSet<UUID> buffer = new DeltaSet<UUID>();
     try {
-      long timedBackprop = TimedResult.time(() -> {
-        @Nonnull
-        TensorArray tensorArray = new TensorArray(result.getData().stream().map(x -> {
-          return x.map(v -> 1.0);
-        }).toArray(i -> new Tensor[i]));
-        result.accumulate(buffer, tensorArray);
-        return buffer;
-      }).timeNanos;
+      long timedBackprop = TimedResult.time(RefUtil.wrapInterface(
+          (UncheckedSupplier<DeltaSet<UUID>>) () -> {
+            TensorList temp_10_0003 = result.getData();
+            @Nonnull
+            TensorArray tensorArray = new TensorArray(temp_10_0003.stream().map(x -> {
+              Tensor temp_10_0002 = x.map(v -> 1.0);
+              if (null != x)
+                x.freeRef();
+              return temp_10_0002;
+            }).toArray(i -> new Tensor[i]));
+            if (null != temp_10_0003)
+              temp_10_0003.freeRef();
+            result.accumulate(buffer == null ? null : buffer.addRef(), tensorArray == null ? null : tensorArray);
+            return buffer;
+          }, buffer == null ? null : buffer, result == null ? null : result.addRef())).timeNanos;
+      if (null != result)
+        result.freeRef();
       return new Tuple2<>(timedEval.timeNanos / 1e9, timedBackprop / 1e9);
     } finally {
-      result.getData();
+      RefUtil.freeRef(result.getData());
     }
   }
 }

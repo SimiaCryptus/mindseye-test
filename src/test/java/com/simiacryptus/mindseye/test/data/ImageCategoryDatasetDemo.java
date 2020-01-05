@@ -20,14 +20,13 @@
 package com.simiacryptus.mindseye.test.data;
 
 import com.simiacryptus.lang.SupplierWeakCache;
+import com.simiacryptus.lang.UncheckedSupplier;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.util.ImageUtil;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.ref.lang.RefAware;
-import com.simiacryptus.ref.wrappers.RefCollectors;
-import com.simiacryptus.ref.wrappers.RefComparator;
-import com.simiacryptus.ref.wrappers.RefList;
-import com.simiacryptus.ref.wrappers.RefStream;
+import com.simiacryptus.ref.lang.RefUtil;
+import com.simiacryptus.ref.wrappers.*;
 import com.simiacryptus.util.test.LabeledObject;
 import org.junit.Test;
 
@@ -72,30 +71,33 @@ class ImageCategoryDatasetDemo extends NotebookReportBase {
 
   public void run(@Nonnull NotebookOutput log) {
     log.h3("Loading Data");
-    RefList<LabeledObject<SupplierWeakCache<BufferedImage>>> testData = getTrainingStream(
-        log).sorted(getShuffleComparator()).collect(RefCollectors.toList());
+    RefList<LabeledObject<SupplierWeakCache<BufferedImage>>> testData = getTrainingStream(log)
+        .sorted(getShuffleComparator()).collect(RefCollectors.toList());
 
     log.h3("Categories");
-    log.run(() -> {
-      testData.stream()
-          .collect(RefCollectors.groupingBy(x -> x.label,
-              RefCollectors.counting()))
-          .forEach((k, v) -> ImageCategoryDatasetDemo.logger.info(String.format("%s -> %d", k, v)));
-    });
+    log.run(RefUtil.wrapInterface(() -> {
+      RefMap<String, Long> temp_22_0001 = testData.stream()
+          .collect(RefCollectors.groupingBy(x -> x.label, RefCollectors.counting()));
+      temp_22_0001.forEach((k, v) -> ImageCategoryDatasetDemo.logger.info(String.format("%s -> %d", k, v)));
+      if (null != temp_22_0001)
+        temp_22_0001.freeRef();
+    }, testData == null ? null : testData.addRef()));
 
     log.h3("Sample Data");
-    log.p(log.out(() -> {
-      return testData.stream().map(labeledObj -> {
-        @Nullable
-        BufferedImage img = labeledObj.data.get();
-        img = ImageUtil.resize(img, 224, true);
-        return log.png(img, labeledObj.label);
-      }).limit(20).reduce((a, b) -> a + b).get();
-    }));
+    log.p(log.out(RefUtil
+        .wrapInterface((UncheckedSupplier<String>) () -> {
+          return testData.stream().map(labeledObj -> {
+            @Nullable
+            BufferedImage img = labeledObj.data.get();
+            img = ImageUtil.resize(img, 224, true);
+            return log.png(img, labeledObj.label);
+          }).limit(20).reduce((a, b) -> a + b).get();
+        }, testData == null ? null : testData.addRef())));
+    if (null != testData)
+      testData.freeRef();
   }
 
-  public abstract RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(
-      NotebookOutput log);
+  public abstract RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(NotebookOutput log);
 
   public @SuppressWarnings("unused")
   void _free() {

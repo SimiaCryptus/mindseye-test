@@ -91,8 +91,7 @@ class NotebookReportBase extends ReferenceCountingBase {
     return path;
   }
 
-  public static void withRefLeakMonitor(NotebookOutput log,
-                                        @Nonnull RefConsumer<NotebookOutput> fn) {
+  public static void withRefLeakMonitor(NotebookOutput log, @Nonnull RefConsumer<NotebookOutput> fn) {
     try (
         CodeUtil.LogInterception refLeakLog = CodeUtil.intercept(log, ReferenceCountingBase.class.getCanonicalName())) {
       fn.accept(log);
@@ -135,8 +134,7 @@ class NotebookReportBase extends ReferenceCountingBase {
     log.p("__Report Description:__ " + reportJavadoc);
   }
 
-  public void run(@Nonnull RefConsumer<NotebookOutput> fn,
-                  @Nonnull CharSequence... logPath) {
+  public void run(@Nonnull RefConsumer<NotebookOutput> fn, @Nonnull CharSequence... logPath) {
     try (@Nonnull
          NotebookOutput log = getLog(logPath)) {
       withRefLeakMonitor(log, NotebookOutput.concat(this::printHeader, MarkdownNotebookOutput.wrapFrontmatter(fn)));

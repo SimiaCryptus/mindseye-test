@@ -46,9 +46,12 @@ class Caltech101 {
 
   @Nullable
   private static final DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>> training = new DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>>() {
+    public @SuppressWarnings("unused")
+    void _free() {
+    }
+
     @Override
-    protected void read(
-        @Nonnull final RefList<LabeledObject<SupplierWeakCache<BufferedImage>>> queue) {
+    protected void read(@Nonnull final RefList<LabeledObject<SupplierWeakCache<BufferedImage>>> queue) {
       try {
         @Nullable
         InputStream stream = null;
@@ -90,6 +93,7 @@ class Caltech101 {
         e.printStackTrace();
         throw new RuntimeException(e);
       }
+      queue.freeRef();
     }
   };
 

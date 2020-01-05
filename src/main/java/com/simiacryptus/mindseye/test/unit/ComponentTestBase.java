@@ -25,8 +25,7 @@ import com.simiacryptus.ref.lang.ReferenceCountingBase;
 import java.util.Arrays;
 
 public abstract @RefAware
-class ComponentTestBase<T> extends ReferenceCountingBase
-    implements ComponentTest<T> {
+class ComponentTestBase<T> extends ReferenceCountingBase implements ComponentTest<T> {
 
   public static @SuppressWarnings("unused")
   ComponentTestBase[] addRefs(ComponentTestBase[] array) {

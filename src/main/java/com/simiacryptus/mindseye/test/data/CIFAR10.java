@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.test.data;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.ref.lang.RefAware;
+import com.simiacryptus.ref.lang.RefUtil;
 import com.simiacryptus.ref.wrappers.RefArrays;
 import com.simiacryptus.ref.wrappers.RefList;
 import com.simiacryptus.ref.wrappers.RefStream;
@@ -48,6 +49,13 @@ class CIFAR10 {
 
   @Nullable
   private static final DataLoader<LabeledObject<Tensor>> training = new DataLoader<LabeledObject<Tensor>>() {
+    {
+    }
+
+    public @SuppressWarnings("unused")
+    void _free() {
+    }
+
     @Override
     protected void read(@Nonnull final RefList<LabeledObject<Tensor>> queue) {
       try {
@@ -71,7 +79,8 @@ class CIFAR10 {
           }
           @Nonnull final BinaryChunkIterator iterator = new BinaryChunkIterator(
               new DataInputStream(new BoundedInputStream(tar, nextTarEntry.getSize())), recordSize);
-          for (final byte[] chunk : (Iterable<byte[]>) () -> iterator) {
+          for (final byte[] chunk : RefUtil
+              .wrapInterface((Iterable<byte[]>) () -> iterator, iterator == null ? null : iterator)) {
             queue.add(CIFAR10.toImage(chunk).map(img -> Tensor.fromRGB(img)));
           }
         }
@@ -80,6 +89,7 @@ class CIFAR10 {
         e.printStackTrace();
         throw new RuntimeException(e);
       }
+      queue.freeRef();
     }
   };
 

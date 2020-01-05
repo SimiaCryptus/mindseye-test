@@ -19,12 +19,15 @@
 
 package com.simiacryptus.mindseye.test.unit;
 
+import com.simiacryptus.lang.UncheckedSupplier;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.ref.lang.RefAware;
+import com.simiacryptus.ref.lang.RefUtil;
+import com.simiacryptus.ref.lang.ReferenceCounting;
 import com.simiacryptus.ref.wrappers.RefArrays;
 import com.simiacryptus.ref.wrappers.RefHashMap;
 import com.simiacryptus.util.data.DoubleStatistics;
@@ -32,13 +35,22 @@ import com.simiacryptus.util.data.DoubleStatistics;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.function.BiConsumer;
 
 public @RefAware
 class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
   final RefHashMap<Tensor[], Tensor> referenceIO;
 
   public ReferenceIO(final RefHashMap<Tensor[], Tensor> referenceIO) {
-    this.referenceIO = referenceIO;
+    {
+      RefHashMap<Tensor[], Tensor> temp_05_0001 = RefUtil
+          .addRef(referenceIO);
+      this.referenceIO = RefUtil.addRef(temp_05_0001);
+      if (null != temp_05_0001)
+        temp_05_0001.freeRef();
+    }
+    if (null != referenceIO)
+      referenceIO.freeRef();
   }
 
   public static @SuppressWarnings("unused")
@@ -64,38 +76,76 @@ class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
     if (!referenceIO.isEmpty()) {
       log.h1("Reference Input/Output Pairs");
       log.p("Display pre-setBytes input/output example pairs:");
-      referenceIO.forEach((input, output) -> {
-        log.eval(() -> {
-          @Nonnull final SimpleEval eval = SimpleEval.run(layer, input);
-          Tensor evalOutput = eval.getOutput();
-          Tensor difference = output.scale(-1).addAndFree(evalOutput);
-          @Nonnull final DoubleStatistics error = new DoubleStatistics().accept(difference.getData());
-          return String.format(
-              "--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n%s\nError: %s\n--------------------\nDerivative: \n%s",
-              RefArrays.stream(input)
-                  .map(
-                      t -> RefArrays.toString(t.getDimensions()) + "\n" + t.prettyPrint())
-                  .reduce((a, b) -> a + ",\n" + b).get(),
-              RefArrays.toString(evalOutput.getDimensions()), evalOutput.prettyPrint(),
-              error, RefArrays.stream(eval.getDerivative()).map(t -> t.prettyPrint())
-                  .reduce((a, b) -> a + ",\n" + b).get());
-        });
-      });
+      referenceIO.forEach(RefUtil.wrapInterface(
+          (BiConsumer<? super Tensor[], ? super Tensor>) (
+              input, output) -> {
+            log.eval(RefUtil
+                .wrapInterface((UncheckedSupplier<String>) () -> {
+                      @Nonnull final SimpleEval eval = SimpleEval.run(layer == null ? null : layer.addRef(),
+                          Tensor.addRefs(input));
+                      Tensor evalOutput = eval.getOutput();
+                      Tensor temp_05_0008 = output.scale(-1);
+                      Tensor difference = temp_05_0008.addAndFree(evalOutput == null ? null : evalOutput.addRef());
+                      if (null != temp_05_0008)
+                        temp_05_0008.freeRef();
+                      @Nonnull final DoubleStatistics error = new DoubleStatistics().accept(difference.getData());
+                      if (null != difference)
+                        difference.freeRef();
+                      String temp_05_0002 = String.format(
+                          "--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n%s\nError: %s\n--------------------\nDerivative: \n%s",
+                          RefArrays.stream(Tensor.addRefs(input)).map(t -> {
+                            String temp_05_0003 = RefArrays.toString(t.getDimensions()) + "\n" + t.prettyPrint();
+                            if (null != t)
+                              t.freeRef();
+                            return temp_05_0003;
+                          }).reduce((a, b) -> a + ",\n" + b).get(), RefArrays.toString(evalOutput.getDimensions()),
+                          evalOutput.prettyPrint(), error, RefArrays.stream(eval.getDerivative()).map(t -> {
+                            String temp_05_0004 = t.prettyPrint();
+                            if (null != t)
+                              t.freeRef();
+                            return temp_05_0004;
+                          }).reduce((a, b) -> a + ",\n" + b).get());
+                      if (null != evalOutput)
+                        evalOutput.freeRef();
+                      eval.freeRef();
+                      return temp_05_0002;
+                    }, Tensor.addRefs(input), layer == null ? null : layer.addRef(),
+                    output == null ? null : output.addRef()));
+            if (null != output)
+              output.freeRef();
+            if (null != input)
+              ReferenceCounting.freeRefs(input);
+          }, layer == null ? null : layer.addRef()));
     } else {
       log.h1("Example Input/Output Pair");
       log.p("Display input/output pairs from random executions:");
-      log.eval(() -> {
-        @Nonnull final SimpleEval eval = SimpleEval.run(layer, inputPrototype);
-        Tensor evalOutput = eval.getOutput();
-        return String.format(
-            "--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n%s\n--------------------\nDerivative: \n%s",
-            RefArrays.stream(inputPrototype).map(t -> t.prettyPrint())
-                .reduce((a, b) -> a + ",\n" + b).orElse(""),
-            RefArrays.toString(evalOutput.getDimensions()), evalOutput.prettyPrint(),
-            RefArrays.stream(eval.getDerivative()).map(t -> t.prettyPrint())
-                .reduce((a, b) -> a + ",\n" + b).orElse(""));
-      });
+      log.eval(RefUtil
+          .wrapInterface((UncheckedSupplier<String>) () -> {
+            @Nonnull final SimpleEval eval = SimpleEval.run(layer == null ? null : layer.addRef(),
+                Tensor.addRefs(inputPrototype));
+            Tensor evalOutput = eval.getOutput();
+            String temp_05_0005 = String.format(
+                "--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n%s\n--------------------\nDerivative: \n%s",
+                RefArrays.stream(Tensor.addRefs(inputPrototype)).map(t -> {
+                  String temp_05_0006 = t.prettyPrint();
+                  if (null != t)
+                    t.freeRef();
+                  return temp_05_0006;
+                }).reduce((a, b) -> a + ",\n" + b).orElse(""), RefArrays.toString(evalOutput.getDimensions()),
+                evalOutput.prettyPrint(), RefArrays.stream(eval.getDerivative()).map(t -> {
+                  String temp_05_0007 = t.prettyPrint();
+                  if (null != t)
+                    t.freeRef();
+                  return temp_05_0007;
+                }).reduce((a, b) -> a + ",\n" + b).orElse(""));
+            if (null != evalOutput)
+              evalOutput.freeRef();
+            eval.freeRef();
+            return temp_05_0005;
+          }, Tensor.addRefs(inputPrototype), layer == null ? null : layer.addRef()));
     }
+    ReferenceCounting.freeRefs(inputPrototype);
+    layer.freeRef();
     return null;
   }
 
@@ -106,6 +156,8 @@ class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
   }
 
   public void _free() {
+    if (null != referenceIO)
+      referenceIO.freeRef();
     super._free();
   }
 

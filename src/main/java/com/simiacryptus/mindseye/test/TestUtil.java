@@ -30,6 +30,7 @@ import com.simiacryptus.mindseye.util.ImageUtil;
 import com.simiacryptus.notebook.FileHTTPD;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.ref.lang.RefAware;
+import com.simiacryptus.ref.lang.RefUtil;
 import com.simiacryptus.ref.wrappers.*;
 import com.simiacryptus.util.JsonUtil;
 import com.simiacryptus.util.data.PercentileStatistics;
@@ -61,14 +62,24 @@ class TestUtil {
   private static final Logger logger = LoggerFactory.getLogger(TestUtil.class);
 
   public static RefMap<String, RefList<String>> getStackInfo() {
-    return Thread.getAllStackTraces().entrySet().stream()
-        .collect(RefCollectors.toMap(entry -> {
+    RefCollectors.RefCollector<Map.Entry<Thread, StackTraceElement[]>, ?, RefMap<String, RefList<String>>> temp_13_0017 = RefCollectors
+        .toMap(entry -> {
           Thread key = entry.getKey();
+          if (null != entry)
+            RefUtil.freeRef(entry);
           return String.format("%s@%d", key.getName(), key.getId());
         }, entry -> {
-          return RefArrays.stream(entry.getValue()).map(StackTraceElement::toString)
-              .collect(RefCollectors.toList());
-        }));
+          RefList<String> temp_13_0001 = RefArrays.stream(entry.getValue())
+              .map(StackTraceElement::toString).collect(RefCollectors.toList());
+          if (null != entry)
+            RefUtil.freeRef(entry);
+          return temp_13_0001;
+        });
+    RefMap<String, RefList<String>> temp_13_0016 = Thread
+        .getAllStackTraces().entrySet().stream().collect(temp_13_0017);
+    if (null != temp_13_0017)
+      temp_13_0017.freeRef();
+    return temp_13_0016;
   }
 
   public static PlotCanvas compare(final String title, @Nonnull final ProblemRun... trials) {
@@ -92,23 +103,22 @@ class TestUtil {
       canvas.setTitle(title);
       canvas.setAxisLabels("Iteration", "log10(Fitness)");
       canvas.setSize(600, 400);
-      final RefList<ProblemRun> filtered = RefArrays
-          .stream(trials).filter(x -> !x.history.isEmpty())
+      final RefList<ProblemRun> filtered = RefArrays.stream(trials).filter(x -> !x.history.isEmpty())
           .collect(RefCollectors.toList());
       if (filtered.isEmpty()) {
         logger.info("No Data");
+        if (null != filtered)
+          filtered.freeRef();
         return null;
       }
       DoubleSummaryStatistics valueStatistics = filtered.stream().flatMap(x -> x.history.stream())
           .mapToDouble(x -> x.fitness).filter(x -> x > 0).summaryStatistics();
-      logger.info(String.format("Plotting range=%s, %s; valueStats=%s",
-          RefArrays.toString(lowerBound),
+      logger.info(String.format("Plotting range=%s, %s; valueStats=%s", RefArrays.toString(lowerBound),
           RefArrays.toString(upperBound), valueStatistics));
       for (@Nonnull final ProblemRun trial : filtered) {
         final double[][] pts = trial.history.stream()
             .map(step -> new double[]{step.iteration, Math.log10(Math.max(step.fitness, valueStatistics.getMin()))})
-            .filter(x -> RefArrays.stream(x).allMatch(Double::isFinite))
-            .toArray(i -> new double[i][]);
+            .filter(x -> RefArrays.stream(x).allMatch(Double::isFinite)).toArray(i -> new double[i][]);
         if (pts.length > 1) {
           logger.info(String.format("Plotting %s points for %s", pts.length, trial.name));
           canvas.add(trial.plot(pts));
@@ -116,6 +126,8 @@ class TestUtil {
           logger.info(String.format("Only %s points for %s", pts.length, trial.name));
         }
       }
+      if (null != filtered)
+        filtered.freeRef();
       return canvas;
     } catch (@Nonnull final Exception e) {
       e.printStackTrace(System.out);
@@ -128,8 +140,8 @@ class TestUtil {
       final DoubleSummaryStatistics[] xStatistics = RefArrays.stream(trials)
           .map(x -> x.history.stream().mapToDouble(step -> step.epochTime).filter(Double::isFinite).summaryStatistics())
           .toArray(i -> new DoubleSummaryStatistics[i]);
-      final double totalTime = RefArrays.stream(xStatistics)
-          .mapToDouble(x -> x.getMax() - x.getMin()).max().getAsDouble();
+      final double totalTime = RefArrays.stream(xStatistics).mapToDouble(x -> x.getMax() - x.getMin()).max()
+          .getAsDouble();
       final DoubleSummaryStatistics yStatistics = RefArrays.stream(trials)
           .flatMapToDouble(
               x -> x.history.stream().filter(y -> y.fitness > 0).mapToDouble(step -> Math.log10(step.fitness)))
@@ -144,17 +156,17 @@ class TestUtil {
       canvas.setTitle(title);
       canvas.setAxisLabels("Time", "log10(Fitness)");
       canvas.setSize(600, 400);
-      final RefList<ProblemRun> filtered = RefArrays
-          .stream(trials).filter(x -> !x.history.isEmpty())
+      final RefList<ProblemRun> filtered = RefArrays.stream(trials).filter(x -> !x.history.isEmpty())
           .collect(RefCollectors.toList());
       if (filtered.isEmpty()) {
         logger.info("No Data");
+        if (null != filtered)
+          filtered.freeRef();
         return null;
       }
       DoubleSummaryStatistics valueStatistics = filtered.stream().flatMap(x -> x.history.stream())
           .mapToDouble(x -> x.fitness).filter(x -> x > 0).summaryStatistics();
-      logger.info(String.format("Plotting range=%s, %s; valueStats=%s",
-          RefArrays.toString(lowerBound),
+      logger.info(String.format("Plotting range=%s, %s; valueStats=%s", RefArrays.toString(lowerBound),
           RefArrays.toString(upperBound), valueStatistics));
       for (int t = 0; t < filtered.size(); t++) {
         final ProblemRun trial = filtered.get(t);
@@ -162,8 +174,7 @@ class TestUtil {
         final double[][] pts = trial.history.stream().map(step -> {
           return new double[]{(step.epochTime - trialStats.getMin()) / 1000.0,
               Math.log10(Math.max(step.fitness, valueStatistics.getMin()))};
-        }).filter(x -> RefArrays.stream(x).allMatch(Double::isFinite))
-            .toArray(i -> new double[i][]);
+        }).filter(x -> RefArrays.stream(x).allMatch(Double::isFinite)).toArray(i -> new double[i][]);
         if (pts.length > 1) {
           logger.info(String.format("Plotting %s points for %s", pts.length, trial.name));
           canvas.add(trial.plot(pts));
@@ -171,6 +182,8 @@ class TestUtil {
           logger.info(String.format("Only %s points for %s", pts.length, trial.name));
         }
       }
+      if (null != filtered)
+        filtered.freeRef();
       return canvas;
     } catch (@Nonnull final Exception e) {
       e.printStackTrace(System.out);
@@ -180,59 +193,100 @@ class TestUtil {
 
   public static void extractPerformance(@Nonnull final NotebookOutput log, @Nonnull final DAGNetwork network) {
     log.p("Per-key Performance Metrics:");
-    log.run(() -> {
+    log.run(RefUtil.wrapInterface(() -> {
       @Nonnull final RefMap<CharSequence, MonitoringWrapperLayer> metrics = new RefHashMap<>();
-      network.visitNodes(node -> {
-        if (node.getLayer() instanceof MonitoringWrapperLayer) {
-          @Nullable final MonitoringWrapperLayer layer = node.getLayer();
-          Layer inner = layer.getInner();
-          String str = inner.toString();
-          str += " class=" + inner.getClass().getName();
-          //          if(inner instanceof MultiPrecision<?>) {
-          //            str += "; precision=" + ((MultiPrecision) inner).getPrecision().name();
-          //          }
-          metrics.put(str, layer);
-        }
-      });
-      TestUtil.logger.info("Performance: \n\t" + metrics.entrySet().stream().sorted(
-          RefComparator.comparing(x -> -x.getValue().getForwardPerformance().getMean()))
-          .map(e -> {
-            @Nonnull final PercentileStatistics performanceF = e.getValue().getForwardPerformance();
-            @Nonnull final PercentileStatistics performanceB = e.getValue().getBackwardPerformance();
-            return String.format("%.6fs +- %.6fs (%d) <- %s", performanceF.getMean(), performanceF.getStdDev(),
-                performanceF.getCount(), e.getKey())
-                + (performanceB.getCount() == 0 ? ""
-                : String.format("%n\tBack: %.6fs +- %.6fs (%s)", performanceB.getMean(), performanceB.getStdDev(),
-                performanceB.getCount()));
-          }).reduce((a, b) -> a + "\n\t" + b).get());
-    });
-    removeInstrumentation(network);
+      network.visitNodes(RefUtil.wrapInterface(
+          node -> {
+            if (node.getLayer() instanceof MonitoringWrapperLayer) {
+              @Nullable final MonitoringWrapperLayer layer = node.getLayer();
+              Layer inner = layer.getInner();
+              String str = inner.toString();
+              str += " class=" + inner.getClass().getName();
+              if (null != inner)
+                inner.freeRef();
+              RefUtil.freeRef(metrics.put(str, layer == null ? null : layer.addRef()));
+              if (null != layer)
+                layer.freeRef();
+            }
+            if (null != node)
+              node.freeRef();
+          }, metrics == null ? null : metrics.addRef()));
+      RefSet<Map.Entry<CharSequence, MonitoringWrapperLayer>> temp_13_0018 = metrics
+          .entrySet();
+      TestUtil.logger.info("Performance: \n\t" + temp_13_0018.stream().sorted(RefComparator.comparing(x -> {
+        MonitoringWrapperLayer temp_13_0019 = x.getValue();
+        double temp_13_0002 = -temp_13_0019.getForwardPerformance().getMean();
+        if (null != temp_13_0019)
+          temp_13_0019.freeRef();
+        if (null != x)
+          RefUtil.freeRef(x);
+        return temp_13_0002;
+      })).map(e -> {
+        MonitoringWrapperLayer temp_13_0020 = e.getValue();
+        @Nonnull final PercentileStatistics performanceF = temp_13_0020.getForwardPerformance();
+        if (null != temp_13_0020)
+          temp_13_0020.freeRef();
+        MonitoringWrapperLayer temp_13_0021 = e.getValue();
+        @Nonnull final PercentileStatistics performanceB = temp_13_0021.getBackwardPerformance();
+        if (null != temp_13_0021)
+          temp_13_0021.freeRef();
+        String temp_13_0003 = String.format("%.6fs +- %.6fs (%d) <- %s", performanceF.getMean(),
+            performanceF.getStdDev(), performanceF.getCount(), e.getKey())
+            + (performanceB.getCount() == 0 ? ""
+            : String.format("%n\tBack: %.6fs +- %.6fs (%s)", performanceB.getMean(), performanceB.getStdDev(),
+            performanceB.getCount()));
+        if (null != e)
+          RefUtil.freeRef(e);
+        return temp_13_0003;
+      }).reduce((a, b) -> a + "\n\t" + b).get());
+      if (null != temp_13_0018)
+        temp_13_0018.freeRef();
+      metrics.freeRef();
+    }, network == null ? null : network.addRef()));
+    removeInstrumentation(network == null ? null : network);
   }
 
   public static void removeInstrumentation(@Nonnull final DAGNetwork network) {
     network.visitNodes(node -> {
       if (node.getLayer() instanceof MonitoringWrapperLayer) {
-        Layer layer = node.<MonitoringWrapperLayer>getLayer().getInner();
-        node.setLayer(layer);
+        MonitoringWrapperLayer temp_13_0022 = node.<MonitoringWrapperLayer>getLayer();
+        Layer layer = temp_13_0022.getInner();
+        if (null != temp_13_0022)
+          temp_13_0022.freeRef();
+        node.setLayer(layer == null ? null : layer.addRef());
+        if (null != layer)
+          layer.freeRef();
       }
+      if (null != node)
+        node.freeRef();
     });
+    network.freeRef();
   }
 
-  public static RefMap<CharSequence, Object> samplePerformance(
-      @Nonnull final DAGNetwork network) {
+  public static RefMap<CharSequence, Object> samplePerformance(@Nonnull final DAGNetwork network) {
     @Nonnull final RefMap<CharSequence, Object> metrics = new RefHashMap<>();
-    network.visitLayers(layer -> {
-      if (layer instanceof MonitoringWrapperLayer) {
-        MonitoringWrapperLayer monitoringWrapperLayer = (MonitoringWrapperLayer) layer;
-        Layer inner = monitoringWrapperLayer.getInner();
-        String str = inner.toString();
-        str += " class=" + inner.getClass().getName();
-        RefHashMap<CharSequence, Object> row = new RefHashMap<>();
-        row.put("fwd", monitoringWrapperLayer.getForwardPerformance().getMetrics());
-        row.put("rev", monitoringWrapperLayer.getBackwardPerformance().getMetrics());
-        metrics.put(str, row);
-      }
-    });
+    network.visitLayers(RefUtil
+        .wrapInterface(layer -> {
+          if (layer instanceof MonitoringWrapperLayer) {
+            MonitoringWrapperLayer monitoringWrapperLayer = (MonitoringWrapperLayer) layer;
+            Layer inner = monitoringWrapperLayer.getInner();
+            String str = inner.toString();
+            str += " class=" + inner.getClass().getName();
+            if (null != inner)
+              inner.freeRef();
+            RefHashMap<CharSequence, Object> row = new RefHashMap<>();
+            row.put("fwd", monitoringWrapperLayer.getForwardPerformance().getMetrics());
+            row.put("rev", monitoringWrapperLayer.getBackwardPerformance().getMetrics());
+            if (null != monitoringWrapperLayer)
+              monitoringWrapperLayer.freeRef();
+            metrics.put(str, RefUtil.addRef(row));
+            if (null != row)
+              row.freeRef();
+          }
+          if (null != layer)
+            layer.freeRef();
+        }, metrics == null ? null : metrics.addRef()));
+    network.freeRef();
     return metrics;
   }
 
@@ -240,8 +294,9 @@ class TestUtil {
     return getMonitor(history, null);
   }
 
-  public static TrainingMonitor getMonitor(@Nonnull final List<StepRecord> history,
-                                           final Layer network) {
+  public static TrainingMonitor getMonitor(@Nonnull final List<StepRecord> history, final Layer network) {
+    if (null != network)
+      network.freeRef();
     return new TrainingMonitor() {
       @Override
       public void clear() {
@@ -258,6 +313,7 @@ class TestUtil {
       public void onStepComplete(@Nonnull final Step currentPoint) {
         history.add(new StepRecord(currentPoint.point.getMean(), currentPoint.time, currentPoint.iteration));
         super.onStepComplete(currentPoint);
+        currentPoint.freeRef();
       }
     };
   }
@@ -266,14 +322,22 @@ class TestUtil {
     network.visitNodes(node -> {
       Layer layer = node.getLayer();
       if (layer instanceof MonitoringWrapperLayer) {
-        ((MonitoringWrapperLayer) layer).shouldRecordSignalMetrics(false);
+        RefUtil.freeRef(((MonitoringWrapperLayer) layer).shouldRecordSignalMetrics(false));
       } else {
+        MonitoringWrapperLayer temp_13_0015 = new MonitoringWrapperLayer(
+            layer == null ? null : layer.addRef());
         @Nonnull
-        MonitoringWrapperLayer monitoringWrapperLayer = new MonitoringWrapperLayer(layer)
-            .shouldRecordSignalMetrics(false);
-        node.setLayer(monitoringWrapperLayer);
+        MonitoringWrapperLayer monitoringWrapperLayer = temp_13_0015.shouldRecordSignalMetrics(false);
+        if (null != temp_13_0015)
+          temp_13_0015.freeRef();
+        node.setLayer(monitoringWrapperLayer == null ? null : monitoringWrapperLayer);
       }
+      if (null != layer)
+        layer.freeRef();
+      if (null != node)
+        node.freeRef();
     });
+    network.freeRef();
   }
 
   public static JPanel plot(@Nonnull final List<StepRecord> history) {
@@ -283,8 +347,7 @@ class TestUtil {
       if (0 < min) {
         double[][] data = history.stream()
             .map(step -> new double[]{step.iteration, Math.log10(Math.max(min, step.fitness))})
-            .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
-            .toArray(i -> new double[i][]);
+            .filter(x -> Arrays.stream(x).allMatch(Double::isFinite)).toArray(i -> new double[i][]);
         if (Arrays.stream(data).mapToInt(x -> x.length).sum() == 0)
           return null;
         @Nonnull final PlotCanvas plot = ScatterPlot.plot(data);
@@ -294,8 +357,7 @@ class TestUtil {
         return plot;
       } else {
         double[][] data = history.stream().map(step -> new double[]{step.iteration, step.fitness})
-            .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
-            .toArray(i -> new double[i][]);
+            .filter(x -> Arrays.stream(x).allMatch(Double::isFinite)).toArray(i -> new double[i][]);
         if (Arrays.stream(data).mapToInt(x -> x.length).sum() == 0)
           return null;
         @Nonnull final PlotCanvas plot = ScatterPlot.plot(data);
@@ -318,8 +380,7 @@ class TestUtil {
       @Nonnull final PlotCanvas plot = ScatterPlot.plot(history.stream()
           .map(step -> new double[]{(step.epochTime - timeStats.getMin()) / 1000.0,
               Math.log10(Math.max(valueStats.getMin(), step.fitness))})
-          .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
-          .toArray(i -> new double[i][]));
+          .filter(x -> Arrays.stream(x).allMatch(Double::isFinite)).toArray(i -> new double[i][]));
       plot.setTitle("Convergence Plot");
       plot.setAxisLabels("Time", "log10(Fitness)");
       plot.setSize(600, 400);
@@ -331,20 +392,38 @@ class TestUtil {
   }
 
   public static Object toGraph(@Nonnull final DAGNetwork network) {
-    return toGraph(network, TestUtil::getName);
+    Object temp_13_0011 = toGraph(network == null ? null : network, TestUtil::getName);
+    return temp_13_0011;
   }
 
   public static void graph(@Nonnull final NotebookOutput log, @Nonnull final DAGNetwork network) {
-    Graphviz graphviz = Graphviz.fromGraph((Graph) toGraph(network, node -> {
+    Graphviz graphviz = Graphviz.fromGraph((Graph) toGraph(network == null ? null : network, node -> {
       Layer layer = node.getLayer();
       if (null != layer) {
         String name = layer.getName();
-        if (name.endsWith("Layer"))
+        if (name.endsWith("Layer")) {
+          if (null != node)
+            node.freeRef();
+          if (null != layer)
+            layer.freeRef();
           return name.substring(0, name.length() - 5);
-        else
+        } else {
+          if (null != node)
+            node.freeRef();
+          if (null != layer)
+            layer.freeRef();
           return name;
+        }
       } else {
-        return "Input " + node.getNetwork().inputHandles.indexOf(node.getId());
+        DAGNetwork temp_13_0023 = node.getNetwork();
+        String temp_13_0004 = "Input " + temp_13_0023.inputHandles.indexOf(node.getId());
+        if (null != temp_13_0023)
+          temp_13_0023.freeRef();
+        if (null != node)
+          node.freeRef();
+        if (null != layer)
+          layer.freeRef();
+        return temp_13_0004;
       }
     }));
     log.out("\n" + log.png(graphviz.height(400).width(600).render(Format.PNG).toImage(), "Configuration Graph") + "\n");
@@ -355,28 +434,59 @@ class TestUtil {
 
   public static Object toGraph(@Nonnull final DAGNetwork network, Function<DAGNode, String> fn) {
     final RefList<DAGNode> nodes = network.getNodes();
-    final RefMap<UUID, MutableNode> graphNodes = nodes.stream()
-        .collect(RefCollectors.toMap(node -> node.getId(), node -> {
-          String name = fn.apply(node);
-          return Factory.mutNode(Label.html(name + "<!-- " + node.getId().toString() + " -->"));
-        }));
+    network.freeRef();
+    final RefMap<UUID, MutableNode> graphNodes = nodes.stream().collect(RefCollectors.toMap(node -> {
+      UUID temp_13_0005 = node.getId();
+      if (null != node)
+        node.freeRef();
+      return temp_13_0005;
+    }, node -> {
+      String name = fn.apply(node);
+      MutableNode temp_13_0006 = Factory
+          .mutNode(Label.html(name + "<!-- " + node.getId().toString() + " -->"));
+      if (null != node)
+        node.freeRef();
+      return temp_13_0006;
+    }));
     final RefStream<UUID[]> stream = nodes.stream().flatMap(to -> {
-      return RefArrays.stream(to.getInputs()).map(from -> {
-        return new UUID[]{from.getId(), to.getId()};
-      });
+      RefStream<UUID[]> temp_13_0007 = RefArrays.stream(to.getInputs())
+          .map(RefUtil.wrapInterface(
+              (Function<? super DAGNode, ? extends UUID[]>) from -> {
+                UUID[] temp_13_0008 = new UUID[]{from.getId(), to.getId()};
+                if (null != from)
+                  from.freeRef();
+                return temp_13_0008;
+              }, to == null ? null : to.addRef()));
+      if (null != to)
+        to.freeRef();
+      return temp_13_0007;
     });
     final RefMap<UUID, RefList<UUID>> idMap = stream
-        .collect(RefCollectors.groupingBy(x -> x[0],
-            RefCollectors.mapping(x -> x[1],
-                RefCollectors.toList())));
-    nodes.forEach(to -> {
-      graphNodes.get(to.getId()).addLink(
-          idMap.getOrDefault(to.getId(), RefArrays.asList()).stream().map(from -> {
-            return Link.to(graphNodes.get(from));
-          }).<LinkTarget>toArray(i -> new LinkTarget[i]));
-    });
-    final LinkSource[] nodeArray = graphNodes.values().stream().map(x -> (LinkSource) x)
-        .toArray(i -> new LinkSource[i]);
+        .collect(RefCollectors.groupingBy(x -> x[0], RefCollectors.mapping(x -> x[1], RefCollectors.toList())));
+    nodes.forEach(RefUtil
+        .wrapInterface((Consumer<? super DAGNode>) to -> {
+          RefList<UUID> temp_13_0024 = idMap.getOrDefault(to.getId(),
+              RefArrays.asList());
+          graphNodes.get(to.getId()).addLink(temp_13_0024.stream().map(RefUtil.wrapInterface(
+              (Function<? super UUID, ? extends Link>) from -> {
+                return Link.to(graphNodes.get(from));
+              }, graphNodes == null ? null : graphNodes.addRef())).<LinkTarget>toArray(i -> new LinkTarget[i]));
+          if (null != temp_13_0024)
+            temp_13_0024.freeRef();
+          if (null != to)
+            to.freeRef();
+        }, graphNodes == null ? null : graphNodes.addRef(), idMap == null ? null : idMap.addRef()));
+    if (null != idMap)
+      idMap.freeRef();
+    if (null != nodes)
+      nodes.freeRef();
+    RefCollection<MutableNode> temp_13_0025 = graphNodes
+        .values();
+    final LinkSource[] nodeArray = temp_13_0025.stream().map(x -> (LinkSource) x).toArray(i -> new LinkSource[i]);
+    if (null != temp_13_0025)
+      temp_13_0025.freeRef();
+    if (null != graphNodes)
+      graphNodes.freeRef();
     return Factory.graph().with(nodeArray).graphAttr().with(RankDir.TOP_TO_BOTTOM).directed();
   }
 
@@ -390,11 +500,14 @@ class TestUtil {
       final Class<? extends Layer> layerClass = layer.getClass();
       name = layerClass.getSimpleName() + "\n" + layer.getId();
     }
+    if (null != node)
+      node.freeRef();
+    if (null != layer)
+      layer.freeRef();
     return name;
   }
 
-  public static RefIntStream shuffle(
-      @Nonnull RefIntStream stream) {
+  public static RefIntStream shuffle(@Nonnull RefIntStream stream) {
     // http://primes.utm.edu/lists/small/10000.txt
     long coprimeA = 41387;
     long coprimeB = 9967;
@@ -429,24 +542,23 @@ class TestUtil {
   }
 
   @Nonnull
-  public static <K, V> RefMap<K, V> buildMap(
-      RefConsumer<RefMap<K, V>> configure) {
+  public static <K, V> RefMap<K, V> buildMap(RefConsumer<RefMap<K, V>> configure) {
     RefMap<K, V> map = new RefHashMap<>();
-    configure.accept(map);
+    configure.accept(map == null ? null : map.addRef());
     return map;
   }
 
   @Nonnull
-  public static Supplier<RefDoubleStream> geometricStream(final double start,
-                                                          final double end, final int steps) {
+  public static Supplier<RefDoubleStream> geometricStream(final double start, final double end, final int steps) {
     double step = Math.pow(end / start, 1.0 / (steps - 1));
     return () -> RefDoubleStream.iterate(start, x -> x * step).limit(steps);
   }
 
-  public static <T> RefList<T> shuffle(
-      final RefList<T> list) {
-    RefArrayList<T> copy = new RefArrayList<>(list);
-    RefCollections.shuffle(copy);
+  public static <T> RefList<T> shuffle(final RefList<T> list) {
+    RefArrayList<T> copy = new RefArrayList<>(list == null ? null : list.addRef());
+    if (null != list)
+      list.freeRef();
+    RefCollections.shuffle(copy == null ? null : copy.addRef());
     return copy;
   }
 
@@ -454,7 +566,10 @@ class TestUtil {
     if (null != httpd) {
       httpd.addGET("threads.json", "text/json", out -> {
         try {
-          JsonUtil.getMapper().writer().writeValue(out, getStackInfo());
+          RefMap<String, RefList<String>> temp_13_0026 = getStackInfo();
+          JsonUtil.getMapper().writer().writeValue(out, temp_13_0026);
+          if (null != temp_13_0026)
+            temp_13_0026.freeRef();
           //JsonUtil.MAPPER.writer().writeValue(out, new HashMap<>());
           out.close();
         } catch (IOException e) {
@@ -466,30 +581,50 @@ class TestUtil {
 
   @NotNull
   public static Tensor sum(RefCollection<Tensor> tensorStream) {
-    return tensorStream.stream().reduce((a, b) -> {
-      return a.addAndFree(b);
+    Tensor temp_13_0012 = tensorStream.stream().reduce((a, b) -> {
+      Tensor temp_13_0009 = a.addAndFree(b == null ? null : b.addRef());
+      if (null != b)
+        b.freeRef();
+      if (null != a)
+        a.freeRef();
+      return temp_13_0009;
     }).get();
+    if (null != tensorStream)
+      tensorStream.freeRef();
+    return temp_13_0012;
   }
 
   @NotNull
   public static Tensor sum(RefStream<Tensor> tensorStream) {
     return tensorStream.reduce((a, b) -> {
-      return a.addAndFree(b);
+      Tensor temp_13_0010 = a.addAndFree(b == null ? null : b.addRef());
+      if (null != b)
+        b.freeRef();
+      if (null != a)
+        a.freeRef();
+      return temp_13_0010;
     }).get();
   }
 
   @NotNull
   public static Tensor avg(RefCollection<? extends Tensor> values) {
-    return sum(values.stream().map(x -> {
+    Tensor temp_13_0027 = sum(values.stream().map(x -> {
       return x;
-    })).scaleInPlace(1.0 / values.size());
+    }));
+    Tensor temp_13_0013 = temp_13_0027.scaleInPlace(1.0 / values.size());
+    if (null != temp_13_0027)
+      temp_13_0027.freeRef();
+    if (null != values)
+      values.freeRef();
+    return temp_13_0013;
   }
 
   public static CharSequence render(@Nonnull final NotebookOutput log, @Nonnull final Tensor tensor,
                                     final boolean normalize) {
-    return ImageUtil.renderToImages(tensor, normalize).map(image -> {
+    String temp_13_0014 = ImageUtil.renderToImages(tensor == null ? null : tensor, normalize).map(image -> {
       return log.png(image, "");
     }).reduce((a, b) -> a + b).get();
+    return temp_13_0014;
   }
 
   public static CharSequence animatedGif(@Nonnull final NotebookOutput log, final int loopTimeMs,

@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.test.data;
 import com.simiacryptus.lang.SupplierWeakCache;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.ref.lang.RefAware;
+import com.simiacryptus.ref.lang.RefUtil;
 import com.simiacryptus.ref.wrappers.RefStream;
 import com.simiacryptus.util.test.LabeledObject;
 
@@ -55,10 +56,17 @@ class MNistDatasetDemo extends ImageCategoryDatasetDemo {
   }
 
   @Override
-  public RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(
-      @Nonnull NotebookOutput log) {
+  public RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(@Nonnull NotebookOutput log) {
     return log.eval(() -> {
-      return MNIST.trainingDataStream().map(x -> x.map(y -> new SupplierWeakCache<>(() -> y.toImage())));
+      return MNIST.trainingDataStream().map(x -> x.map(y -> {
+        SupplierWeakCache<BufferedImage> temp_14_0001 = new SupplierWeakCache<>(
+            RefUtil.wrapInterface(
+                () -> y.toImage(),
+                y == null ? null : y.addRef()));
+        if (null != y)
+          y.freeRef();
+        return temp_14_0001;
+      }));
     });
   }
 

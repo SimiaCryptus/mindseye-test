@@ -19,10 +19,13 @@
 
 package com.simiacryptus.mindseye.test.integration;
 
+import com.simiacryptus.lang.UncheckedSupplier;
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
 import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.Result;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.layers.StochasticComponent;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
@@ -34,6 +37,8 @@ import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.notebook.TableOutput;
 import com.simiacryptus.ref.lang.RefAware;
+import com.simiacryptus.ref.lang.RefUtil;
+import com.simiacryptus.ref.lang.ReferenceCounting;
 import com.simiacryptus.util.test.LabeledObject;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
@@ -41,11 +46,13 @@ import guru.nidi.graphviz.model.Graph;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 @SuppressWarnings("FieldCanBeLocal")
 public abstract @RefAware
@@ -112,29 +119,35 @@ class AutoencodingProblem implements Problem {
     @Nonnull final DAGNetwork revNetwork = revFactory.vectorToImage(log, features);
 
     @Nonnull final PipelineNetwork echoNetwork = new PipelineNetwork(1);
-    echoNetwork.add(fwdNetwork);
-    echoNetwork.add(revNetwork);
+    RefUtil.freeRef(echoNetwork.add(fwdNetwork == null ? null : fwdNetwork.addRef()));
+    RefUtil.freeRef(echoNetwork.add(revNetwork == null ? null : revNetwork.addRef()));
 
     @Nonnull final PipelineNetwork supervisedNetwork = new PipelineNetwork(1);
-    supervisedNetwork.add(fwdNetwork);
+    RefUtil.freeRef(supervisedNetwork.add(fwdNetwork == null ? null : fwdNetwork.addRef()));
     @Nonnull final StochasticComponent dropoutNoiseLayer = dropout(dropout);
-    supervisedNetwork.add(dropoutNoiseLayer);
-    supervisedNetwork.add(revNetwork);
-    supervisedNetwork.add(lossLayer(), supervisedNetwork.getHead(), supervisedNetwork.getInput(0));
+    RefUtil
+        .freeRef(supervisedNetwork.add(dropoutNoiseLayer == null ? null : dropoutNoiseLayer));
+    RefUtil.freeRef(supervisedNetwork.add(revNetwork == null ? null : revNetwork.addRef()));
+    RefUtil
+        .freeRef(supervisedNetwork.add(lossLayer(), supervisedNetwork.getHead(), supervisedNetwork.getInput(0)));
 
     log.h3("Network Diagrams");
-    log.eval(() -> {
-      return Graphviz.fromGraph((Graph) TestUtil.toGraph(fwdNetwork)).height(400).width(600).render(Format.PNG)
-          .toImage();
-    });
-    log.eval(() -> {
-      return Graphviz.fromGraph((Graph) TestUtil.toGraph(revNetwork)).height(400).width(600).render(Format.PNG)
-          .toImage();
-    });
-    log.eval(() -> {
-      return Graphviz.fromGraph((Graph) TestUtil.toGraph(supervisedNetwork)).height(400).width(600).render(Format.PNG)
-          .toImage();
-    });
+    log.eval(RefUtil
+        .wrapInterface((UncheckedSupplier<BufferedImage>) () -> {
+          return Graphviz.fromGraph((Graph) TestUtil.toGraph(fwdNetwork == null ? null : fwdNetwork.addRef()))
+              .height(400).width(600).render(Format.PNG).toImage();
+        }, fwdNetwork == null ? null : fwdNetwork.addRef()));
+    log.eval(RefUtil
+        .wrapInterface((UncheckedSupplier<BufferedImage>) () -> {
+          return Graphviz.fromGraph((Graph) TestUtil.toGraph(revNetwork == null ? null : revNetwork.addRef()))
+              .height(400).width(600).render(Format.PNG).toImage();
+        }, revNetwork == null ? null : revNetwork.addRef()));
+    log.eval(RefUtil
+        .wrapInterface((UncheckedSupplier<BufferedImage>) () -> {
+          return Graphviz
+              .fromGraph((Graph) TestUtil.toGraph(supervisedNetwork == null ? null : supervisedNetwork.addRef()))
+              .height(400).width(600).render(Format.PNG).toImage();
+        }, supervisedNetwork == null ? null : supervisedNetwork.addRef()));
 
     @Nonnull final TrainingMonitor monitor = new TrainingMonitor() {
       @Nonnull
@@ -147,7 +160,9 @@ class AutoencodingProblem implements Problem {
 
       @Override
       public void onStepComplete(final Step currentPoint) {
-        inner.onStepComplete(currentPoint);
+        inner.onStepComplete(currentPoint == null ? null : currentPoint.addRef());
+        if (null != currentPoint)
+          currentPoint.freeRef();
       }
     };
 
@@ -157,13 +172,25 @@ class AutoencodingProblem implements Problem {
     //TestUtil.addMonitoring(supervisedNetwork, monitoringRoot);
 
     log.h3("Training");
-    TestUtil.instrumentPerformance(supervisedNetwork);
+    TestUtil.instrumentPerformance(supervisedNetwork == null ? null : supervisedNetwork.addRef());
     @Nonnull final ValidatingTrainer trainer = optimizer.train(log,
-        new SampledArrayTrainable(trainingData, supervisedNetwork, trainingData.length / 2, batchSize),
-        new ArrayTrainable(trainingData, supervisedNetwork, batchSize), monitor);
-    log.run(() -> {
-      trainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES).setMaxIterations(10000).run();
-    });
+        new SampledArrayTrainable(Tensor.addRefs(trainingData),
+            supervisedNetwork == null ? null : supervisedNetwork.addRef(), trainingData.length / 2, batchSize),
+        new ArrayTrainable(Tensor.addRefs(trainingData),
+            supervisedNetwork == null ? null : supervisedNetwork.addRef(), batchSize),
+        monitor);
+    if (null != trainingData)
+      ReferenceCounting.freeRefs(trainingData);
+    log.run(RefUtil.wrapInterface(() -> {
+      ValidatingTrainer temp_21_0003 = trainer.setTimeout(timeoutMinutes,
+          TimeUnit.MINUTES);
+      ValidatingTrainer temp_21_0004 = temp_21_0003.setMaxIterations(10000);
+      temp_21_0004.run();
+      if (null != temp_21_0004)
+        temp_21_0004.freeRef();
+      if (null != temp_21_0003)
+        temp_21_0003.freeRef();
+    }, trainer == null ? null : trainer));
     if (!history.isEmpty()) {
       log.eval(() -> {
         return TestUtil.plot(history);
@@ -172,13 +199,14 @@ class AutoencodingProblem implements Problem {
         return TestUtil.plotTime(history);
       });
     }
-    TestUtil.extractPerformance(log, supervisedNetwork);
+    TestUtil.extractPerformance(log, supervisedNetwork == null ? null : supervisedNetwork);
 
     {
       @Nonnull final String modelName = "encoder_model" + AutoencodingProblem.modelNo++ + ".json";
       log.p("Saved model as " + log.file(fwdNetwork.getJson().toString(), modelName, modelName));
     }
 
+    fwdNetwork.freeRef();
     @Nonnull final String modelName = "decoder_model" + AutoencodingProblem.modelNo++ + ".json";
     log.p("Saved model as " + log.file(revNetwork.getJson().toString(), modelName, modelName));
 
@@ -190,20 +218,40 @@ class AutoencodingProblem implements Problem {
     log.h3("Validation");
 
     log.p("Here are some re-encoded examples:");
-    log.eval(() -> {
-      @Nonnull final TableOutput table = new TableOutput();
-      data.validationData().map(labeledObject -> {
-        return toRow(log, labeledObject, echoNetwork.eval(labeledObject.data).getData().get(0).getData());
-      }).filter(x -> null != x).limit(10).forEach(table::putRow);
-      return table;
-    });
+    log.eval(RefUtil
+        .wrapInterface((UncheckedSupplier<TableOutput>) () -> {
+          @Nonnull final TableOutput table = new TableOutput();
+          data.validationData().map(RefUtil.wrapInterface(
+              (Function<? super LabeledObject<Tensor>, ? extends LinkedHashMap<CharSequence, Object>>) labeledObject -> {
+                Result temp_21_0006 = echoNetwork.eval(labeledObject.data.addRef());
+                LinkedHashMap<CharSequence, Object> temp_21_0005 = toRow(log,
+                    labeledObject, temp_21_0006.getData().get(0).getData());
+                if (null != temp_21_0006)
+                  temp_21_0006.freeRef();
+                return temp_21_0005;
+              }, echoNetwork == null ? null : echoNetwork.addRef())).filter(x -> null != x).limit(10)
+              .forEach(table::putRow);
+          return table;
+        }, echoNetwork == null ? null : echoNetwork));
 
     log.p("Some rendered unit vectors:");
     for (int featureNumber = 0; featureNumber < features; featureNumber++) {
-      @Nonnull final Tensor input = new Tensor(features).set(featureNumber, 1);
-      @Nullable final Tensor tensor = revNetwork.eval(input).getData().get(0);
+      Tensor temp_21_0001 = new Tensor(features);
+      @Nonnull final Tensor input = temp_21_0001.set(featureNumber, 1);
+      if (null != temp_21_0001)
+        temp_21_0001.freeRef();
+      Result temp_21_0007 = revNetwork.eval(input == null ? null : input);
+      TensorList temp_21_0008 = temp_21_0007.getData();
+      @Nullable final Tensor tensor = temp_21_0008.get(0);
+      if (null != temp_21_0008)
+        temp_21_0008.freeRef();
+      if (null != temp_21_0007)
+        temp_21_0007.freeRef();
       log.out(log.png(tensor.toImage(), ""));
+      if (null != tensor)
+        tensor.freeRef();
     }
+    revNetwork.freeRef();
     return this;
   }
 
@@ -212,8 +260,11 @@ class AutoencodingProblem implements Problem {
                                                    @Nonnull final LabeledObject<Tensor> labeledObject, final double[] predictionSignal) {
     @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();
     row.put("Image", log.png(labeledObject.data.toImage(), labeledObject.label));
-    row.put("Echo",
-        log.png(new Tensor(predictionSignal, labeledObject.data.getDimensions()).toImage(), labeledObject.label));
+    Tensor temp_21_0002 = new Tensor(predictionSignal,
+        labeledObject.data.getDimensions());
+    row.put("Echo", log.png(temp_21_0002.toImage(), labeledObject.label));
+    if (null != temp_21_0002)
+      temp_21_0002.freeRef();
     return row;
   }
 

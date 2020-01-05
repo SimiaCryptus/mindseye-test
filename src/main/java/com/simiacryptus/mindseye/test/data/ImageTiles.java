@@ -21,7 +21,9 @@ package com.simiacryptus.mindseye.test.data;
 
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.ref.lang.RefAware;
-import com.simiacryptus.ref.wrappers.*;
+import com.simiacryptus.ref.wrappers.RefArrayList;
+import com.simiacryptus.ref.wrappers.RefCollectors;
+import com.simiacryptus.ref.wrappers.RefList;
 import com.simiacryptus.util.io.DataLoader;
 
 import javax.annotation.Nonnull;
@@ -31,6 +33,10 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.stream.Stream;
 
 public @RefAware
 class ImageTiles {
@@ -50,10 +56,11 @@ class ImageTiles {
     return tensor;
   }
 
-  public static RefStream<File> readFiles(@Nonnull final File dir) {
-    if (dir.isFile())
-      return RefArrays.asList(dir).stream();
-    return RefArrays.stream(dir.listFiles()).flatMap(ImageTiles::readFiles);
+  public static Stream<File> readFiles(@Nonnull final File dir) {
+    if (dir.isFile()) {
+      return Arrays.asList(dir).stream();
+    }
+    return Arrays.stream(dir.listFiles()).flatMap(ImageTiles::readFiles);
   }
 
   public static Tensor[] tilesRgb(@Nonnull final BufferedImage image, final int width, final int height) {
@@ -72,29 +79,32 @@ class ImageTiles {
       for (int x = 0; x < image.getWidth(); x += xStep) {
         try {
           @Nonnull final Tensor tensor = ImageTiles.read(image, width, height, y, x);
-          tensors.add(tensor);
+          tensors.add(tensor == null ? null : tensor);
         } catch (@Nonnull final ArrayIndexOutOfBoundsException e) {
           // Ignore
         }
       }
     }
-    return tensors.toArray(new Tensor[]{});
+    Tensor[] temp_17_0001 = tensors.toArray(new Tensor[]{});
+    tensors.freeRef();
+    return temp_17_0001;
   }
 
   @Nonnull
-  public static RefList<Tensor> toTiles(@Nullable final BufferedImage image,
-                                        final int tileWidth, final int tileHeight, final int minSpacingWidth, final int minSpacingHeight,
-                                        final int maxTileCols, final int maxTileRows) {
+  public static RefList<Tensor> toTiles(@Nullable final BufferedImage image, final int tileWidth, final int tileHeight,
+                                        final int minSpacingWidth, final int minSpacingHeight, final int maxTileCols, final int maxTileRows) {
     @Nonnull final RefList<Tensor> queue = new RefArrayList<>();
     if (null != image) {
       final int xMax = image.getWidth() - tileWidth;
       final int yMax = image.getHeight() - tileHeight;
       final int cols = Math.min(maxTileCols, xMax / minSpacingWidth);
       final int rows = Math.min(maxTileRows, yMax / minSpacingHeight);
-      if (cols < 1)
+      if (cols < 1) {
         return queue;
-      if (rows < 1)
+      }
+      if (rows < 1) {
         return queue;
+      }
       final int xStep = xMax / cols;
       final int yStep = yMax / rows;
       for (int x = 0; x < xMax; x += xStep) {
@@ -107,9 +117,9 @@ class ImageTiles {
   }
 
   @Nonnull
-  public static RefList<Tensor> toTiles(@Nonnull final File file, final int tileWidth,
-                                        final int tileHeight, final int minSpacingWidth, final int minSpacingHeight, final int maxTileCols,
-                                        final int maxTileRows) throws IOException {
+  public static RefList<Tensor> toTiles(@Nonnull final File file, final int tileWidth, final int tileHeight,
+                                        final int minSpacingWidth, final int minSpacingHeight, final int maxTileCols, final int maxTileRows)
+      throws IOException {
     return ImageTiles.toTiles(ImageIO.read(file), tileWidth, tileHeight, minSpacingWidth, minSpacingHeight, maxTileCols,
         maxTileRows);
   }
@@ -136,11 +146,29 @@ class ImageTiles {
       this.maxTileCols = maxTileCols;
     }
 
+    public static @SuppressWarnings("unused")
+    ImageTensorLoader[] addRefs(ImageTensorLoader[] array) {
+      if (array == null)
+        return null;
+      return Arrays.stream(array).filter((x) -> x != null).map(ImageTensorLoader::addRef)
+          .toArray((x) -> new ImageTensorLoader[x]);
+    }
+
+    public @SuppressWarnings("unused")
+    void _free() {
+    }
+
+    public @Override
+    @SuppressWarnings("unused")
+    ImageTensorLoader addRef() {
+      return (ImageTensorLoader) super.addRef();
+    }
+
     @Override
     protected void read(@Nonnull final RefList<Tensor> queue) {
-      @Nonnull final RefArrayList<File> files = new RefArrayList<>(
+      @Nonnull final ArrayList<File> files = new ArrayList<>(
           ImageTiles.readFiles(parentDirectiory).collect(RefCollectors.toList()));
-      RefCollections.shuffle(files);
+      Collections.shuffle(files);
       for (@Nonnull final File f : files) {
         if (Thread.interrupted()) {
           break;
@@ -152,6 +180,7 @@ class ImageTiles {
           throw new RuntimeException(e);
         }
       }
+      queue.freeRef();
     }
   }
 }
