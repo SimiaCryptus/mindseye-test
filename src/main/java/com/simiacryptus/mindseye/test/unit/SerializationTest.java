@@ -26,6 +26,9 @@ import com.simiacryptus.mindseye.lang.SerialPrecision;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.notebook.NotebookOutput;
+import com.simiacryptus.ref.lang.RefAware;
+import com.simiacryptus.ref.wrappers.RefArrays;
+import com.simiacryptus.ref.wrappers.RefHashMap;
 import com.simiacryptus.util.Util;
 import org.apache.commons.io.IOUtils;
 
@@ -35,18 +38,19 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
-public @com.simiacryptus.ref.lang.RefAware
+public @RefAware
 class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
   @Nonnull
-  private final com.simiacryptus.ref.wrappers.RefHashMap<SerialPrecision, Layer> models = new com.simiacryptus.ref.wrappers.RefHashMap<>();
+  private final RefHashMap<SerialPrecision, Layer> models = new RefHashMap<>();
   private boolean persist = false;
 
   @Nonnull
-  public com.simiacryptus.ref.wrappers.RefHashMap<SerialPrecision, Layer> getModels() {
+  public RefHashMap<SerialPrecision, Layer> getModels() {
     return models;
   }
 
@@ -82,7 +86,7 @@ class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
   SerializationTest[] addRefs(SerializationTest[] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(SerializationTest::addRef)
+    return Arrays.stream(array).filter((x) -> x != null).map(SerializationTest::addRef)
         .toArray((x) -> new SerializationTest[x]);
   }
 
@@ -90,7 +94,7 @@ class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
   SerializationTest[][] addRefs(SerializationTest[][] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(SerializationTest::addRefs)
+    return Arrays.stream(array).filter((x) -> x != null).map(SerializationTest::addRefs)
         .toArray((x) -> new SerializationTest[x][]);
   }
 
@@ -130,7 +134,7 @@ class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
     @Nonnull
     Object outSync = new Object();
     if (prettyPrint.isEmpty() || prettyPrint.length() > 1024 * 64)
-      com.simiacryptus.ref.wrappers.RefArrays.stream(SerialPrecision.values()).parallel().forEach(precision -> {
+      RefArrays.stream(SerialPrecision.values()).parallel().forEach(precision -> {
         try {
           @Nonnull
           File file = new File(log.getResourceDir(), log.getName() + "_" + precision.name() + ".zip");

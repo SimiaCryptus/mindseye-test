@@ -21,12 +21,15 @@ package com.simiacryptus.mindseye.test.data;
 
 import com.simiacryptus.lang.SupplierWeakCache;
 import com.simiacryptus.notebook.NotebookOutput;
+import com.simiacryptus.ref.lang.RefAware;
+import com.simiacryptus.ref.wrappers.RefStream;
 import com.simiacryptus.util.test.LabeledObject;
 
 import javax.annotation.Nonnull;
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
 
-public @com.simiacryptus.ref.lang.RefAware
+public @RefAware
 class MNistDatasetDemo extends ImageCategoryDatasetDemo {
 
   @Nonnull
@@ -39,7 +42,7 @@ class MNistDatasetDemo extends ImageCategoryDatasetDemo {
   MNistDatasetDemo[] addRefs(MNistDatasetDemo[] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(MNistDatasetDemo::addRef)
+    return Arrays.stream(array).filter((x) -> x != null).map(MNistDatasetDemo::addRef)
         .toArray((x) -> new MNistDatasetDemo[x]);
   }
 
@@ -47,12 +50,12 @@ class MNistDatasetDemo extends ImageCategoryDatasetDemo {
   MNistDatasetDemo[][] addRefs(MNistDatasetDemo[][] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(MNistDatasetDemo::addRefs)
+    return Arrays.stream(array).filter((x) -> x != null).map(MNistDatasetDemo::addRefs)
         .toArray((x) -> new MNistDatasetDemo[x][]);
   }
 
   @Override
-  public com.simiacryptus.ref.wrappers.RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(
+  public RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(
       @Nonnull NotebookOutput log) {
     return log.eval(() -> {
       return MNIST.trainingDataStream().map(x -> x.map(y -> new SupplierWeakCache<>(() -> y.toImage())));

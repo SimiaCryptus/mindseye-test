@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.ref.lang.RecycleBin;
+import com.simiacryptus.ref.lang.RefAware;
+import com.simiacryptus.ref.wrappers.*;
 import com.simiacryptus.util.data.DoubleStatistics;
 import org.apache.commons.math3.linear.BlockRealMatrix;
 import org.apache.commons.math3.linear.EigenDecomposition;
@@ -29,15 +31,15 @@ import org.apache.commons.math3.linear.RealMatrix;
 import javax.annotation.Nonnull;
 import java.util.function.Supplier;
 
-public @com.simiacryptus.ref.lang.RefAware
+public @RefAware
 class PCAUtil {
   @Nonnull
   public static RealMatrix getCovariance(
-      @Nonnull final Supplier<com.simiacryptus.ref.wrappers.RefStream<double[]>> stream) {
+      @Nonnull final Supplier<RefStream<double[]>> stream) {
     final int dimension = stream.get().findAny().get().length;
-    final com.simiacryptus.ref.wrappers.RefList<DoubleStatistics> statList = com.simiacryptus.ref.wrappers.RefIntStream
+    final RefList<DoubleStatistics> statList = RefIntStream
         .range(0, dimension * dimension).mapToObj(i -> new DoubleStatistics())
-        .collect(com.simiacryptus.ref.wrappers.RefCollectors.toList());
+        .collect(RefCollectors.toList());
     stream.get().forEach(array -> {
       for (int i = 0; i < dimension; i++) {
         for (int j = 0; j <= i; j++) {
@@ -60,10 +62,10 @@ class PCAUtil {
   public static Tensor[] pcaFeatures(final RealMatrix covariance, final int components, final int[] featureDimensions,
                                      final double power) {
     @Nonnull final EigenDecomposition decomposition = new EigenDecomposition(covariance);
-    final int[] orderedVectors = com.simiacryptus.ref.wrappers.RefIntStream.range(0, components).mapToObj(x -> x)
-        .sorted(com.simiacryptus.ref.wrappers.RefComparator.comparing(x -> -decomposition.getRealEigenvalue(x)))
+    final int[] orderedVectors = RefIntStream.range(0, components).mapToObj(x -> x)
+        .sorted(RefComparator.comparing(x -> -decomposition.getRealEigenvalue(x)))
         .mapToInt(x -> x).toArray();
-    return com.simiacryptus.ref.wrappers.RefIntStream.range(0, orderedVectors.length).mapToObj(i -> {
+    return RefIntStream.range(0, orderedVectors.length).mapToObj(i -> {
       @Nonnull final Tensor src = new Tensor(decomposition.getEigenvector(orderedVectors[i]).toArray(), featureDimensions)
           .copy();
       return src.scale(1.0 / src.rms())

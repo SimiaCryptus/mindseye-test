@@ -35,6 +35,8 @@ import com.simiacryptus.mindseye.test.ProblemRun;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.notebook.NotebookOutput;
+import com.simiacryptus.ref.lang.RefAware;
+import com.simiacryptus.ref.wrappers.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import smile.plot.PlotCanvas;
@@ -43,13 +45,14 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.*;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 
-public abstract @com.simiacryptus.ref.lang.RefAware
+public abstract @RefAware
 class TrainingTester
     extends ComponentTestBase<TrainingTester.ComponentResult> {
   static final Logger logger = LoggerFactory.getLogger(TrainingTester.class);
@@ -101,7 +104,7 @@ class TrainingTester
     return this;
   }
 
-  public static TrainingMonitor getMonitor(@Nonnull final com.simiacryptus.ref.wrappers.RefList<StepRecord> history) {
+  public static TrainingMonitor getMonitor(@Nonnull final RefList<StepRecord> history) {
     return new TrainingMonitor() {
       @Override
       public void log(final String msg) {
@@ -118,22 +121,22 @@ class TrainingTester
   public static Tensor[][] append(@Nonnull Tensor[][] left, Tensor[] right) {
     if (left.length != right.length)
       throw new IllegalArgumentException(left.length + "!=" + right.length);
-    return com.simiacryptus.ref.wrappers.RefIntStream.range(0, left.length)
+    return RefIntStream.range(0, left.length)
         .mapToObj(
-            i -> com.simiacryptus.ref.wrappers.RefStream.concat(com.simiacryptus.ref.wrappers.RefArrays.stream(left[i]),
-                com.simiacryptus.ref.wrappers.RefStream.of(right[i])).toArray(j -> new Tensor[j]))
+            i -> RefStream.concat(RefArrays.stream(left[i]),
+                RefStream.of(right[i])).toArray(j -> new Tensor[j]))
         .toArray(j -> new Tensor[j][]);
   }
 
   public static Tensor[][] copy(@Nonnull Tensor[][] input_gd) {
-    return com.simiacryptus.ref.wrappers.RefArrays.stream(input_gd)
-        .map(t -> com.simiacryptus.ref.wrappers.RefArrays.stream(t).map(v -> v.copy()).toArray(i -> new Tensor[i]))
+    return RefArrays.stream(input_gd)
+        .map(t -> RefArrays.stream(t).map(v -> v.copy()).toArray(i -> new Tensor[i]))
         .toArray(i -> new Tensor[i][]);
   }
 
   public static Tensor[][] pop(@Nonnull Tensor[][] data) {
-    return com.simiacryptus.ref.wrappers.RefArrays.stream(data)
-        .map(t -> com.simiacryptus.ref.wrappers.RefArrays.stream(t).limit(t.length - 1).toArray(i -> new Tensor[i]))
+    return RefArrays.stream(data)
+        .map(t -> RefArrays.stream(t).limit(t.length - 1).toArray(i -> new Tensor[i]))
         .toArray(i -> new Tensor[i][]);
   }
 
@@ -141,7 +144,7 @@ class TrainingTester
   TrainingTester[] addRefs(TrainingTester[] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(TrainingTester::addRef)
+    return Arrays.stream(array).filter((x) -> x != null).map(TrainingTester::addRef)
         .toArray((x) -> new TrainingTester[x]);
   }
 
@@ -149,12 +152,12 @@ class TrainingTester
   TrainingTester[][] addRefs(TrainingTester[][] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(TrainingTester::addRefs)
+    return Arrays.stream(array).filter((x) -> x != null).map(TrainingTester::addRefs)
         .toArray((x) -> new TrainingTester[x][]);
   }
 
   @Nonnull
-  public ResultType getResultType(@Nonnull final com.simiacryptus.ref.wrappers.RefList<StepRecord> lbfgsmin) {
+  public ResultType getResultType(@Nonnull final RefList<StepRecord> lbfgsmin) {
     return Math.abs(min(lbfgsmin)) < 1e-9 ? ResultType.Converged : ResultType.NonConverged;
   }
 
@@ -189,15 +192,15 @@ class TrainingTester
     return jPanel;
   }
 
-  public boolean isZero(@Nonnull final com.simiacryptus.ref.wrappers.RefDoubleStream stream) {
+  public boolean isZero(@Nonnull final RefDoubleStream stream) {
     return isZero(stream, 1e-14);
   }
 
-  public boolean isZero(@Nonnull final com.simiacryptus.ref.wrappers.RefDoubleStream stream, double zeroTol) {
+  public boolean isZero(@Nonnull final RefDoubleStream stream, double zeroTol) {
     final double[] array = stream.toArray();
     if (array.length == 0)
       return false;
-    return com.simiacryptus.ref.wrappers.RefArrays.stream(array).map(x -> Math.abs(x)).sum() < zeroTol;
+    return RefArrays.stream(array).map(x -> Math.abs(x)).sum() < zeroTol;
   }
 
   @Override
@@ -206,15 +209,15 @@ class TrainingTester
     printHeader(log);
     final boolean testModel = !component.state().isEmpty();
     if (testModel && isZero(
-        component.state().stream().flatMapToDouble(x1 -> com.simiacryptus.ref.wrappers.RefArrays.stream(x1)))) {
+        component.state().stream().flatMapToDouble(x1 -> RefArrays.stream(x1)))) {
       throw new AssertionError("Weights are all zero?");
     }
-    if (isZero(com.simiacryptus.ref.wrappers.RefArrays.stream(inputPrototype)
-        .flatMapToDouble(x -> com.simiacryptus.ref.wrappers.RefArrays.stream(x.getData())))) {
+    if (isZero(RefArrays.stream(inputPrototype)
+        .flatMapToDouble(x -> RefArrays.stream(x.getData())))) {
       throw new AssertionError("Inputs are all zero?");
     }
     @Nonnull final Random random = new Random();
-    final boolean testInput = com.simiacryptus.ref.wrappers.RefArrays.stream(inputPrototype)
+    final boolean testInput = RefArrays.stream(inputPrototype)
         .anyMatch(x -> x.length() > 0);
     @Nullable
     TestResult inputLearning;
@@ -265,13 +268,13 @@ class TrainingTester
     log.p(
         "In this apply, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
     log.eval(() -> {
-      return network_target.state().stream().map(com.simiacryptus.ref.wrappers.RefArrays::toString)
+      return network_target.state().stream().map(RefArrays::toString)
           .reduce((a, b) -> a + "\n" + b).orElse("");
     });
     log.p("We simultaneously regress this target input:");
     log.eval(() -> {
-      return com.simiacryptus.ref.wrappers.RefArrays.stream(input_target)
-          .flatMap(x -> com.simiacryptus.ref.wrappers.RefArrays.stream(x)).map(x -> x.prettyPrint())
+      return RefArrays.stream(input_target)
+          .flatMap(x -> RefArrays.stream(x)).map(x -> x.prettyPrint())
           .reduce((a, b) -> a + "\n" + b).orElse("");
     });
     log.p("Which produces the following output:");
@@ -279,7 +282,7 @@ class TrainingTester
     TensorList result = network_target.eval(inputs).getData();
     final Tensor[] output_target = result.stream().toArray(i -> new Tensor[i]);
     log.eval(() -> {
-      return com.simiacryptus.ref.wrappers.RefStream.of(output_target).map(x -> x.prettyPrint())
+      return RefStream.of(output_target).map(x -> x.prettyPrint())
           .reduce((a, b) -> a + "\n" + b).orElse("");
     });
     //if (output_target.length != inputPrototype.length) return null;
@@ -294,8 +297,8 @@ class TrainingTester
     final Tensor[][] input_target = shuffleCopy(random, inputPrototype);
     log.p("In this apply, we use a network to learn this target input, given it's pre-evaluated output:");
     log.eval(() -> {
-      return com.simiacryptus.ref.wrappers.RefArrays.stream(input_target)
-          .flatMap(x -> com.simiacryptus.ref.wrappers.RefArrays.stream(x)).map(x -> x.prettyPrint())
+      return RefArrays.stream(input_target)
+          .flatMap(x -> RefArrays.stream(x)).map(x -> x.prettyPrint())
           .reduce((a, b) -> a + "\n" + b).orElse("");
     });
     Result[] array = ConstantResult.batchResultArray(input_target);
@@ -324,7 +327,7 @@ class TrainingTester
     log.p(
         "In this apply, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
     log.eval(() -> {
-      return network_target.state().stream().map(com.simiacryptus.ref.wrappers.RefArrays::toString)
+      return network_target.state().stream().map(RefArrays::toString)
           .reduce((a, b) -> a + "\n" + b).orElse("");
     });
     Result[] array = ConstantResult.batchResultArray(input_target);
@@ -339,7 +342,7 @@ class TrainingTester
     return trainAll("Model Convergence", log, trainingInput, shuffle(random, component.copy()));
   }
 
-  public double min(@Nonnull com.simiacryptus.ref.wrappers.RefList<StepRecord> history) {
+  public double min(@Nonnull RefList<StepRecord> history) {
     return history.stream().mapToDouble(x -> x.fitness).min().orElse(Double.NaN);
   }
 
@@ -357,13 +360,13 @@ class TrainingTester
                              @Nonnull Layer layer, boolean... mask) {
     {
       log.h3("Gradient Descent");
-      final com.simiacryptus.ref.wrappers.RefList<StepRecord> gd = train(log, this::trainGD, layer.copy(),
+      final RefList<StepRecord> gd = train(log, this::trainGD, layer.copy(),
           copy(trainingInput), mask);
       log.h3("Conjugate Gradient Descent");
-      final com.simiacryptus.ref.wrappers.RefList<StepRecord> cjgd = train(log, this::trainCjGD, layer.copy(),
+      final RefList<StepRecord> cjgd = train(log, this::trainCjGD, layer.copy(),
           copy(trainingInput), mask);
       log.h3("Limited-Memory BFGS");
-      final com.simiacryptus.ref.wrappers.RefList<StepRecord> lbfgs = train(log, this::trainLBFGS, layer.copy(),
+      final RefList<StepRecord> lbfgs = train(log, this::trainLBFGS, layer.copy(),
           copy(trainingInput), mask);
       @Nonnull final ProblemRun[] runs = {new ProblemRun("GD", gd, Color.GRAY, ProblemRun.PlotType.Line),
           new ProblemRun("CjGD", cjgd, Color.CYAN, ProblemRun.PlotType.Line),
@@ -390,11 +393,11 @@ class TrainingTester
   }
 
   @Nonnull
-  public com.simiacryptus.ref.wrappers.RefList<StepRecord> trainCjGD(@Nonnull final NotebookOutput log,
-                                                                     final Trainable trainable) {
+  public RefList<StepRecord> trainCjGD(@Nonnull final NotebookOutput log,
+                                       final Trainable trainable) {
     log.p(
         "First, we use a conjugate gradient descent method, which converges the fastest for purely linear functions.");
-    @Nonnull final com.simiacryptus.ref.wrappers.RefList<StepRecord> history = new com.simiacryptus.ref.wrappers.RefArrayList<>();
+    @Nonnull final RefList<StepRecord> history = new RefArrayList<>();
     @Nonnull final TrainingMonitor monitor = TrainingTester.getMonitor(history);
     try {
       log.eval(() -> {
@@ -410,10 +413,10 @@ class TrainingTester
   }
 
   @Nonnull
-  public com.simiacryptus.ref.wrappers.RefList<StepRecord> trainGD(@Nonnull final NotebookOutput log,
-                                                                   final Trainable trainable) {
+  public RefList<StepRecord> trainGD(@Nonnull final NotebookOutput log,
+                                     final Trainable trainable) {
     log.p("First, we train using basic gradient descent method apply weak line search conditions.");
-    @Nonnull final com.simiacryptus.ref.wrappers.RefList<StepRecord> history = new com.simiacryptus.ref.wrappers.RefArrayList<>();
+    @Nonnull final RefList<StepRecord> history = new RefArrayList<>();
     @Nonnull final TrainingMonitor monitor = TrainingTester.getMonitor(history);
     try {
       log.eval(() -> {
@@ -429,11 +432,11 @@ class TrainingTester
   }
 
   @Nonnull
-  public com.simiacryptus.ref.wrappers.RefList<StepRecord> trainLBFGS(@Nonnull final NotebookOutput log,
-                                                                      final Trainable trainable) {
+  public RefList<StepRecord> trainLBFGS(@Nonnull final NotebookOutput log,
+                                        final Trainable trainable) {
     log.p(
         "Next, we apply the same optimization using L-BFGS, which is nearly ideal for purely second-order or quadratic functions.");
-    @Nonnull final com.simiacryptus.ref.wrappers.RefList<StepRecord> history = new com.simiacryptus.ref.wrappers.RefArrayList<>();
+    @Nonnull final RefList<StepRecord> history = new RefArrayList<>();
     @Nonnull final TrainingMonitor monitor = TrainingTester.getMonitor(history);
     try {
       log.eval(() -> {
@@ -480,8 +483,8 @@ class TrainingTester
   }
 
   private Tensor[][] shuffleCopy(final Random random, @Nonnull final Tensor... copy) {
-    return com.simiacryptus.ref.wrappers.RefIntStream.range(0, getBatches()).mapToObj(i -> {
-      return com.simiacryptus.ref.wrappers.RefArrays.stream(copy).map(tensor -> {
+    return RefIntStream.range(0, getBatches()).mapToObj(i -> {
+      return RefArrays.stream(copy).map(tensor -> {
         @Nonnull final Tensor cpy = tensor.copy();
         randomizationMode.shuffle(random, cpy.getData());
         return cpy;
@@ -489,36 +492,36 @@ class TrainingTester
     }).toArray(i -> new Tensor[i][]);
   }
 
-  private com.simiacryptus.ref.wrappers.RefList<StepRecord> train(@Nonnull NotebookOutput log,
-                                                                  @Nonnull BiFunction<NotebookOutput, Trainable, com.simiacryptus.ref.wrappers.RefList<StepRecord>> opt,
-                                                                  @Nonnull Layer layer, @Nonnull Tensor[][] data, @Nonnull boolean... mask) {
+  private RefList<StepRecord> train(@Nonnull NotebookOutput log,
+                                    @Nonnull BiFunction<NotebookOutput, Trainable, RefList<StepRecord>> opt,
+                                    @Nonnull Layer layer, @Nonnull Tensor[][] data, @Nonnull boolean... mask) {
     {
       int inputs = data[0].length;
       @Nonnull final PipelineNetwork network = new PipelineNetwork(inputs);
       Layer lossLayer = lossLayer();
       assert null != lossLayer : getClass().toString();
-      network.add(lossLayer, network.add(layer, com.simiacryptus.ref.wrappers.RefIntStream.range(0, inputs - 1)
+      network.add(lossLayer, network.add(layer, RefIntStream.range(0, inputs - 1)
           .mapToObj(i -> network.getInput(i)).toArray(i -> new DAGNode[i])), network.getInput(inputs - 1));
       @Nonnull
       ArrayTrainable trainable = new ArrayTrainable(data, network);
       if (0 < mask.length)
         trainable.setMask(mask);
-      com.simiacryptus.ref.wrappers.RefList<StepRecord> history;
+      RefList<StepRecord> history;
       {
         history = opt.apply(log, trainable);
         if (history.stream().mapToDouble(x -> x.fitness).min().orElse(1) > 1e-5) {
           if (!network.isFrozen()) {
             log.p("This training apply resulted in the following configuration:");
             log.eval(() -> {
-              return network.state().stream().map(com.simiacryptus.ref.wrappers.RefArrays::toString)
+              return network.state().stream().map(RefArrays::toString)
                   .reduce((a, b) -> a + "\n" + b).orElse("");
             });
           }
           if (0 < mask.length) {
             log.p("And regressed input:");
             log.eval(() -> {
-              return com.simiacryptus.ref.wrappers.RefArrays.stream(data)
-                  .flatMap(x -> com.simiacryptus.ref.wrappers.RefArrays.stream(x)).limit(1).map(x -> x.prettyPrint())
+              return RefArrays.stream(data)
+                  .flatMap(x -> RefArrays.stream(x)).limit(1).map(x -> x.prettyPrint())
                   .reduce((a, b) -> a + "\n" + b).orElse("");
             });
           }
@@ -581,7 +584,7 @@ class TrainingTester
     public abstract void shuffle(Random random, double[] buffer);
   }
 
-  public static @com.simiacryptus.ref.lang.RefAware
+  public static @RefAware
   class ComponentResult {
     final ProblemResult complete;
     final ProblemResult input;
@@ -599,7 +602,7 @@ class TrainingTester
     }
   }
 
-  public static @com.simiacryptus.ref.lang.RefAware
+  public static @RefAware
   class TestResult {
     final PlotCanvas iterPlot;
     final PlotCanvas timePlot;
@@ -612,7 +615,7 @@ class TrainingTester
     }
   }
 
-  public static @com.simiacryptus.ref.lang.RefAware
+  public static @RefAware
   final class TrainingResult {
     final ResultType type;
     final double value;
@@ -628,7 +631,7 @@ class TrainingTester
     }
   }
 
-  public static @com.simiacryptus.ref.lang.RefAware
+  public static @RefAware
   class ProblemResult {
     final Map<CharSequence, TrainingResult> map;
 

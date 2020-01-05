@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.test;
 
+import com.simiacryptus.ref.lang.RefAware;
 import smile.plot.LinePlot;
 import smile.plot.Plot;
 import smile.plot.ScatterPlot;
@@ -26,7 +27,7 @@ import smile.plot.ScatterPlot;
 import java.awt.*;
 import java.util.List;
 
-public @com.simiacryptus.ref.lang.RefAware
+public @RefAware
 class ProblemRun {
 
   public final Color color;

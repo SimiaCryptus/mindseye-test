@@ -21,12 +21,15 @@ package com.simiacryptus.mindseye.test.data;
 
 import com.simiacryptus.lang.SupplierWeakCache;
 import com.simiacryptus.notebook.NotebookOutput;
+import com.simiacryptus.ref.lang.RefAware;
+import com.simiacryptus.ref.wrappers.RefStream;
 import com.simiacryptus.util.test.LabeledObject;
 
 import javax.annotation.Nonnull;
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
 
-public @com.simiacryptus.ref.lang.RefAware
+public @RefAware
 class CIFARDatasetDemo extends ImageCategoryDatasetDemo {
 
   @Nonnull
@@ -39,7 +42,7 @@ class CIFARDatasetDemo extends ImageCategoryDatasetDemo {
   CIFARDatasetDemo[] addRefs(CIFARDatasetDemo[] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(CIFARDatasetDemo::addRef)
+    return Arrays.stream(array).filter((x) -> x != null).map(CIFARDatasetDemo::addRef)
         .toArray((x) -> new CIFARDatasetDemo[x]);
   }
 
@@ -47,12 +50,12 @@ class CIFARDatasetDemo extends ImageCategoryDatasetDemo {
   CIFARDatasetDemo[][] addRefs(CIFARDatasetDemo[][] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(CIFARDatasetDemo::addRefs)
+    return Arrays.stream(array).filter((x) -> x != null).map(CIFARDatasetDemo::addRefs)
         .toArray((x) -> new CIFARDatasetDemo[x][]);
   }
 
   @Override
-  public com.simiacryptus.ref.wrappers.RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(
+  public RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(
       @Nonnull NotebookOutput log) {
     return log.eval(() -> {
       return CIFAR10.trainingDataStream().map(x -> x.map(y -> new SupplierWeakCache<>(() -> y.toImage())));

@@ -33,6 +33,7 @@ import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.notebook.TableOutput;
+import com.simiacryptus.ref.lang.RefAware;
 import com.simiacryptus.util.test.LabeledObject;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
@@ -47,7 +48,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("FieldCanBeLocal")
-public abstract @com.simiacryptus.ref.lang.RefAware
+public abstract @RefAware
 class AutoencodingProblem implements Problem {
 
   private static int modelNo = 0;

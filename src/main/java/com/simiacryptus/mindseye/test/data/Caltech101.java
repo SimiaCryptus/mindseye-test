@@ -21,6 +21,9 @@ package com.simiacryptus.mindseye.test.data;
 
 import com.simiacryptus.lang.SupplierWeakCache;
 import com.simiacryptus.mindseye.test.TestUtil;
+import com.simiacryptus.ref.lang.RefAware;
+import com.simiacryptus.ref.wrappers.RefList;
+import com.simiacryptus.ref.wrappers.RefStream;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.DataLoader;
 import com.simiacryptus.util.test.LabeledObject;
@@ -38,14 +41,14 @@ import java.security.NoSuchAlgorithmException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-public @com.simiacryptus.ref.lang.RefAware
+public @RefAware
 class Caltech101 {
 
   @Nullable
   private static final DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>> training = new DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>>() {
     @Override
     protected void read(
-        @Nonnull final com.simiacryptus.ref.wrappers.RefList<LabeledObject<SupplierWeakCache<BufferedImage>>> queue) {
+        @Nonnull final RefList<LabeledObject<SupplierWeakCache<BufferedImage>>> queue) {
       try {
         @Nullable
         InputStream stream = null;
@@ -94,7 +97,7 @@ class Caltech101 {
     Caltech101.training.stop();
   }
 
-  public static com.simiacryptus.ref.wrappers.RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> trainingDataStream() {
+  public static RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> trainingDataStream() {
     return Caltech101.training.stream();
   }
 

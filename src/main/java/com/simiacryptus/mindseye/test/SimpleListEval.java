@@ -20,14 +20,18 @@
 package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.ref.lang.RefAware;
 import com.simiacryptus.ref.lang.ReferenceCountingBase;
+import com.simiacryptus.ref.wrappers.RefArrays;
+import com.simiacryptus.ref.wrappers.RefIntStream;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
-public @com.simiacryptus.ref.lang.RefAware
+public @RefAware
 class SimpleListEval extends ReferenceCountingBase
     implements Callable<SimpleResult>, SimpleResult {
   @Nonnull
@@ -74,7 +78,7 @@ class SimpleListEval extends ReferenceCountingBase
   }
 
   public static void accumulate(@Nonnull final TensorList buffer, @Nonnull final TensorList data) {
-    com.simiacryptus.ref.wrappers.RefIntStream.range(0, data.length()).forEach(b -> {
+    RefIntStream.range(0, data.length()).forEach(b -> {
       @Nullable
       Tensor r = data.get(b);
       @Nullable
@@ -97,7 +101,7 @@ class SimpleListEval extends ReferenceCountingBase
   SimpleListEval[] addRefs(SimpleListEval[] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(SimpleListEval::addRef)
+    return Arrays.stream(array).filter((x) -> x != null).map(SimpleListEval::addRef)
         .toArray((x) -> new SimpleListEval[x]);
   }
 
@@ -105,20 +109,20 @@ class SimpleListEval extends ReferenceCountingBase
   SimpleListEval[][] addRefs(SimpleListEval[][] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(SimpleListEval::addRefs)
+    return Arrays.stream(array).filter((x) -> x != null).map(SimpleListEval::addRefs)
         .toArray((x) -> new SimpleListEval[x][]);
   }
 
   @Nonnull
   @Override
   public SimpleResult call() {
-    TensorList[] inputCopy = com.simiacryptus.ref.wrappers.RefArrays.stream(input).map(x -> x.copy())
+    TensorList[] inputCopy = RefArrays.stream(input).map(x -> x.copy())
         .toArray(i -> new TensorList[i]);
-    inputDerivative = com.simiacryptus.ref.wrappers.RefArrays.stream(inputCopy)
+    inputDerivative = RefArrays.stream(inputCopy)
         .map(tensorList -> new TensorArray(tensorList.stream().map(i -> {
           return new Tensor(i.getDimensions());
         }).toArray(i -> new Tensor[i]))).toArray(i -> new TensorList[i]);
-    Result[] inputs = com.simiacryptus.ref.wrappers.RefIntStream.range(0, inputCopy.length).mapToObj(i -> {
+    Result[] inputs = RefIntStream.range(0, inputCopy.length).mapToObj(i -> {
       return new Result(inputCopy[i], (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
         SimpleListEval.accumulate(inputDerivative[i], data);
       }) {

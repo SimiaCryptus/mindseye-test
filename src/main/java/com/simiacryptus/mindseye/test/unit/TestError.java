@@ -20,14 +20,16 @@
 package com.simiacryptus.mindseye.test.unit;
 
 import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.ref.lang.RefAware;
 import com.simiacryptus.ref.lang.RefIgnore;
 import com.simiacryptus.ref.lang.ReferenceCounting;
 import com.simiacryptus.ref.lang.ReferenceCountingBase;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
+import java.util.Arrays;
 
-public @com.simiacryptus.ref.lang.RefAware
+public @RefAware
 class TestError extends RuntimeException implements ReferenceCounting {
   public final ComponentTest<?> test;
   @Nonnull
@@ -56,7 +58,7 @@ class TestError extends RuntimeException implements ReferenceCounting {
   TestError[] addRefs(TestError[] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(TestError::addRef)
+    return Arrays.stream(array).filter((x) -> x != null).map(TestError::addRef)
         .toArray((x) -> new TestError[x]);
   }
 
@@ -64,7 +66,7 @@ class TestError extends RuntimeException implements ReferenceCounting {
   TestError[][] addRefs(TestError[][] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(TestError::addRefs)
+    return Arrays.stream(array).filter((x) -> x != null).map(TestError::addRefs)
         .toArray((x) -> new TestError[x][]);
   }
 

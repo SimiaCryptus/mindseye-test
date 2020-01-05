@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.test.integration;
 
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.notebook.NotebookOutput;
+import com.simiacryptus.ref.lang.RefAware;
+import com.simiacryptus.ref.wrappers.*;
 import com.simiacryptus.util.test.LabeledObject;
 
 import javax.annotation.Nonnull;
@@ -28,7 +30,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Random;
 
-public @com.simiacryptus.ref.lang.RefAware
+public @RefAware
 class SupplementedProblemData implements ImageProblemData {
 
   private final int expansion = 10;
@@ -40,9 +42,9 @@ class SupplementedProblemData implements ImageProblemData {
   }
 
   public static void printSample(@Nonnull final NotebookOutput log, final Tensor[][] expanded, final int size) {
-    @Nonnull final com.simiacryptus.ref.wrappers.RefArrayList<Tensor[]> list = new com.simiacryptus.ref.wrappers.RefArrayList<>(
-        com.simiacryptus.ref.wrappers.RefArrays.asList(expanded));
-    com.simiacryptus.ref.wrappers.RefCollections.shuffle(list);
+    @Nonnull final RefArrayList<Tensor[]> list = new RefArrayList<>(
+        RefArrays.asList(expanded));
+    RefCollections.shuffle(list);
     log.p("Expanded Training Data Sample: " + list.stream().limit(size).map(x -> {
       return log.png(x[0].toGrayImage(), "");
     }).reduce((a, b) -> a + b).get());
@@ -70,9 +72,9 @@ class SupplementedProblemData implements ImageProblemData {
   }
 
   @Override
-  public com.simiacryptus.ref.wrappers.RefStream<LabeledObject<Tensor>> trainingData() throws IOException {
+  public RefStream<LabeledObject<Tensor>> trainingData() throws IOException {
     return inner.trainingData().flatMap(labeledObject -> {
-      return com.simiacryptus.ref.wrappers.RefIntStream.range(0, expansion).mapToObj(i -> {
+      return RefIntStream.range(0, expansion).mapToObj(i -> {
         final int dx = random.nextInt(10) - 5;
         final int dy = random.nextInt(10) - 5;
         return SupplementedProblemData.addNoise(SupplementedProblemData.translate(dx, dy, labeledObject.data));
@@ -81,7 +83,7 @@ class SupplementedProblemData implements ImageProblemData {
   }
 
   @Override
-  public com.simiacryptus.ref.wrappers.RefStream<LabeledObject<Tensor>> validationData() throws IOException {
+  public RefStream<LabeledObject<Tensor>> validationData() throws IOException {
     return inner.validationData();
   }
 }

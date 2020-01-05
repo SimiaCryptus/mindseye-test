@@ -25,16 +25,22 @@ import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.TrainingTester;
 import com.simiacryptus.notebook.NotebookOutput;
+import com.simiacryptus.ref.lang.RefAware;
+import com.simiacryptus.ref.wrappers.RefCollectors;
+import com.simiacryptus.ref.wrappers.RefDoubleStream;
+import com.simiacryptus.ref.wrappers.RefIntStream;
+import com.simiacryptus.ref.wrappers.RefList;
 import org.jetbrains.annotations.NotNull;
 import smile.plot.PlotCanvas;
 import smile.plot.ScatterPlot;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.Random;
 import java.util.function.Function;
 
-public abstract @com.simiacryptus.ref.lang.RefAware
+public abstract @RefAware
 class ActivationLayerTestBase extends LayerTestBase {
 
   private final Layer layer;
@@ -70,7 +76,7 @@ class ActivationLayerTestBase extends LayerTestBase {
 
   @Nonnull
   public static PlotCanvas plot(final String title,
-                                @Nonnull final com.simiacryptus.ref.wrappers.RefList<double[]> plotData,
+                                @Nonnull final RefList<double[]> plotData,
                                 final Function<double[], double[]> function) {
     final double[][] data = plotData.stream().map(function).toArray(i -> new double[i][]);
     return ActivationLayerTestBase.plot(title, data);
@@ -80,7 +86,7 @@ class ActivationLayerTestBase extends LayerTestBase {
   ActivationLayerTestBase[] addRefs(ActivationLayerTestBase[] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(ActivationLayerTestBase::addRef)
+    return Arrays.stream(array).filter((x) -> x != null).map(ActivationLayerTestBase::addRef)
         .toArray((x) -> new ActivationLayerTestBase[x]);
   }
 
@@ -88,7 +94,7 @@ class ActivationLayerTestBase extends LayerTestBase {
   ActivationLayerTestBase[][] addRefs(ActivationLayerTestBase[][] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(ActivationLayerTestBase::addRefs)
+    return Arrays.stream(array).filter((x) -> x != null).map(ActivationLayerTestBase::addRefs)
         .toArray((x) -> new ActivationLayerTestBase[x][]);
   }
 
@@ -109,8 +115,8 @@ class ActivationLayerTestBase extends LayerTestBase {
     return new int[][]{{100, 100, 1}};
   }
 
-  public com.simiacryptus.ref.wrappers.RefDoubleStream scan() {
-    return com.simiacryptus.ref.wrappers.RefIntStream.range(-1000, 1000).mapToDouble(x -> x / 300.0);
+  public RefDoubleStream scan() {
+    return RefIntStream.range(-1000, 1000).mapToDouble(x -> x / 300.0);
   }
 
   @Override
@@ -119,12 +125,12 @@ class ActivationLayerTestBase extends LayerTestBase {
 
     log.h3("Function Plots");
     final Layer layer = getLayer(new int[][]{{1}}, new Random());
-    final com.simiacryptus.ref.wrappers.RefList<double[]> plotData = scan().mapToObj(x -> {
+    final RefList<double[]> plotData = scan().mapToObj(x -> {
       @Nonnull
       Tensor tensor = new Tensor(x);
       @Nonnull final SimpleEval eval = SimpleEval.run(layer, tensor);
       return new double[]{x, eval.getOutput().get(0), eval.getDerivative()[0].get(0)};
-    }).collect(com.simiacryptus.ref.wrappers.RefCollectors.toList());
+    }).collect(RefCollectors.toList());
 
     log.eval(() -> {
       return ActivationLayerTestBase.plot("Value Plot", plotData, x -> new double[]{x[0], x[1]});

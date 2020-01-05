@@ -21,7 +21,9 @@ package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.notebook.MarkdownNotebookOutput;
 import com.simiacryptus.notebook.NotebookOutput;
+import com.simiacryptus.ref.lang.RefAware;
 import com.simiacryptus.ref.lang.ReferenceCountingBase;
+import com.simiacryptus.ref.wrappers.RefConsumer;
 import com.simiacryptus.util.CodeUtil;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.test.SysOutInterceptor;
@@ -32,10 +34,11 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
 
-public abstract @com.simiacryptus.ref.lang.RefAware
+public abstract @RefAware
 class NotebookReportBase extends ReferenceCountingBase {
 
   protected static final Logger logger = LoggerFactory.getLogger(NotebookReportBase.class);
@@ -89,7 +92,7 @@ class NotebookReportBase extends ReferenceCountingBase {
   }
 
   public static void withRefLeakMonitor(NotebookOutput log,
-                                        @Nonnull com.simiacryptus.ref.wrappers.RefConsumer<NotebookOutput> fn) {
+                                        @Nonnull RefConsumer<NotebookOutput> fn) {
     try (
         CodeUtil.LogInterception refLeakLog = CodeUtil.intercept(log, ReferenceCountingBase.class.getCanonicalName())) {
       fn.accept(log);
@@ -107,7 +110,7 @@ class NotebookReportBase extends ReferenceCountingBase {
   NotebookReportBase[] addRefs(NotebookReportBase[] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(NotebookReportBase::addRef)
+    return Arrays.stream(array).filter((x) -> x != null).map(NotebookReportBase::addRef)
         .toArray((x) -> new NotebookReportBase[x]);
   }
 
@@ -115,7 +118,7 @@ class NotebookReportBase extends ReferenceCountingBase {
   NotebookReportBase[][] addRefs(NotebookReportBase[][] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(NotebookReportBase::addRefs)
+    return Arrays.stream(array).filter((x) -> x != null).map(NotebookReportBase::addRefs)
         .toArray((x) -> new NotebookReportBase[x][]);
   }
 
@@ -132,7 +135,7 @@ class NotebookReportBase extends ReferenceCountingBase {
     log.p("__Report Description:__ " + reportJavadoc);
   }
 
-  public void run(@Nonnull com.simiacryptus.ref.wrappers.RefConsumer<NotebookOutput> fn,
+  public void run(@Nonnull RefConsumer<NotebookOutput> fn,
                   @Nonnull CharSequence... logPath) {
     try (@Nonnull
          NotebookOutput log = getLog(logPath)) {

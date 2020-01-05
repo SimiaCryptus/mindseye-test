@@ -26,15 +26,18 @@ import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.notebook.NotebookOutput;
+import com.simiacryptus.ref.lang.RefAware;
+import com.simiacryptus.ref.wrappers.*;
 import com.simiacryptus.util.data.DoubleStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.UUID;
 
-public @com.simiacryptus.ref.lang.RefAware
+public @RefAware
 class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   static final Logger log = LoggerFactory.getLogger(PerformanceTester.class);
 
@@ -85,7 +88,7 @@ class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   PerformanceTester[] addRefs(PerformanceTester[] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(PerformanceTester::addRef)
+    return Arrays.stream(array).filter((x) -> x != null).map(PerformanceTester::addRef)
         .toArray((x) -> new PerformanceTester[x]);
   }
 
@@ -93,7 +96,7 @@ class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   PerformanceTester[][] addRefs(PerformanceTester[][] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(PerformanceTester::addRefs)
+    return Arrays.stream(array).filter((x) -> x != null).map(PerformanceTester::addRefs)
         .toArray((x) -> new PerformanceTester[x][]);
   }
 
@@ -106,14 +109,14 @@ class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   public void test(@Nonnull final Layer component, @Nonnull final Tensor[] inputPrototype) {
     log.info(String.format("%s batch length, %s trials", batches, samples));
     log.info("Input Dimensions:");
-    com.simiacryptus.ref.wrappers.RefArrays.stream(inputPrototype)
-        .map(t -> "\t" + com.simiacryptus.ref.wrappers.RefArrays.toString(t.getDimensions()))
+    RefArrays.stream(inputPrototype)
+        .map(t -> "\t" + RefArrays.toString(t.getDimensions()))
         .forEach(System.out::println);
     log.info("Performance:");
-    com.simiacryptus.ref.wrappers.RefList<Tuple2<Double, Double>> performance = com.simiacryptus.ref.wrappers.RefIntStream
+    RefList<Tuple2<Double, Double>> performance = RefIntStream
         .range(0, samples).mapToObj(i -> {
           return testPerformance(component, inputPrototype);
-        }).collect(com.simiacryptus.ref.wrappers.RefCollectors.toList());
+        }).collect(RefCollectors.toList());
     if (isTestEvaluation()) {
       @Nonnull final DoubleStatistics statistics = new DoubleStatistics()
           .accept(performance.stream().mapToDouble(x -> x._1).toArray());
@@ -167,8 +170,8 @@ class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
 
   @Nonnull
   protected Tuple2<Double, Double> testPerformance(@Nonnull final Layer component, final Tensor... inputPrototype) {
-    final Tensor[][] data = com.simiacryptus.ref.wrappers.RefIntStream.range(0, batches).mapToObj(x -> x)
-        .flatMap(x -> com.simiacryptus.ref.wrappers.RefStream.<Tensor[]>of(inputPrototype))
+    final Tensor[][] data = RefIntStream.range(0, batches).mapToObj(x -> x)
+        .flatMap(x -> RefStream.<Tensor[]>of(inputPrototype))
         .toArray(i -> new Tensor[i][]);
     @Nonnull
     TimedResult<Result> timedEval = TimedResult.time(() -> {

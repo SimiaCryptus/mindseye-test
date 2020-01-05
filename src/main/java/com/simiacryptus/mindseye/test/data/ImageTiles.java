@@ -20,6 +20,8 @@
 package com.simiacryptus.mindseye.test.data;
 
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.ref.lang.RefAware;
+import com.simiacryptus.ref.wrappers.*;
 import com.simiacryptus.util.io.DataLoader;
 
 import javax.annotation.Nonnull;
@@ -30,7 +32,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
-public @com.simiacryptus.ref.lang.RefAware
+public @RefAware
 class ImageTiles {
 
   @Nonnull
@@ -48,10 +50,10 @@ class ImageTiles {
     return tensor;
   }
 
-  public static com.simiacryptus.ref.wrappers.RefStream<File> readFiles(@Nonnull final File dir) {
+  public static RefStream<File> readFiles(@Nonnull final File dir) {
     if (dir.isFile())
-      return com.simiacryptus.ref.wrappers.RefArrays.asList(dir).stream();
-    return com.simiacryptus.ref.wrappers.RefArrays.stream(dir.listFiles()).flatMap(ImageTiles::readFiles);
+      return RefArrays.asList(dir).stream();
+    return RefArrays.stream(dir.listFiles()).flatMap(ImageTiles::readFiles);
   }
 
   public static Tensor[] tilesRgb(@Nonnull final BufferedImage image, final int width, final int height) {
@@ -65,7 +67,7 @@ class ImageTiles {
 
   public static Tensor[] tilesRgb(@Nonnull final BufferedImage image, final int width, final int height,
                                   final int xStep, final int yStep) {
-    @Nonnull final com.simiacryptus.ref.wrappers.RefList<Tensor> tensors = new com.simiacryptus.ref.wrappers.RefArrayList<>();
+    @Nonnull final RefList<Tensor> tensors = new RefArrayList<>();
     for (int y = 0; y < image.getHeight(); y += yStep) {
       for (int x = 0; x < image.getWidth(); x += xStep) {
         try {
@@ -80,10 +82,10 @@ class ImageTiles {
   }
 
   @Nonnull
-  public static com.simiacryptus.ref.wrappers.RefList<Tensor> toTiles(@Nullable final BufferedImage image,
-                                                                      final int tileWidth, final int tileHeight, final int minSpacingWidth, final int minSpacingHeight,
-                                                                      final int maxTileCols, final int maxTileRows) {
-    @Nonnull final com.simiacryptus.ref.wrappers.RefList<Tensor> queue = new com.simiacryptus.ref.wrappers.RefArrayList<>();
+  public static RefList<Tensor> toTiles(@Nullable final BufferedImage image,
+                                        final int tileWidth, final int tileHeight, final int minSpacingWidth, final int minSpacingHeight,
+                                        final int maxTileCols, final int maxTileRows) {
+    @Nonnull final RefList<Tensor> queue = new RefArrayList<>();
     if (null != image) {
       final int xMax = image.getWidth() - tileWidth;
       final int yMax = image.getHeight() - tileHeight;
@@ -105,14 +107,14 @@ class ImageTiles {
   }
 
   @Nonnull
-  public static com.simiacryptus.ref.wrappers.RefList<Tensor> toTiles(@Nonnull final File file, final int tileWidth,
-                                                                      final int tileHeight, final int minSpacingWidth, final int minSpacingHeight, final int maxTileCols,
-                                                                      final int maxTileRows) throws IOException {
+  public static RefList<Tensor> toTiles(@Nonnull final File file, final int tileWidth,
+                                        final int tileHeight, final int minSpacingWidth, final int minSpacingHeight, final int maxTileCols,
+                                        final int maxTileRows) throws IOException {
     return ImageTiles.toTiles(ImageIO.read(file), tileWidth, tileHeight, minSpacingWidth, minSpacingHeight, maxTileCols,
         maxTileRows);
   }
 
-  public static @com.simiacryptus.ref.lang.RefAware
+  public static @RefAware
   class ImageTensorLoader extends DataLoader<Tensor> {
 
     public final int maxTileCols;
@@ -135,10 +137,10 @@ class ImageTiles {
     }
 
     @Override
-    protected void read(@Nonnull final com.simiacryptus.ref.wrappers.RefList<Tensor> queue) {
-      @Nonnull final com.simiacryptus.ref.wrappers.RefArrayList<File> files = new com.simiacryptus.ref.wrappers.RefArrayList<>(
-          ImageTiles.readFiles(parentDirectiory).collect(com.simiacryptus.ref.wrappers.RefCollectors.toList()));
-      com.simiacryptus.ref.wrappers.RefCollections.shuffle(files);
+    protected void read(@Nonnull final RefList<Tensor> queue) {
+      @Nonnull final RefArrayList<File> files = new RefArrayList<>(
+          ImageTiles.readFiles(parentDirectiory).collect(RefCollectors.toList()));
+      RefCollections.shuffle(files);
       for (@Nonnull final File f : files) {
         if (Thread.interrupted()) {
           break;

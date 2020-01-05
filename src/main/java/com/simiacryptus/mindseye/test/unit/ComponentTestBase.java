@@ -19,9 +19,12 @@
 
 package com.simiacryptus.mindseye.test.unit;
 
+import com.simiacryptus.ref.lang.RefAware;
 import com.simiacryptus.ref.lang.ReferenceCountingBase;
 
-public abstract @com.simiacryptus.ref.lang.RefAware
+import java.util.Arrays;
+
+public abstract @RefAware
 class ComponentTestBase<T> extends ReferenceCountingBase
     implements ComponentTest<T> {
 
@@ -29,7 +32,7 @@ class ComponentTestBase<T> extends ReferenceCountingBase
   ComponentTestBase[] addRefs(ComponentTestBase[] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(ComponentTestBase::addRef)
+    return Arrays.stream(array).filter((x) -> x != null).map(ComponentTestBase::addRef)
         .toArray((x) -> new ComponentTestBase[x]);
   }
 
@@ -37,7 +40,7 @@ class ComponentTestBase<T> extends ReferenceCountingBase
   ComponentTestBase[][] addRefs(ComponentTestBase[][] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(ComponentTestBase::addRefs)
+    return Arrays.stream(array).filter((x) -> x != null).map(ComponentTestBase::addRefs)
         .toArray((x) -> new ComponentTestBase[x][]);
   }
 

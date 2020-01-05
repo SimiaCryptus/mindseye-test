@@ -23,14 +23,20 @@ import com.simiacryptus.lang.SupplierWeakCache;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.util.ImageUtil;
 import com.simiacryptus.notebook.NotebookOutput;
+import com.simiacryptus.ref.lang.RefAware;
+import com.simiacryptus.ref.wrappers.RefCollectors;
+import com.simiacryptus.ref.wrappers.RefComparator;
+import com.simiacryptus.ref.wrappers.RefList;
+import com.simiacryptus.ref.wrappers.RefStream;
 import com.simiacryptus.util.test.LabeledObject;
 import org.junit.Test;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
 
-public abstract @com.simiacryptus.ref.lang.RefAware
+public abstract @RefAware
 class ImageCategoryDatasetDemo extends NotebookReportBase {
   @Nonnull
   @Override
@@ -38,16 +44,16 @@ class ImageCategoryDatasetDemo extends NotebookReportBase {
     return ReportType.Data;
   }
 
-  public <T> com.simiacryptus.ref.wrappers.RefComparator<T> getShuffleComparator() {
+  public <T> RefComparator<T> getShuffleComparator() {
     final int seed = (int) ((System.nanoTime() >>> 8) % (Integer.MAX_VALUE - 84));
-    return com.simiacryptus.ref.wrappers.RefComparator.comparingInt(a1 -> System.identityHashCode(a1) ^ seed);
+    return RefComparator.comparingInt(a1 -> System.identityHashCode(a1) ^ seed);
   }
 
   public static @SuppressWarnings("unused")
   ImageCategoryDatasetDemo[] addRefs(ImageCategoryDatasetDemo[] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(ImageCategoryDatasetDemo::addRef)
+    return Arrays.stream(array).filter((x) -> x != null).map(ImageCategoryDatasetDemo::addRef)
         .toArray((x) -> new ImageCategoryDatasetDemo[x]);
   }
 
@@ -55,7 +61,7 @@ class ImageCategoryDatasetDemo extends NotebookReportBase {
   ImageCategoryDatasetDemo[][] addRefs(ImageCategoryDatasetDemo[][] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(ImageCategoryDatasetDemo::addRefs)
+    return Arrays.stream(array).filter((x) -> x != null).map(ImageCategoryDatasetDemo::addRefs)
         .toArray((x) -> new ImageCategoryDatasetDemo[x][]);
   }
 
@@ -66,14 +72,14 @@ class ImageCategoryDatasetDemo extends NotebookReportBase {
 
   public void run(@Nonnull NotebookOutput log) {
     log.h3("Loading Data");
-    com.simiacryptus.ref.wrappers.RefList<LabeledObject<SupplierWeakCache<BufferedImage>>> testData = getTrainingStream(
-        log).sorted(getShuffleComparator()).collect(com.simiacryptus.ref.wrappers.RefCollectors.toList());
+    RefList<LabeledObject<SupplierWeakCache<BufferedImage>>> testData = getTrainingStream(
+        log).sorted(getShuffleComparator()).collect(RefCollectors.toList());
 
     log.h3("Categories");
     log.run(() -> {
       testData.stream()
-          .collect(com.simiacryptus.ref.wrappers.RefCollectors.groupingBy(x -> x.label,
-              com.simiacryptus.ref.wrappers.RefCollectors.counting()))
+          .collect(RefCollectors.groupingBy(x -> x.label,
+              RefCollectors.counting()))
           .forEach((k, v) -> ImageCategoryDatasetDemo.logger.info(String.format("%s -> %d", k, v)));
     });
 
@@ -88,7 +94,7 @@ class ImageCategoryDatasetDemo extends NotebookReportBase {
     }));
   }
 
-  public abstract com.simiacryptus.ref.wrappers.RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(
+  public abstract RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(
       NotebookOutput log);
 
   public @SuppressWarnings("unused")

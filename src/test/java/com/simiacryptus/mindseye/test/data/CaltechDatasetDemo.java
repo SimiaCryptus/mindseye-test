@@ -21,12 +21,15 @@ package com.simiacryptus.mindseye.test.data;
 
 import com.simiacryptus.lang.SupplierWeakCache;
 import com.simiacryptus.notebook.NotebookOutput;
+import com.simiacryptus.ref.lang.RefAware;
+import com.simiacryptus.ref.wrappers.RefStream;
 import com.simiacryptus.util.test.LabeledObject;
 
 import javax.annotation.Nonnull;
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
 
-public @com.simiacryptus.ref.lang.RefAware
+public @RefAware
 class CaltechDatasetDemo extends ImageCategoryDatasetDemo {
 
   @Nonnull
@@ -39,7 +42,7 @@ class CaltechDatasetDemo extends ImageCategoryDatasetDemo {
   CaltechDatasetDemo[] addRefs(CaltechDatasetDemo[] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(CaltechDatasetDemo::addRef)
+    return Arrays.stream(array).filter((x) -> x != null).map(CaltechDatasetDemo::addRef)
         .toArray((x) -> new CaltechDatasetDemo[x]);
   }
 
@@ -47,12 +50,12 @@ class CaltechDatasetDemo extends ImageCategoryDatasetDemo {
   CaltechDatasetDemo[][] addRefs(CaltechDatasetDemo[][] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(CaltechDatasetDemo::addRefs)
+    return Arrays.stream(array).filter((x) -> x != null).map(CaltechDatasetDemo::addRefs)
         .toArray((x) -> new CaltechDatasetDemo[x][]);
   }
 
   @Override
-  public com.simiacryptus.ref.wrappers.RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(
+  public RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(
       @Nonnull NotebookOutput log) {
     return log.eval(() -> {
       return Caltech101.trainingDataStream();

@@ -31,6 +31,7 @@ import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.notebook.TableOutput;
+import com.simiacryptus.ref.lang.RefAware;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.test.LabeledObject;
 import guru.nidi.graphviz.engine.Format;
@@ -51,7 +52,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-public abstract @com.simiacryptus.ref.lang.RefAware
+public abstract @RefAware
 class ClassifyProblem implements Problem {
 
   private static final Logger logger = LoggerFactory.getLogger(ClassifyProblem.class);

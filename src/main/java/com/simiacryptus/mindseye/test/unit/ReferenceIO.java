@@ -24,16 +24,20 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.notebook.NotebookOutput;
+import com.simiacryptus.ref.lang.RefAware;
+import com.simiacryptus.ref.wrappers.RefArrays;
+import com.simiacryptus.ref.wrappers.RefHashMap;
 import com.simiacryptus.util.data.DoubleStatistics;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
 
-public @com.simiacryptus.ref.lang.RefAware
+public @RefAware
 class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
-  final com.simiacryptus.ref.wrappers.RefHashMap<Tensor[], Tensor> referenceIO;
+  final RefHashMap<Tensor[], Tensor> referenceIO;
 
-  public ReferenceIO(final com.simiacryptus.ref.wrappers.RefHashMap<Tensor[], Tensor> referenceIO) {
+  public ReferenceIO(final RefHashMap<Tensor[], Tensor> referenceIO) {
     this.referenceIO = referenceIO;
   }
 
@@ -41,7 +45,7 @@ class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
   ReferenceIO[] addRefs(ReferenceIO[] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(ReferenceIO::addRef)
+    return Arrays.stream(array).filter((x) -> x != null).map(ReferenceIO::addRef)
         .toArray((x) -> new ReferenceIO[x]);
   }
 
@@ -49,7 +53,7 @@ class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
   ReferenceIO[][] addRefs(ReferenceIO[][] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(ReferenceIO::addRefs)
+    return Arrays.stream(array).filter((x) -> x != null).map(ReferenceIO::addRefs)
         .toArray((x) -> new ReferenceIO[x][]);
   }
 
@@ -68,12 +72,12 @@ class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
           @Nonnull final DoubleStatistics error = new DoubleStatistics().accept(difference.getData());
           return String.format(
               "--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n%s\nError: %s\n--------------------\nDerivative: \n%s",
-              com.simiacryptus.ref.wrappers.RefArrays.stream(input)
+              RefArrays.stream(input)
                   .map(
-                      t -> com.simiacryptus.ref.wrappers.RefArrays.toString(t.getDimensions()) + "\n" + t.prettyPrint())
+                      t -> RefArrays.toString(t.getDimensions()) + "\n" + t.prettyPrint())
                   .reduce((a, b) -> a + ",\n" + b).get(),
-              com.simiacryptus.ref.wrappers.RefArrays.toString(evalOutput.getDimensions()), evalOutput.prettyPrint(),
-              error, com.simiacryptus.ref.wrappers.RefArrays.stream(eval.getDerivative()).map(t -> t.prettyPrint())
+              RefArrays.toString(evalOutput.getDimensions()), evalOutput.prettyPrint(),
+              error, RefArrays.stream(eval.getDerivative()).map(t -> t.prettyPrint())
                   .reduce((a, b) -> a + ",\n" + b).get());
         });
       });
@@ -85,10 +89,10 @@ class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
         Tensor evalOutput = eval.getOutput();
         return String.format(
             "--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n%s\n--------------------\nDerivative: \n%s",
-            com.simiacryptus.ref.wrappers.RefArrays.stream(inputPrototype).map(t -> t.prettyPrint())
+            RefArrays.stream(inputPrototype).map(t -> t.prettyPrint())
                 .reduce((a, b) -> a + ",\n" + b).orElse(""),
-            com.simiacryptus.ref.wrappers.RefArrays.toString(evalOutput.getDimensions()), evalOutput.prettyPrint(),
-            com.simiacryptus.ref.wrappers.RefArrays.stream(eval.getDerivative()).map(t -> t.prettyPrint())
+            RefArrays.toString(evalOutput.getDimensions()), evalOutput.prettyPrint(),
+            RefArrays.stream(eval.getDerivative()).map(t -> t.prettyPrint())
                 .reduce((a, b) -> a + ",\n" + b).orElse(""));
       });
     }

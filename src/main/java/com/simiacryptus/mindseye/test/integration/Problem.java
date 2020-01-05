@@ -21,11 +21,12 @@ package com.simiacryptus.mindseye.test.integration;
 
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.notebook.NotebookOutput;
+import com.simiacryptus.ref.lang.RefAware;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 
-public @com.simiacryptus.ref.lang.RefAware
+public @RefAware
 interface Problem {
   @Nonnull
   List<StepRecord> getHistory();

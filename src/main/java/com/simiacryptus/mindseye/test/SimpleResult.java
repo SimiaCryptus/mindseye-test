@@ -21,11 +21,13 @@ package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.ref.lang.RefAware;
 import com.simiacryptus.ref.lang.ReferenceCounting;
 
+import java.util.Arrays;
 import java.util.UUID;
 
-public @com.simiacryptus.ref.lang.RefAware
+public @RefAware
 interface SimpleResult extends ReferenceCounting {
   TensorList[] getInputDerivative();
 
@@ -37,7 +39,7 @@ interface SimpleResult extends ReferenceCounting {
   SimpleResult[] addRefs(SimpleResult[] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(SimpleResult::addRef)
+    return Arrays.stream(array).filter((x) -> x != null).map(SimpleResult::addRef)
         .toArray((x) -> new SimpleResult[x]);
   }
 
@@ -45,7 +47,7 @@ interface SimpleResult extends ReferenceCounting {
   SimpleResult[][] addRefs(SimpleResult[][] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(SimpleResult::addRefs)
+    return Arrays.stream(array).filter((x) -> x != null).map(SimpleResult::addRefs)
         .toArray((x) -> new SimpleResult[x][]);
   }
 

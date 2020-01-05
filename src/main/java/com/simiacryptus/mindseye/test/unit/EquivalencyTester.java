@@ -25,13 +25,17 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.notebook.NotebookOutput;
+import com.simiacryptus.ref.lang.RefAware;
+import com.simiacryptus.ref.wrappers.RefArrays;
+import com.simiacryptus.ref.wrappers.RefIntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
 
-public @com.simiacryptus.ref.lang.RefAware
+public @RefAware
 class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
   private static final Logger log = LoggerFactory.getLogger(EquivalencyTester.class);
 
@@ -47,7 +51,7 @@ class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
   EquivalencyTester[] addRefs(EquivalencyTester[] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(EquivalencyTester::addRef)
+    return Arrays.stream(array).filter((x) -> x != null).map(EquivalencyTester::addRef)
         .toArray((x) -> new EquivalencyTester[x]);
   }
 
@@ -55,7 +59,7 @@ class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
   EquivalencyTester[][] addRefs(EquivalencyTester[][] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(EquivalencyTester::addRefs)
+    return Arrays.stream(array).filter((x) -> x != null).map(EquivalencyTester::addRefs)
         .toArray((x) -> new EquivalencyTester[x][]);
   }
 
@@ -68,13 +72,13 @@ class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
     @Nonnull
     Tensor error = null;
     {
-      log.info(String.format("Inputs: %s", com.simiacryptus.ref.wrappers.RefArrays.stream(inputPrototype)
+      log.info(String.format("Inputs: %s", RefArrays.stream(inputPrototype)
           .map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get()));
       log.info(String.format("Subject Output: %s", subjectOutput.prettyPrint()));
       log.info(String.format("Reference Output: %s", referenceOutput.prettyPrint()));
       error = subjectOutput.minus(referenceOutput);
       log.info(String.format("Error: %s", error.prettyPrint()));
-      @Nonnull final ToleranceStatistics result = com.simiacryptus.ref.wrappers.RefIntStream.range(0, subjectOutput.length())
+      @Nonnull final ToleranceStatistics result = RefIntStream.range(0, subjectOutput.length())
           .mapToObj(i1 -> {
             return new ToleranceStatistics().accumulate(subjectOutput.getData()[i1], referenceOutput.getData()[i1]);
           }).reduce((a, b) -> a.combine(b)).get();

@@ -32,6 +32,8 @@ import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.util.ImageUtil;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.notebook.TableOutput;
+import com.simiacryptus.ref.lang.RefAware;
+import com.simiacryptus.ref.wrappers.RefArrays;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.ScalarStatistics;
 import guru.nidi.graphviz.engine.Format;
@@ -48,7 +50,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public abstract @com.simiacryptus.ref.lang.RefAware
+public abstract @RefAware
 class EncodingProblem implements Problem {
 
   private static int modelNo = 0;
@@ -143,7 +145,7 @@ class EncodingProblem implements Problem {
     log.h3("Training");
     log.p("We start by training apply a very small population to improve initial convergence performance:");
     TestUtil.instrumentPerformance(trainingNetwork);
-    @Nonnull final Tensor[][] primingData = com.simiacryptus.ref.wrappers.RefArrays.copyOfRange(trainingData, 0, 1000);
+    @Nonnull final Tensor[][] primingData = RefArrays.copyOfRange(trainingData, 0, 1000);
     @Nonnull final ValidatingTrainer preTrainer = optimizer.train(log,
         (SampledTrainable) new SampledArrayTrainable(primingData, trainingNetwork, trainingSize, batchSize)
             .setMinSamples(trainingSize).setMask(true, false),
@@ -192,7 +194,7 @@ class EncodingProblem implements Problem {
     testNetwork.add(imageNetwork, testNetwork.getInput(0));
     log.eval(() -> {
       @Nonnull final TableOutput table = new TableOutput();
-      com.simiacryptus.ref.wrappers.RefArrays.stream(trainingData).map(tensorArray -> {
+      RefArrays.stream(trainingData).map(tensorArray -> {
         @Nullable final Tensor predictionSignal = testNetwork.eval(tensorArray).getData().get(0);
         @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();
         row.put("Source", log.png(tensorArray[1].toImage(), ""));
@@ -213,8 +215,8 @@ class EncodingProblem implements Problem {
     log.p("Learned Representation Statistics:");
     log.eval(() -> {
       @Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
-      com.simiacryptus.ref.wrappers.RefArrays.stream(trainingData)
-          .flatMapToDouble(row -> com.simiacryptus.ref.wrappers.RefArrays.stream(row[0].getData()))
+      RefArrays.stream(trainingData)
+          .flatMapToDouble(row -> RefArrays.stream(row[0].getData()))
           .forEach(v -> scalarStatistics.add(v));
       return scalarStatistics.getMetrics();
     });

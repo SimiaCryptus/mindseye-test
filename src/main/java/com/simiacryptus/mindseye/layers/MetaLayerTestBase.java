@@ -21,10 +21,12 @@ package com.simiacryptus.mindseye.layers;
 
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
+import com.simiacryptus.ref.lang.RefAware;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 
-public abstract @com.simiacryptus.ref.lang.RefAware
+public abstract @RefAware
 class MetaLayerTestBase extends LayerTestBase {
 
   public MetaLayerTestBase() {
@@ -42,7 +44,7 @@ class MetaLayerTestBase extends LayerTestBase {
   MetaLayerTestBase[] addRefs(MetaLayerTestBase[] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(MetaLayerTestBase::addRef)
+    return Arrays.stream(array).filter((x) -> x != null).map(MetaLayerTestBase::addRef)
         .toArray((x) -> new MetaLayerTestBase[x]);
   }
 
@@ -50,7 +52,7 @@ class MetaLayerTestBase extends LayerTestBase {
   MetaLayerTestBase[][] addRefs(MetaLayerTestBase[][] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(MetaLayerTestBase::addRefs)
+    return Arrays.stream(array).filter((x) -> x != null).map(MetaLayerTestBase::addRefs)
         .toArray((x) -> new MetaLayerTestBase[x][]);
   }
 

@@ -21,6 +21,10 @@ package com.simiacryptus.mindseye.test.data;
 
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.TestUtil;
+import com.simiacryptus.ref.lang.RefAware;
+import com.simiacryptus.ref.wrappers.RefArrays;
+import com.simiacryptus.ref.wrappers.RefList;
+import com.simiacryptus.ref.wrappers.RefStream;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.BinaryChunkIterator;
 import com.simiacryptus.util.io.DataLoader;
@@ -39,13 +43,13 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.zip.GZIPInputStream;
 
-public @com.simiacryptus.ref.lang.RefAware
+public @RefAware
 class CIFAR10 {
 
   @Nullable
   private static final DataLoader<LabeledObject<Tensor>> training = new DataLoader<LabeledObject<Tensor>>() {
     @Override
-    protected void read(@Nonnull final com.simiacryptus.ref.wrappers.RefList<LabeledObject<Tensor>> queue) {
+    protected void read(@Nonnull final RefList<LabeledObject<Tensor>> queue) {
       try {
         @Nullable
         InputStream stream = null;
@@ -83,7 +87,7 @@ class CIFAR10 {
     CIFAR10.training.stop();
   }
 
-  public static com.simiacryptus.ref.wrappers.RefStream<LabeledObject<Tensor>> trainingDataStream() {
+  public static RefStream<LabeledObject<Tensor>> trainingDataStream() {
     return CIFAR10.training.stream();
   }
 
@@ -98,7 +102,7 @@ class CIFAR10 {
         img.setRGB(x, y, c);
       }
     }
-    return new LabeledObject<>(img, com.simiacryptus.ref.wrappers.RefArrays.toString(new byte[]{b[0]}));
+    return new LabeledObject<>(img, RefArrays.toString(new byte[]{b[0]}));
   }
 
 }

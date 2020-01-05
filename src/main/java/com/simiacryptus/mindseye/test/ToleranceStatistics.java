@@ -19,12 +19,14 @@
 
 package com.simiacryptus.mindseye.test;
 
+import com.simiacryptus.ref.lang.RefAware;
+import com.simiacryptus.ref.wrappers.RefIntStream;
 import com.simiacryptus.util.data.DoubleStatistics;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public @com.simiacryptus.ref.lang.RefAware
+public @RefAware
 class ToleranceStatistics {
   public final DoubleStatistics absoluteTol;
   public final DoubleStatistics relativeTol;
@@ -51,7 +53,7 @@ class ToleranceStatistics {
   public ToleranceStatistics accumulate(@Nonnull final double[] target, @Nonnull final double[] val) {
     if (target.length != val.length)
       throw new IllegalArgumentException();
-    com.simiacryptus.ref.wrappers.RefIntStream.range(0, target.length).forEach(i -> accumulate(target[i], val[i]));
+    RefIntStream.range(0, target.length).forEach(i -> accumulate(target[i], val[i]));
     return this;
   }
 

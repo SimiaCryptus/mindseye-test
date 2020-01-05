@@ -20,14 +20,18 @@
 package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.ref.lang.RefAware;
 import com.simiacryptus.ref.lang.ReferenceCountingBase;
+import com.simiacryptus.ref.wrappers.RefArrays;
+import com.simiacryptus.ref.wrappers.RefIntStream;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
-public @com.simiacryptus.ref.lang.RefAware
+public @RefAware
 class SimpleEval extends ReferenceCountingBase
     implements Callable<SimpleEval> {
   @Nonnull
@@ -80,7 +84,7 @@ class SimpleEval extends ReferenceCountingBase
   SimpleEval[] addRefs(SimpleEval[] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(SimpleEval::addRef)
+    return Arrays.stream(array).filter((x) -> x != null).map(SimpleEval::addRef)
         .toArray((x) -> new SimpleEval[x]);
   }
 
@@ -88,18 +92,18 @@ class SimpleEval extends ReferenceCountingBase
   SimpleEval[][] addRefs(SimpleEval[][] array) {
     if (array == null)
       return null;
-    return java.util.Arrays.stream(array).filter((x) -> x != null).map(SimpleEval::addRefs)
+    return Arrays.stream(array).filter((x) -> x != null).map(SimpleEval::addRefs)
         .toArray((x) -> new SimpleEval[x][]);
   }
 
   @Nonnull
   @Override
   public SimpleEval call() {
-    Tensor[] inputCopy = com.simiacryptus.ref.wrappers.RefArrays.stream(input).map(x -> x.copy())
+    Tensor[] inputCopy = RefArrays.stream(input).map(x -> x.copy())
         .toArray(i -> new Tensor[i]);
-    derivative = com.simiacryptus.ref.wrappers.RefArrays.stream(inputCopy)
+    derivative = RefArrays.stream(inputCopy)
         .map(input -> new Tensor(input.getDimensions())).toArray(i -> new Tensor[i]);
-    Result[] input = com.simiacryptus.ref.wrappers.RefIntStream.range(0, inputCopy.length).mapToObj(i -> {
+    Result[] input = RefIntStream.range(0, inputCopy.length).mapToObj(i -> {
       return new Result(new TensorArray(inputCopy[i]),
           (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
             data.stream().forEach(t -> {
