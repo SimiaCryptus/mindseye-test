@@ -113,14 +113,14 @@ class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   }
 
   public void test(@Nonnull final Layer component, @Nonnull final Tensor[] inputPrototype) {
-    log.info(String.format("%s batch length, %s trials", batches, samples));
+    log.info(RefString.format("%s batch length, %s trials", batches, samples));
     log.info("Input Dimensions:");
     RefArrays.stream(Tensor.addRefs(inputPrototype)).map(t -> {
       String temp_10_0001 = "\t" + RefArrays.toString(t.getDimensions());
       if (null != t)
         t.freeRef();
       return temp_10_0001;
-    }).forEach(System.out::println);
+    }).forEach(com.simiacryptus.ref.wrappers.RefSystem.out::println);
     log.info("Performance:");
     RefList<Tuple2<Double, Double>> performance = RefIntStream.range(0, samples)
         .mapToObj(RefUtil.wrapInterface(
@@ -133,14 +133,14 @@ class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
     if (isTestEvaluation()) {
       @Nonnull final DoubleStatistics statistics = new DoubleStatistics()
           .accept(performance.stream().mapToDouble(x -> x._1).toArray());
-      log.info(String.format("\tEvaluation performance: %.6fs +- %.6fs [%.6fs - %.6fs]", statistics.getAverage(),
+      log.info(RefString.format("\tEvaluation performance: %.6fs +- %.6fs [%.6fs - %.6fs]", statistics.getAverage(),
           statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
     }
     if (isTestLearning()) {
       @Nonnull final DoubleStatistics statistics = new DoubleStatistics()
           .accept(performance.stream().mapToDouble(x -> x._2).toArray());
       if (null != statistics) {
-        log.info(String.format("\tLearning performance: %.6fs +- %.6fs [%.6fs - %.6fs]", statistics.getAverage(),
+        log.info(RefString.format("\tLearning performance: %.6fs +- %.6fs [%.6fs - %.6fs]", statistics.getAverage(),
             statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
       }
     }

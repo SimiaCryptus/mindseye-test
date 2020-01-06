@@ -49,7 +49,7 @@ import java.util.function.Function;
 
 public abstract @RefAware
 class StandardLayerTests extends NotebookReportBase {
-  public static final long seed = 51389; //System.nanoTime();
+  public static final long seed = 51389; //com.simiacryptus.ref.wrappers.RefSystem.nanoTime();
   private static final Map<String, ? extends NavigableMap<String, String>> javadocs = loadJavadoc();
 
   static {
@@ -248,7 +248,7 @@ class StandardLayerTests extends NotebookReportBase {
       return javadocData;
     } catch (Throwable e) {
       logger.warn("Error loading javadocs", e);
-      return new RefHashMap<>();
+      return new HashMap<>();
     }
   }
 
@@ -280,7 +280,7 @@ class StandardLayerTests extends NotebookReportBase {
       log.p("Class Javadoc: " + javadoc.get(":class"));
       javadoc.remove(":class");
       javadoc.forEach((key, doc) -> {
-        log.p(String.format("Field __%s__: %s", key, doc));
+        log.p(RefString.format("Field __%s__: %s", key, doc));
       });
     }
 
@@ -333,7 +333,7 @@ class StandardLayerTests extends NotebookReportBase {
         }
       }
       @Nonnull
-      RefArrayList<TestError> exceptions = standardTests(log, seed, results);
+      RefList<TestError> exceptions = standardTests(log, seed, results);
       if (!exceptions.isEmpty()) {
         if (smallLayer instanceof DAGNetwork) {
           for (@Nonnull
@@ -385,7 +385,7 @@ class StandardLayerTests extends NotebookReportBase {
       if (null != perfLayer)
         perfLayer.freeRef();
       Tensor[] randomize = randomize(largeDims);
-      RefHashMap<CharSequence, Object> testResultProps = new RefHashMap<>();
+      Map<CharSequence, Object> testResultProps = new HashMap<>();
       try {
         Class<? extends ComponentTest> testClass = test.getClass();
         String name = testClass.getCanonicalName();
@@ -409,10 +409,8 @@ class StandardLayerTests extends NotebookReportBase {
         testResultProps.put("result", e.toString());
         throw new RuntimeException(e);
       } finally {
-        results.putRow(RefUtil.addRef(testResultProps));
+        results.putRow(testResultProps);
       }
-      if (null != testResultProps)
-        testResultProps.freeRef();
       if (null != randomize)
         ReferenceCounting.freeRefs(randomize);
       copy.freeRef();
@@ -498,16 +496,16 @@ class StandardLayerTests extends NotebookReportBase {
     return invocations;
   }
 
-  public void throwException(@Nonnull RefArrayList<TestError> exceptions) {
+  public void throwException(@Nonnull RefList<TestError> exceptions) {
     for (@Nonnull
         TestError exception : exceptions) {
-      logger.info(String.format("LayerBase: %s", exception.layer));
-      logger.info("Error", exception);
+      logger.info(RefString.format("LayerBase: %s", exception.layer));
+      logger.info("Error", exception.toString());
     }
     for (Throwable exception : exceptions) {
       try {
         ReferenceCountingBase.supressLog = true;
-        System.gc();
+        com.simiacryptus.ref.wrappers.RefSystem.gc();
         exceptions.freeRef();
         throw new RuntimeException(exception);
       } finally {
@@ -519,7 +517,7 @@ class StandardLayerTests extends NotebookReportBase {
 
   @Nonnull
   public RefArrayList<TestError> standardTests(@Nonnull NotebookOutput log, long seed, TableOutput results) {
-    log.p(String.format("Using Seed %d", seed));
+    log.p(RefString.format("Using Seed %d", seed));
     @Nonnull
     RefArrayList<TestError> exceptions = new RefArrayList<>();
     final Layer layer = getLayer(getSmallDims(new Random(seed)), new Random(seed));
@@ -552,7 +550,7 @@ class StandardLayerTests extends NotebookReportBase {
           Layer layer = perfLayer.copy();
           try {
             Tensor[] input = randomize(getLargeDims(new Random(seed)));
-            RefLinkedHashMap<CharSequence, Object> testResultProps = new RefLinkedHashMap<>();
+            Map<CharSequence, Object> testResultProps = new LinkedHashMap<>();
             try {
               String testclass = test.getClass().getCanonicalName();
               if (null == testclass || testclass.isEmpty())
@@ -569,10 +567,8 @@ class StandardLayerTests extends NotebookReportBase {
               testResultProps.put("result", e.toString());
               throw new RuntimeException(e);
             } finally {
-              results.putRow(RefUtil.addRef(testResultProps));
+              results.putRow(testResultProps);
             }
-            if (null != testResultProps)
-              testResultProps.freeRef();
             if (null != input)
               ReferenceCounting.freeRefs(input);
           } catch (LifecycleException e) {
@@ -583,7 +579,7 @@ class StandardLayerTests extends NotebookReportBase {
             exceptions
                 .add(new TestError(e, test == null ? null : test.addRef(), layer == null ? null : layer.addRef()));
           } finally {
-            System.gc();
+            com.simiacryptus.ref.wrappers.RefSystem.gc();
           }
           layer.freeRef();
           if (null != test)
@@ -647,7 +643,7 @@ class StandardLayerTests extends NotebookReportBase {
   }
 
   private void tests(final NotebookOutput log, final RefList<ComponentTest<?>> tests,
-                     @Nonnull final Invocation invocation, @Nonnull final RefArrayList<TestError> exceptions, TableOutput results) {
+                     @Nonnull final Invocation invocation, @Nonnull final RefList<TestError> exceptions, TableOutput results) {
     tests.stream().filter(x -> {
       boolean temp_07_0008 = null != x;
       if (null != x)
@@ -661,7 +657,7 @@ class StandardLayerTests extends NotebookReportBase {
           if (null != temp_07_0019)
             temp_07_0019.freeRef();
           Tensor[] inputs = randomize(invocation.getDims());
-          RefLinkedHashMap<CharSequence, Object> testResultProps = new RefLinkedHashMap<>();
+          Map<CharSequence, Object> testResultProps = new LinkedHashMap<>();
           try {
             String testname = test.getClass().getCanonicalName();
             testResultProps.put("class", testname);
@@ -679,13 +675,11 @@ class StandardLayerTests extends NotebookReportBase {
             exceptions
                 .add(new TestError(e, test == null ? null : test.addRef(), layer == null ? null : layer.addRef()));
           } finally {
-            results.putRow(RefUtil.addRef(testResultProps));
-            System.gc();
+            results.putRow(testResultProps);
+            com.simiacryptus.ref.wrappers.RefSystem.gc();
           }
           if (null != test)
             test.freeRef();
-          if (null != testResultProps)
-            testResultProps.freeRef();
           if (null != inputs)
             ReferenceCounting.freeRefs(inputs);
           layer.freeRef();

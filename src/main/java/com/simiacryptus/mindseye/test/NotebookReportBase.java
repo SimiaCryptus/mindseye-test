@@ -24,6 +24,7 @@ import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.ref.lang.RefAware;
 import com.simiacryptus.ref.lang.ReferenceCountingBase;
 import com.simiacryptus.ref.wrappers.RefConsumer;
+import com.simiacryptus.ref.wrappers.RefString;
 import com.simiacryptus.util.CodeUtil;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.test.SysOutInterceptor;
@@ -87,7 +88,7 @@ class NotebookReportBase extends ReferenceCountingBase {
     //parent = new File(path, new SimpleDateFormat("yyyy-MM-dd_HHmmss").format(new Date()));
     path = new File(parent, testName + ".md");
     path.getParentFile().mkdirs();
-    logger.info(String.format("Output Location: %s", path.getAbsoluteFile()));
+    logger.info(RefString.format("Output Location: %s", path.getAbsoluteFile()));
     return path;
   }
 
@@ -95,9 +96,9 @@ class NotebookReportBase extends ReferenceCountingBase {
     try (
         CodeUtil.LogInterception refLeakLog = CodeUtil.intercept(log, ReferenceCountingBase.class.getCanonicalName())) {
       fn.accept(log);
-      System.gc();
+      com.simiacryptus.ref.wrappers.RefSystem.gc();
       if (refLeakLog.counter.get() != 0)
-        throw new AssertionError(String.format("RefLeak logged %d bytes", refLeakLog.counter.get()));
+        throw new AssertionError(RefString.format("RefLeak logged %d bytes", refLeakLog.counter.get()));
     } catch (RuntimeException e) {
       throw e;
     } catch (Exception e) {

@@ -44,8 +44,8 @@ class ImageCategoryDatasetDemo extends NotebookReportBase {
   }
 
   public <T> RefComparator<T> getShuffleComparator() {
-    final int seed = (int) ((System.nanoTime() >>> 8) % (Integer.MAX_VALUE - 84));
-    return RefComparator.comparingInt(a1 -> System.identityHashCode(a1) ^ seed);
+    final int seed = (int) ((com.simiacryptus.ref.wrappers.RefSystem.nanoTime() >>> 8) % (Integer.MAX_VALUE - 84));
+    return RefComparator.comparingInt(a1 -> com.simiacryptus.ref.wrappers.RefSystem.identityHashCode(a1) ^ seed);
   }
 
   public static @SuppressWarnings("unused")
@@ -78,7 +78,7 @@ class ImageCategoryDatasetDemo extends NotebookReportBase {
     log.run(RefUtil.wrapInterface(() -> {
       RefMap<String, Long> temp_22_0001 = testData.stream()
           .collect(RefCollectors.groupingBy(x -> x.label, RefCollectors.counting()));
-      temp_22_0001.forEach((k, v) -> ImageCategoryDatasetDemo.logger.info(String.format("%s -> %d", k, v)));
+      temp_22_0001.forEach((k, v) -> ImageCategoryDatasetDemo.logger.info(RefString.format("%s -> %d", k, v)));
       if (null != temp_22_0001)
         temp_22_0001.freeRef();
     }, testData == null ? null : testData.addRef()));

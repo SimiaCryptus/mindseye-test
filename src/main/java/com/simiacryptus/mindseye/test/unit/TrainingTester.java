@@ -436,7 +436,7 @@ class TrainingTester extends ComponentTestBase<TrainingTester.ComponentResult> {
     if (null != result)
       result.freeRef();
     if (output_target.length != getBatches()) {
-      logger.info(String.format("Meta layers not supported. %d != %d", output_target.length, getBatches()));
+      logger.info(RefString.format("Meta layers not supported. %d != %d", output_target.length, getBatches()));
       network.freeRef();
       if (null != array)
         ReferenceCounting.freeRefs(array);
@@ -920,7 +920,7 @@ class TrainingTester extends ComponentTestBase<TrainingTester.ComponentResult> {
 
     @Override
     public String toString() {
-      return String.format("{\"input\":%s, \"model\":%s, \"complete\":%s}", input, model, complete);
+      return RefString.format("{\"input\":%s, \"model\":%s, \"complete\":%s}", input, model, complete);
     }
   }
 
@@ -949,7 +949,7 @@ class TrainingTester extends ComponentTestBase<TrainingTester.ComponentResult> {
 
     @Override
     public String toString() {
-      return String.format("{\"type\":\"%s\", value:%s}", type, value);
+      return RefString.format("{\"type\":\"%s\", value:%s}", type, value);
     }
   }
 
@@ -970,7 +970,7 @@ class TrainingTester extends ComponentTestBase<TrainingTester.ComponentResult> {
     @Override
     public String toString() {
       return map.entrySet().stream().map(e -> {
-        String temp_18_0018 = String.format("\"%s\": %s", e.getKey(), e.getValue().toString());
+        String temp_18_0018 = RefString.format("\"%s\": %s", e.getKey(), e.getValue().toString());
         if (null != e)
           RefUtil.freeRef(e);
         return temp_18_0018;

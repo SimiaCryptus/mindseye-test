@@ -30,6 +30,7 @@ import com.simiacryptus.ref.lang.RefUtil;
 import com.simiacryptus.ref.lang.ReferenceCounting;
 import com.simiacryptus.ref.wrappers.RefArrays;
 import com.simiacryptus.ref.wrappers.RefHashMap;
+import com.simiacryptus.ref.wrappers.RefString;
 import com.simiacryptus.util.data.DoubleStatistics;
 
 import javax.annotation.Nonnull;
@@ -91,7 +92,7 @@ class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
                       @Nonnull final DoubleStatistics error = new DoubleStatistics().accept(difference.getData());
                       if (null != difference)
                         difference.freeRef();
-                      String temp_05_0002 = String.format(
+                      String temp_05_0002 = RefString.format(
                           "--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n%s\nError: %s\n--------------------\nDerivative: \n%s",
                           RefArrays.stream(Tensor.addRefs(input)).map(t -> {
                             String temp_05_0003 = RefArrays.toString(t.getDimensions()) + "\n" + t.prettyPrint();
@@ -124,7 +125,7 @@ class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
             @Nonnull final SimpleEval eval = SimpleEval.run(layer == null ? null : layer.addRef(),
                 Tensor.addRefs(inputPrototype));
             Tensor evalOutput = eval.getOutput();
-            String temp_05_0005 = String.format(
+            String temp_05_0005 = RefString.format(
                 "--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n%s\n--------------------\nDerivative: \n%s",
                 RefArrays.stream(Tensor.addRefs(inputPrototype)).map(t -> {
                   String temp_05_0006 = t.prettyPrint();

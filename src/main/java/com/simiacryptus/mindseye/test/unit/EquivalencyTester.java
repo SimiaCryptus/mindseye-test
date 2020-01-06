@@ -30,6 +30,7 @@ import com.simiacryptus.ref.lang.RefUtil;
 import com.simiacryptus.ref.lang.ReferenceCounting;
 import com.simiacryptus.ref.wrappers.RefArrays;
 import com.simiacryptus.ref.wrappers.RefIntStream;
+import com.simiacryptus.ref.wrappers.RefString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,17 +98,17 @@ class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
     @Nonnull
     Tensor error = null;
     {
-      log.info(String.format("Inputs: %s",
+      log.info(RefString.format("Inputs: %s",
           RefArrays.stream(Tensor.addRefs(inputPrototype)).map(t -> {
             String temp_08_0002 = t.prettyPrint();
             if (null != t)
               t.freeRef();
             return temp_08_0002;
           }).reduce((a, b) -> a + ",\n" + b).get()));
-      log.info(String.format("Subject Output: %s", subjectOutput.prettyPrint()));
-      log.info(String.format("Reference Output: %s", referenceOutput.prettyPrint()));
+      log.info(RefString.format("Subject Output: %s", subjectOutput.prettyPrint()));
+      log.info(RefString.format("Reference Output: %s", referenceOutput.prettyPrint()));
       error = subjectOutput.minus(referenceOutput == null ? null : referenceOutput.addRef());
-      log.info(String.format("Error: %s", error.prettyPrint()));
+      log.info(RefString.format("Error: %s", error.prettyPrint()));
       @Nonnull final ToleranceStatistics result = RefIntStream.range(0, subjectOutput.length())
           .mapToObj(RefUtil.wrapInterface(
               (IntFunction<? extends ToleranceStatistics>) i1 -> {
@@ -115,9 +116,9 @@ class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
               }, subjectOutput == null ? null : subjectOutput.addRef(),
               referenceOutput == null ? null : referenceOutput.addRef()))
           .reduce((a, b) -> a.combine(b)).get();
-      log.info(String.format("Accuracy:"));
-      log.info(String.format("absoluteTol: %s", result.absoluteTol.toString()));
-      log.info(String.format("relativeTol: %s", result.relativeTol.toString()));
+      log.info(RefString.format("Accuracy:"));
+      log.info(RefString.format("absoluteTol: %s", result.absoluteTol.toString()));
+      log.info(RefString.format("relativeTol: %s", result.relativeTol.toString()));
       if (!(result.absoluteTol.getMax() < tolerance)) {
         if (null != subjectOutput)
           subjectOutput.freeRef();

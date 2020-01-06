@@ -23,6 +23,7 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.data.MNIST;
 import com.simiacryptus.ref.lang.RefAware;
 import com.simiacryptus.ref.wrappers.RefStream;
+import com.simiacryptus.ref.wrappers.RefString;
 import com.simiacryptus.util.test.LabeledObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +34,7 @@ class MnistProblemData implements ImageProblemData {
 
   @Override
   public RefStream<LabeledObject<Tensor>> trainingData() {
-    log.info(String.format("Loaded %d items", MNIST.trainingDataStream().count()));
+    log.info(RefString.format("Loaded %d items", MNIST.trainingDataStream().count()));
     return MNIST.trainingDataStream();
   }
 

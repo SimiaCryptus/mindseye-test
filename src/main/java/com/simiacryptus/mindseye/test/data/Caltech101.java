@@ -69,14 +69,14 @@ class Caltech101 {
           }
           final ZipEntry entry = tar.getNextEntry();
           if (null == entry) {
-            System.err.println("Null Entry");
+            com.simiacryptus.ref.wrappers.RefSystem.err.println("Null Entry");
             break;
           }
           if (0 == entry.getSize()) {
             continue;
           }
           final String category = entry.getName().split("/")[1];
-          //System.err.println(String.format("%s -> %s (%s)", entry.getName(), category, entry.getImageSize()));
+          //com.simiacryptus.ref.wrappers.RefSystem.err.println(String.format("%s -> %s (%s)", entry.getName(), category, entry.getImageSize()));
           final byte[] data = IOUtils.toByteArray(tar, entry.getSize());
           if (!entry.getName().toLowerCase().endsWith(".jpg")) {
             continue;

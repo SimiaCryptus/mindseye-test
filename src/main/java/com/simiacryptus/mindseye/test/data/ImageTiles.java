@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public @RefAware
@@ -167,7 +168,7 @@ class ImageTiles {
     @Override
     protected void read(@Nonnull final RefList<Tensor> queue) {
       @Nonnull final ArrayList<File> files = new ArrayList<>(
-          ImageTiles.readFiles(parentDirectiory).collect(RefCollectors.toList()));
+          ImageTiles.readFiles(parentDirectiory).collect(Collectors.toList()));
       Collections.shuffle(files);
       for (@Nonnull final File f : files) {
         if (Thread.interrupted()) {

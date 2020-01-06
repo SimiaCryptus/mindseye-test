@@ -55,31 +55,21 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.*;
 import java.util.function.*;
+import java.util.stream.Collectors;
 
 public @RefAware
 class TestUtil {
   public static final URI S3_ROOT = URI.create("https://s3-us-west-2.amazonaws.com/simiacryptus/");
   private static final Logger logger = LoggerFactory.getLogger(TestUtil.class);
 
-  public static RefMap<String, RefList<String>> getStackInfo() {
-    RefCollectors.RefCollector<Map.Entry<Thread, StackTraceElement[]>, ?, RefMap<String, RefList<String>>> temp_13_0017 = RefCollectors
-        .toMap(entry -> {
-          Thread key = entry.getKey();
-          if (null != entry)
-            RefUtil.freeRef(entry);
-          return String.format("%s@%d", key.getName(), key.getId());
-        }, entry -> {
-          RefList<String> temp_13_0001 = RefArrays.stream(entry.getValue())
-              .map(StackTraceElement::toString).collect(RefCollectors.toList());
-          if (null != entry)
-            RefUtil.freeRef(entry);
-          return temp_13_0001;
-        });
-    RefMap<String, RefList<String>> temp_13_0016 = Thread
-        .getAllStackTraces().entrySet().stream().collect(temp_13_0017);
-    if (null != temp_13_0017)
-      temp_13_0017.freeRef();
-    return temp_13_0016;
+  public static Map<String, List<String>> getStackInfo() {
+    return Thread
+        .getAllStackTraces().entrySet().stream().collect(Collectors
+            .toMap(entry -> {
+              Thread key = entry.getKey();
+              return RefString.format("%s@%d", key.getName(), key.getId());
+            }, entry -> Arrays.stream(entry.getValue())
+                .map(StackTraceElement::toString).collect(Collectors.toList())));
   }
 
   public static PlotCanvas compare(final String title, @Nonnull final ProblemRun... trials) {
@@ -113,24 +103,24 @@ class TestUtil {
       }
       DoubleSummaryStatistics valueStatistics = filtered.stream().flatMap(x -> x.history.stream())
           .mapToDouble(x -> x.fitness).filter(x -> x > 0).summaryStatistics();
-      logger.info(String.format("Plotting range=%s, %s; valueStats=%s", RefArrays.toString(lowerBound),
+      logger.info(RefString.format("Plotting range=%s, %s; valueStats=%s", RefArrays.toString(lowerBound),
           RefArrays.toString(upperBound), valueStatistics));
       for (@Nonnull final ProblemRun trial : filtered) {
         final double[][] pts = trial.history.stream()
             .map(step -> new double[]{step.iteration, Math.log10(Math.max(step.fitness, valueStatistics.getMin()))})
             .filter(x -> RefArrays.stream(x).allMatch(Double::isFinite)).toArray(i -> new double[i][]);
         if (pts.length > 1) {
-          logger.info(String.format("Plotting %s points for %s", pts.length, trial.name));
+          logger.info(RefString.format("Plotting %s points for %s", pts.length, trial.name));
           canvas.add(trial.plot(pts));
         } else {
-          logger.info(String.format("Only %s points for %s", pts.length, trial.name));
+          logger.info(RefString.format("Only %s points for %s", pts.length, trial.name));
         }
       }
       if (null != filtered)
         filtered.freeRef();
       return canvas;
     } catch (@Nonnull final Exception e) {
-      e.printStackTrace(System.out);
+      e.printStackTrace(com.simiacryptus.ref.wrappers.RefSystem.out);
       return null;
     }
   }
@@ -166,7 +156,7 @@ class TestUtil {
       }
       DoubleSummaryStatistics valueStatistics = filtered.stream().flatMap(x -> x.history.stream())
           .mapToDouble(x -> x.fitness).filter(x -> x > 0).summaryStatistics();
-      logger.info(String.format("Plotting range=%s, %s; valueStats=%s", RefArrays.toString(lowerBound),
+      logger.info(RefString.format("Plotting range=%s, %s; valueStats=%s", RefArrays.toString(lowerBound),
           RefArrays.toString(upperBound), valueStatistics));
       for (int t = 0; t < filtered.size(); t++) {
         final ProblemRun trial = filtered.get(t);
@@ -176,17 +166,17 @@ class TestUtil {
               Math.log10(Math.max(step.fitness, valueStatistics.getMin()))};
         }).filter(x -> RefArrays.stream(x).allMatch(Double::isFinite)).toArray(i -> new double[i][]);
         if (pts.length > 1) {
-          logger.info(String.format("Plotting %s points for %s", pts.length, trial.name));
+          logger.info(RefString.format("Plotting %s points for %s", pts.length, trial.name));
           canvas.add(trial.plot(pts));
         } else {
-          logger.info(String.format("Only %s points for %s", pts.length, trial.name));
+          logger.info(RefString.format("Only %s points for %s", pts.length, trial.name));
         }
       }
       if (null != filtered)
         filtered.freeRef();
       return canvas;
     } catch (@Nonnull final Exception e) {
-      e.printStackTrace(System.out);
+      e.printStackTrace(com.simiacryptus.ref.wrappers.RefSystem.out);
       return null;
     }
   }
@@ -230,10 +220,10 @@ class TestUtil {
         @Nonnull final PercentileStatistics performanceB = temp_13_0021.getBackwardPerformance();
         if (null != temp_13_0021)
           temp_13_0021.freeRef();
-        String temp_13_0003 = String.format("%.6fs +- %.6fs (%d) <- %s", performanceF.getMean(),
+        String temp_13_0003 = RefString.format("%.6fs +- %.6fs (%d) <- %s", performanceF.getMean(),
             performanceF.getStdDev(), performanceF.getCount(), e.getKey())
             + (performanceB.getCount() == 0 ? ""
-            : String.format("%n\tBack: %.6fs +- %.6fs (%s)", performanceB.getMean(), performanceB.getStdDev(),
+            : RefString.format("%n\tBack: %.6fs +- %.6fs (%s)", performanceB.getMean(), performanceB.getStdDev(),
             performanceB.getCount()));
         if (null != e)
           RefUtil.freeRef(e);
@@ -386,7 +376,7 @@ class TestUtil {
       plot.setSize(600, 400);
       return plot;
     } catch (@Nonnull final Exception e) {
-      e.printStackTrace(System.out);
+      e.printStackTrace(com.simiacryptus.ref.wrappers.RefSystem.out);
       return null;
     }
   }
@@ -566,10 +556,8 @@ class TestUtil {
     if (null != httpd) {
       httpd.addGET("threads.json", "text/json", out -> {
         try {
-          RefMap<String, RefList<String>> temp_13_0026 = getStackInfo();
+          Map<String, List<String>> temp_13_0026 = getStackInfo();
           JsonUtil.getMapper().writer().writeValue(out, temp_13_0026);
-          if (null != temp_13_0026)
-            temp_13_0026.freeRef();
           //JsonUtil.MAPPER.writer().writeValue(out, new HashMap<>());
           out.close();
         } catch (IOException e) {
@@ -635,7 +623,7 @@ class TestUtil {
       @Nonnull
       File file = new File(log.getResourceDir(), filename);
       GifSequenceWriter.write(file, loopTimeMs / images.length, true, images);
-      return String.format("<img src=\"etc/%s\" />", filename);
+      return RefString.format("<img src=\"etc/%s\" />", filename);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

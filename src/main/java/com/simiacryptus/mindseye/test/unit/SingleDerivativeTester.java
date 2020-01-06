@@ -126,22 +126,22 @@ class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistics> {
     {
       if (verbose) {
         output.run(RefUtil.wrapInterface(() -> {
-              log.info(String.format("Inputs: %s",
+              log.info(RefString.format("Inputs: %s",
                   RefArrays.stream(Tensor.addRefs(inputPrototype)).map(t -> {
                     String temp_00_0003 = t.prettyPrint();
                     if (null != t)
                       t.freeRef();
                     return temp_00_0003;
                   }).reduce((a, b) -> a + ",\n" + b).orElse("")));
-              log.info(String.format("Inputs Statistics: %s",
+              log.info(RefString.format("Inputs Statistics: %s",
                   RefArrays.stream(Tensor.addRefs(inputPrototype)).map(x -> {
                     String temp_00_0004 = new ScalarStatistics().add(x.getData()).toString();
                     if (null != x)
                       x.freeRef();
                     return temp_00_0004;
                   }).reduce((a, b) -> a + ",\n" + b).orElse("")));
-              log.info(String.format("Output: %s", null == outputPrototype ? null : outputPrototype.prettyPrint()));
-              log.info(String.format("Outputs Statistics: %s", new ScalarStatistics().add(outputPrototype.getData())));
+              log.info(RefString.format("Output: %s", null == outputPrototype ? null : outputPrototype.prettyPrint()));
+              log.info(RefString.format("Outputs Statistics: %s", new ScalarStatistics().add(outputPrototype.getData())));
             }, outputPrototype == null ? null : outputPrototype.addRef(),
             Tensor.addRefs(inputPrototype)));
       }
@@ -182,9 +182,9 @@ class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistics> {
     final ToleranceStatistics statistics = _statistics;
     output.run(() -> {
       //log.info(String.format("Component: %s\nInputs: %s\noutput=%s", component, Arrays.toStream(inputPrototype), outputPrototype));
-      log.info(String.format("Finite-Difference Derivative Accuracy:"));
-      log.info(String.format("absoluteTol: %s", statistics.absoluteTol));
-      log.info(String.format("relativeTol: %s", statistics.relativeTol));
+      log.info(RefString.format("Finite-Difference Derivative Accuracy:"));
+      log.info(RefString.format("absoluteTol: %s", statistics.absoluteTol));
+      log.info(RefString.format("relativeTol: %s", statistics.relativeTol));
     });
 
     output.h2("Frozen and Alive Status");
@@ -238,20 +238,20 @@ class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistics> {
                   //log.info(String.format("Component: %s", component));
                   if (verbose) {
 
-                    log.info(String.format("Learning Gradient for weight setByCoord %s", i));
+                    log.info(RefString.format("Learning Gradient for weight setByCoord %s", i));
                     RefList<double[]> temp_00_0026 = component.state();
-                    log.info(String.format("Weights: %s", Tensor.prettyPrint(temp_00_0026.get(i))));
+                    log.info(RefString.format("Weights: %s", Tensor.prettyPrint(temp_00_0026.get(i))));
                     if (null != temp_00_0026)
                       temp_00_0026.freeRef();
-                    log.info(String.format("Implemented Gradient: %s", implementedGradient.prettyPrint()));
-                    log.info(String.format("Implemented Statistics: %s",
+                    log.info(RefString.format("Implemented Gradient: %s", implementedGradient.prettyPrint()));
+                    log.info(RefString.format("Implemented Statistics: %s",
                         new ScalarStatistics().add(implementedGradient.getData())));
                     if (null != measuredGradient) {
-                      log.info(String.format("Measured Gradient: %s", measuredGradient.prettyPrint()));
-                      log.info(String.format("Measured Statistics: %s",
+                      log.info(RefString.format("Measured Gradient: %s", measuredGradient.prettyPrint()));
+                      log.info(RefString.format("Measured Statistics: %s",
                           new ScalarStatistics().add(measuredGradient.getData())));
-                      log.info(String.format("Gradient Error: %s", difference.prettyPrint()));
-                      log.info(String.format("Error Statistics: %s", new ScalarStatistics().add(difference.getData())));
+                      log.info(RefString.format("Gradient Error: %s", difference.prettyPrint()));
+                      log.info(RefString.format("Error Statistics: %s", new ScalarStatistics().add(difference.getData())));
                     }
                   }
                   if (null != measuredGradient)
@@ -262,16 +262,16 @@ class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistics> {
                 }
               } catch (@Nonnull final Throwable e) {
                 //log.info(String.format("Component: %s", component));
-                log.info(String.format("Learning Gradient for weight setByCoord %s", i));
-                log.info(String.format("Implemented Gradient: %s", implementedGradient.prettyPrint()));
-                log.info(String.format("Implemented Statistics: %s",
+                log.info(RefString.format("Learning Gradient for weight setByCoord %s", i));
+                log.info(RefString.format("Implemented Gradient: %s", implementedGradient.prettyPrint()));
+                log.info(RefString.format("Implemented Statistics: %s",
                     new ScalarStatistics().add(implementedGradient.getData())));
                 if (null != measuredGradient) {
-                  log.info(String.format("Measured Gradient: %s", measuredGradient.prettyPrint()));
+                  log.info(RefString.format("Measured Gradient: %s", measuredGradient.prettyPrint()));
                   log.info(
-                      String.format("Measured Statistics: %s", new ScalarStatistics().add(measuredGradient.getData())));
-                  log.info(String.format("Gradient Error: %s", difference.prettyPrint()));
-                  log.info(String.format("Error Statistics: %s", new ScalarStatistics().add(difference.getData())));
+                      RefString.format("Measured Statistics: %s", new ScalarStatistics().add(measuredGradient.getData())));
+                  log.info(RefString.format("Gradient Error: %s", difference.prettyPrint()));
+                  log.info(RefString.format("Error Statistics: %s", new ScalarStatistics().add(difference.getData())));
                 }
                 throw e;
               } finally {
@@ -332,19 +332,19 @@ class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistics> {
                 }
                 //log.info(String.format("Component: %s", component));
                 if (verbose) {
-                  log.info(String.format("Feedback for input %s", i));
-                  log.info(String.format("Inputs Values: %s", inputPrototype[i].prettyPrint()));
+                  log.info(RefString.format("Feedback for input %s", i));
+                  log.info(RefString.format("Inputs Values: %s", inputPrototype[i].prettyPrint()));
                   log.info(
-                      String.format("Value Statistics: %s", new ScalarStatistics().add(inputPrototype[i].getData())));
-                  log.info(String.format("Implemented Feedback: %s", implementedGradient.prettyPrint()));
-                  log.info(String.format("Implemented Statistics: %s",
+                      RefString.format("Value Statistics: %s", new ScalarStatistics().add(inputPrototype[i].getData())));
+                  log.info(RefString.format("Implemented Feedback: %s", implementedGradient.prettyPrint()));
+                  log.info(RefString.format("Implemented Statistics: %s",
                       new ScalarStatistics().add(implementedGradient.getData())));
                   if (null != measuredGradient) {
-                    log.info(String.format("Measured Feedback: %s", measuredGradient.prettyPrint()));
-                    log.info(String.format("Measured Statistics: %s",
+                    log.info(RefString.format("Measured Feedback: %s", measuredGradient.prettyPrint()));
+                    log.info(RefString.format("Measured Statistics: %s",
                         new ScalarStatistics().add(measuredGradient.getData())));
-                    log.info(String.format("Feedback Error: %s", difference.prettyPrint()));
-                    log.info(String.format("Error Statistics: %s", new ScalarStatistics().add(difference.getData())));
+                    log.info(RefString.format("Feedback Error: %s", difference.prettyPrint()));
+                    log.info(RefString.format("Error Statistics: %s", new ScalarStatistics().add(difference.getData())));
                   }
                 }
 
@@ -357,23 +357,23 @@ class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistics> {
                 return result;
               } catch (@Nonnull final Throwable e) {
                 //log.info(String.format("Component: %s", component));
-                log.info(String.format("Feedback for input %s", i));
-                log.info(String.format("Inputs Values: %s", inputPrototype[i].prettyPrint()));
+                log.info(RefString.format("Feedback for input %s", i));
+                log.info(RefString.format("Inputs Values: %s", inputPrototype[i].prettyPrint()));
                 log.info(
-                    String.format("Value Statistics: %s", new ScalarStatistics().add(inputPrototype[i].getData())));
+                    RefString.format("Value Statistics: %s", new ScalarStatistics().add(inputPrototype[i].getData())));
                 if (!implementedGradient.isFinalized()) {
-                  log.info(String.format("Implemented Feedback: %s", implementedGradient.prettyPrint()));
-                  log.info(String.format("Implemented Statistics: %s",
+                  log.info(RefString.format("Implemented Feedback: %s", implementedGradient.prettyPrint()));
+                  log.info(RefString.format("Implemented Statistics: %s",
                       new ScalarStatistics().add(implementedGradient.getData())));
                 }
                 if (null != measuredGradient) {
-                  log.info(String.format("Measured: %s", measuredGradient.prettyPrint()));
+                  log.info(RefString.format("Measured: %s", measuredGradient.prettyPrint()));
                   log.info(
-                      String.format("Measured Statistics: %s", new ScalarStatistics().add(measuredGradient.getData())));
+                      RefString.format("Measured Statistics: %s", new ScalarStatistics().add(measuredGradient.getData())));
                 }
                 if (!difference.isFinalized()) {
-                  log.info(String.format("Feedback Error: %s", difference.prettyPrint()));
-                  log.info(String.format("Error Statistics: %s", new ScalarStatistics().add(difference.getData())));
+                  log.info(RefString.format("Feedback Error: %s", difference.prettyPrint()));
+                  log.info(RefString.format("Error Statistics: %s", new ScalarStatistics().add(difference.getData())));
                 }
                 throw e;
               } finally {

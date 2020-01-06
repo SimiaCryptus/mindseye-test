@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.function.IntFunction;
 
 public @RefAware
@@ -202,11 +203,9 @@ class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
                       @Nonnull
                       Tensor diff = a.minus(b == null ? null : b.addRef());
                       logger.info("Error: " + diff.prettyPrint());
-                      RefMap<CharSequence, Object> temp_15_0014 = new ScalarStatistics()
+                      Map<CharSequence, Object> temp_15_0014 = new ScalarStatistics()
                           .add(diff.getData()).getMetrics();
                       logger.info("Scalar Statistics: " + temp_15_0014);
-                      if (null != temp_15_0014)
-                        temp_15_0014.freeRef();
                       double[][] points = RefArrays.stream(diff.getData()).mapToObj(x -> new double[]{x})
                           .toArray(i -> new double[i][]);
                       diff.freeRef();

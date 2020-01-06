@@ -162,7 +162,7 @@ class SimpleEval extends ReferenceCountingBase implements Callable<SimpleEval> {
         ReferenceCounting.freeRefs(temp_01_0005);
     }
     Result[] input = RefIntStream.range(0, inputCopy.length)
-        .mapToObj(RefUtil.wrapInterface((IntFunction<?>) i -> {
+        .mapToObj(RefUtil.wrapInterface((IntFunction<Result>) i -> {
           return new Result(new TensorArray(inputCopy[i].addRef()), new Result.Accumulator() {
             @Override
             public void accept(DeltaSet<UUID> buffer, TensorList data) {

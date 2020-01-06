@@ -31,6 +31,7 @@ import com.simiacryptus.ref.lang.RefUtil;
 import com.simiacryptus.ref.lang.ReferenceCounting;
 import com.simiacryptus.ref.wrappers.RefArrays;
 import com.simiacryptus.ref.wrappers.RefHashMap;
+import com.simiacryptus.ref.wrappers.RefString;
 import com.simiacryptus.util.Util;
 import org.apache.commons.io.IOUtils;
 
@@ -134,7 +135,7 @@ class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
       @Nonnull
       String filename = layer.getClass().getSimpleName() + "_" + log.getName() + ".json";
       log.p(log.file(prettyPrint, filename,
-          String.format("Wrote Model to %s; %s characters", filename, prettyPrint.length())));
+          RefString.format("Wrote Model to %s; %s characters", filename, prettyPrint.length())));
     } catch (RuntimeException e) {
       e.printStackTrace();
       Util.sleep(1000);
@@ -159,8 +160,8 @@ class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
               if (null != temp_23_0001)
                 temp_23_0001.freeRef();
               synchronized (outSync) {
-                log.h2(String.format("Zipfile %s", precision.name()));
-                log.p(log.link(file, String.format("Wrote Model apply %s precision to %s; %.3fMiB bytes", precision,
+                log.h2(RefString.format("Zipfile %s", precision.name()));
+                log.p(log.link(file, RefString.format("Wrote Model apply %s precision to %s; %.3fMiB bytes", precision,
                     file.getName(), file.length() * 1.0 / (0x100000))));
               }
               if (!isPersist())

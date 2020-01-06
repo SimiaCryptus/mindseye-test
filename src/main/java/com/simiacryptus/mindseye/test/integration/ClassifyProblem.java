@@ -35,6 +35,7 @@ import com.simiacryptus.notebook.TableOutput;
 import com.simiacryptus.ref.lang.RefAware;
 import com.simiacryptus.ref.lang.RefUtil;
 import com.simiacryptus.ref.lang.ReferenceCounting;
+import com.simiacryptus.ref.wrappers.RefString;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.test.LabeledObject;
 import guru.nidi.graphviz.engine.Format;
@@ -266,7 +267,7 @@ class ClassifyProblem implements Problem {
     row.put("Image", log.png(labeledObject.data.toImage(), labeledObject.label));
     row.put("Prediction",
         Arrays.stream(predictionList).limit(3)
-            .mapToObj(i -> String.format("%d (%.1f%%)", i, 100.0 * predictionSignal[i])).reduce((a, b) -> a + ", " + b)
+            .mapToObj(i -> RefString.format("%d (%.1f%%)", i, 100.0 * predictionSignal[i])).reduce((a, b) -> a + ", " + b)
             .get());
     return row;
   }

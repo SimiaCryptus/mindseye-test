@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.test.unit;
 
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.ref.lang.*;
+import com.simiacryptus.ref.wrappers.RefString;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -42,7 +43,7 @@ class TestError extends RuntimeException implements ReferenceCounting {
   };
 
   public TestError(Throwable cause, ComponentTest<?> test, @Nonnull Layer layer) {
-    super(String.format("Error in %s apply %s", test, layer), cause);
+    super(RefString.format("Error in %s apply %s", test, layer), cause);
     {
       ComponentTest<?> temp_04_0001 = test == null ? null : test.addRef();
       this.test = temp_04_0001 == null ? null : temp_04_0001.addRef();

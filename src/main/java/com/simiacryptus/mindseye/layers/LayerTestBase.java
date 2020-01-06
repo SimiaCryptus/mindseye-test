@@ -64,7 +64,7 @@ class LayerTestBase extends StandardLayerTests {
 
   @After
   public void cleanup() {
-    System.gc();
+    com.simiacryptus.ref.wrappers.RefSystem.gc();
     //GpuController.remove();
   }
 

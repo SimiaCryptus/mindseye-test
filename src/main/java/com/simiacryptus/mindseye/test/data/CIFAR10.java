@@ -84,7 +84,7 @@ class CIFAR10 {
             queue.add(CIFAR10.toImage(chunk).map(img -> Tensor.fromRGB(img)));
           }
         }
-        System.err.println("Done loading");
+        com.simiacryptus.ref.wrappers.RefSystem.err.println("Done loading");
       } catch (@Nonnull final IOException e) {
         e.printStackTrace();
         throw new RuntimeException(e);

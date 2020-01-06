@@ -53,10 +53,7 @@ import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -270,7 +267,7 @@ class EncodingProblem implements Problem {
 
     log.p("Learned Model Statistics:");
     RefUtil.freeRef(log.eval(RefUtil.wrapInterface(
-        (UncheckedSupplier<RefMap<CharSequence, Object>>) () -> {
+        (UncheckedSupplier<Map<CharSequence, Object>>) () -> {
           @Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
           RefList<double[]> temp_20_0015 = trainingNetwork.state();
           temp_20_0015.stream().flatMapToDouble(x -> Arrays.stream(x)).forEach(v -> scalarStatistics.add(v));
@@ -283,7 +280,7 @@ class EncodingProblem implements Problem {
       trainingNetwork.freeRef();
     log.p("Learned Representation Statistics:");
     RefUtil.freeRef(log.eval(RefUtil.wrapInterface(
-        (UncheckedSupplier<RefMap<CharSequence, Object>>) () -> {
+        (UncheckedSupplier<Map<CharSequence, Object>>) () -> {
           @Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
           RefArrays.stream(Tensor.addRefs(trainingData)).flatMapToDouble(row -> {
             RefDoubleStream temp_20_0001 = RefArrays.stream(row[0].getData());
