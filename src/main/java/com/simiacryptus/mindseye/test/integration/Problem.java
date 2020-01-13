@@ -26,8 +26,7 @@ import com.simiacryptus.ref.lang.RefAware;
 import javax.annotation.Nonnull;
 import java.util.List;
 
-public @RefAware
-interface Problem {
+public interface Problem {
   @Nonnull
   List<StepRecord> getHistory();
 

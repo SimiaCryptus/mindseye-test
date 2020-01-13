@@ -47,8 +47,7 @@ import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
-public @RefAware
-class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
+public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
   @Nonnull
   private final RefHashMap<SerialPrecision, Layer> models = new RefHashMap<>();
   private boolean persist = false;
@@ -77,7 +76,7 @@ class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
     try {
       try (@Nonnull
-           GZIPOutputStream out = new GZIPOutputStream(byteArrayOutputStream)) {
+      GZIPOutputStream out = new GZIPOutputStream(byteArrayOutputStream)) {
         IOUtils.write(bytes, out);
       }
     } catch (IOException e) {
@@ -86,16 +85,14 @@ class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
     return byteArrayOutputStream.toByteArray();
   }
 
-  public static @SuppressWarnings("unused")
-  SerializationTest[] addRefs(SerializationTest[] array) {
+  public static @SuppressWarnings("unused") SerializationTest[] addRefs(SerializationTest[] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(SerializationTest::addRef)
         .toArray((x) -> new SerializationTest[x]);
   }
 
-  public static @SuppressWarnings("unused")
-  SerializationTest[][] addRefs(SerializationTest[][] array) {
+  public static @SuppressWarnings("unused") SerializationTest[][] addRefs(SerializationTest[][] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(SerializationTest::addRefs)
@@ -105,7 +102,7 @@ class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
   @Nullable
   @Override
   public ToleranceStatistics test(@Nonnull final NotebookOutput log, @Nonnull final Layer layer,
-                                  final Tensor... inputPrototype) {
+      final Tensor... inputPrototype) {
     if (null != inputPrototype)
       ReferenceCounting.freeRefs(inputPrototype);
     log.h1("Serialization");
@@ -114,24 +111,24 @@ class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
     String prettyPrint = "";
     log.h2("Raw Json");
     try {
-      prettyPrint = log.eval(RefUtil
-          .wrapInterface(() -> {
-            final JsonObject json = layer.getJson().getAsJsonObject();
-            @Nonnull final Layer echo = Layer.fromJson(json);
-            if (echo == null) {
-              echo.freeRef();
-              throw new AssertionError("Failed to deserialize");
-            }
-            if (layer == echo) {
-              echo.freeRef();
-              throw new AssertionError("Serialization did not copy");
-            }
-            if (!layer.equals(echo == null ? null : echo)) {
-              echo.freeRef();
-              throw new AssertionError("Serialization not equal");
-            }
-            return new GsonBuilder().setPrettyPrinting().create().toJson(json);
-          }, layer == null ? null : layer.addRef()));
+      prettyPrint = log.eval(RefUtil.wrapInterface(() -> {
+        final JsonObject json = layer.getJson().getAsJsonObject();
+        @Nonnull
+        final Layer echo = Layer.fromJson(json);
+        if (echo == null) {
+          echo.freeRef();
+          throw new AssertionError("Failed to deserialize");
+        }
+        if (layer == echo) {
+          echo.freeRef();
+          throw new AssertionError("Serialization did not copy");
+        }
+        if (!layer.equals(echo == null ? null : echo)) {
+          echo.freeRef();
+          throw new AssertionError("Serialization not equal");
+        }
+        return new GsonBuilder().setPrettyPrinting().create().toJson(json);
+      }, layer == null ? null : layer.addRef()));
       @Nonnull
       String filename = layer.getClass().getSimpleName() + "_" + log.getName() + ".json";
       log.p(log.file(prettyPrint, filename,
@@ -147,16 +144,16 @@ class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
     @Nonnull
     Object outSync = new Object();
     if (prettyPrint.isEmpty() || prettyPrint.length() > 1024 * 64)
-      RefArrays.stream(SerialPrecision.values()).parallel().forEach(RefUtil.wrapInterface(
-          (Consumer<? super SerialPrecision>) precision -> {
+      RefArrays.stream(SerialPrecision.values()).parallel()
+          .forEach(RefUtil.wrapInterface((Consumer<? super SerialPrecision>) precision -> {
             try {
               @Nonnull
               File file = new File(log.getResourceDir(), log.getName() + "_" + precision.name() + ".zip");
               layer.writeZip(file, precision);
-              @Nonnull final Layer echo = Layer.fromZip(new ZipFile(file));
+              @Nonnull
+              final Layer echo = Layer.fromZip(new ZipFile(file));
               RefHashMap<SerialPrecision, Layer> temp_23_0001 = getModels();
-              RefUtil
-                  .freeRef(temp_23_0001.put(precision, echo == null ? null : echo.addRef()));
+              RefUtil.freeRef(temp_23_0001.put(precision, echo == null ? null : echo.addRef()));
               if (null != temp_23_0001)
                 temp_23_0001.freeRef();
               synchronized (outSync) {
@@ -199,14 +196,11 @@ class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
     return "SerializationTest{" + "models=" + models + ", persist=" + persist + '}';
   }
 
-  public @SuppressWarnings("unused")
-  void _free() {
+  public @SuppressWarnings("unused") void _free() {
     models.freeRef();
   }
 
-  public @Override
-  @SuppressWarnings("unused")
-  SerializationTest addRef() {
+  public @Override @SuppressWarnings("unused") SerializationTest addRef() {
     return (SerializationTest) super.addRef();
   }
 }

@@ -27,16 +27,14 @@ import smile.plot.ScatterPlot;
 import java.awt.*;
 import java.util.List;
 
-public @RefAware
-class ProblemRun {
+public class ProblemRun {
 
   public final Color color;
   public final List<StepRecord> history;
   public final String name;
   public final PlotType type;
 
-  public ProblemRun(final String name, final List<StepRecord> history,
-                    final Color color, final PlotType type) {
+  public ProblemRun(final String name, final List<StepRecord> history, final Color color, final PlotType type) {
     this.history = history;
     this.name = name;
     this.color = color;
@@ -46,18 +44,18 @@ class ProblemRun {
   public Plot plot(final double[][] pts) {
     Plot plot;
     switch (type) {
-      case Scatter:
-        plot = new ScatterPlot(pts);
-        plot.setID(name);
-        plot.setColor(color);
-        return plot;
-      case Line:
-        plot = new LinePlot(pts);
-        plot.setID(name);
-        plot.setColor(color);
-        return plot;
-      default:
-        throw new IllegalStateException(type.toString());
+    case Scatter:
+      plot = new ScatterPlot(pts);
+      plot.setID(name);
+      plot.setColor(color);
+      return plot;
+    case Line:
+      plot = new LinePlot(pts);
+      plot.setID(name);
+      plot.setColor(color);
+      return plot;
+    default:
+      throw new IllegalStateException(type.toString());
     }
   }
 

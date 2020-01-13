@@ -30,8 +30,7 @@ import javax.annotation.Nonnull;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 
-public @RefAware
-class MNistDatasetDemo extends ImageCategoryDatasetDemo {
+public class MNistDatasetDemo extends ImageCategoryDatasetDemo {
 
   @Nonnull
   @Override
@@ -39,16 +38,14 @@ class MNistDatasetDemo extends ImageCategoryDatasetDemo {
     return MNIST.class;
   }
 
-  public static @SuppressWarnings("unused")
-  MNistDatasetDemo[] addRefs(MNistDatasetDemo[] array) {
+  public static @SuppressWarnings("unused") MNistDatasetDemo[] addRefs(MNistDatasetDemo[] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(MNistDatasetDemo::addRef)
         .toArray((x) -> new MNistDatasetDemo[x]);
   }
 
-  public static @SuppressWarnings("unused")
-  MNistDatasetDemo[][] addRefs(MNistDatasetDemo[][] array) {
+  public static @SuppressWarnings("unused") MNistDatasetDemo[][] addRefs(MNistDatasetDemo[][] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(MNistDatasetDemo::addRefs)
@@ -60,9 +57,7 @@ class MNistDatasetDemo extends ImageCategoryDatasetDemo {
     return log.eval(() -> {
       return MNIST.trainingDataStream().map(x -> x.map(y -> {
         SupplierWeakCache<BufferedImage> temp_14_0001 = new SupplierWeakCache<>(
-            RefUtil.wrapInterface(
-                () -> y.toImage(),
-                y == null ? null : y.addRef()));
+            RefUtil.wrapInterface(() -> y.toImage(), y == null ? null : y.addRef()));
         if (null != y)
           y.freeRef();
         return temp_14_0001;
@@ -70,13 +65,10 @@ class MNistDatasetDemo extends ImageCategoryDatasetDemo {
     });
   }
 
-  public @SuppressWarnings("unused")
-  void _free() {
+  public @SuppressWarnings("unused") void _free() {
   }
 
-  public @Override
-  @SuppressWarnings("unused")
-  MNistDatasetDemo addRef() {
+  public @Override @SuppressWarnings("unused") MNistDatasetDemo addRef() {
     return (MNistDatasetDemo) super.addRef();
   }
 }

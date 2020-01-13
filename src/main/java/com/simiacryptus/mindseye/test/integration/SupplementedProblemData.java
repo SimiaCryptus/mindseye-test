@@ -34,8 +34,7 @@ import java.io.IOException;
 import java.util.Random;
 import java.util.function.ToDoubleFunction;
 
-public @RefAware
-class SupplementedProblemData implements ImageProblemData {
+public class SupplementedProblemData implements ImageProblemData {
 
   private final int expansion = 10;
   private final ImageProblemData inner;
@@ -46,24 +45,23 @@ class SupplementedProblemData implements ImageProblemData {
   }
 
   public static void printSample(@Nonnull final NotebookOutput log, final Tensor[][] expanded, final int size) {
-    @Nonnull final RefArrayList<Tensor[]> list = new RefArrayList<>(
-        RefArrays.asList(Tensor.addRefs(expanded)));
+    @Nonnull
+    final RefArrayList<Tensor[]> list = new RefArrayList<>(RefArrays.asList(Tensor.addRefs(expanded)));
     if (null != expanded)
       ReferenceCounting.freeRefs(expanded);
     RefCollections.shuffle(list == null ? null : list.addRef());
-    log.p("Expanded Training Data Sample: " + list.stream().limit(size).map(x -> {
+    log.p("Expanded Training Data Sample: " + RefUtil.get(list.stream().limit(size).map(x -> {
       String temp_16_0001 = log.png(x[0].toGrayImage(), "");
       if (null != x)
         ReferenceCounting.freeRefs(x);
       return temp_16_0001;
-    }).reduce((a, b) -> a + b).get());
+    }).reduce((a, b) -> a + b)));
     list.freeRef();
   }
 
   @Nullable
   protected static Tensor addNoise(@Nonnull final Tensor tensor) {
-    Tensor temp_16_0003 = tensor
-        .mapParallel((v) -> Math.random() < 0.9 ? v : v + Math.random() * 100);
+    Tensor temp_16_0003 = tensor.mapParallel((v) -> Math.random() < 0.9 ? v : v + Math.random() * 100);
     tensor.freeRef();
     return temp_16_0003;
   }
@@ -72,19 +70,17 @@ class SupplementedProblemData implements ImageProblemData {
     final int sx = tensor.getDimensions()[0];
     final int sy = tensor.getDimensions()[1];
     Tensor temp_16_0004 = new Tensor(
-        tensor.coordStream(true).mapToDouble(RefUtil.wrapInterface(
-            (ToDoubleFunction<? super Coordinate>) c -> {
-              final int x = c.getCoords()[0] + dx;
-              final int y = c.getCoords()[1] + dy;
-              if (x < 0 || x >= sx) {
-                return 0.0;
-              } else if (y < 0 || y >= sy) {
-                return 0.0;
-              } else {
-                return tensor.get(x, y);
-              }
-            }, tensor == null ? null : tensor)).toArray(),
-        tensor.getDimensions());
+        tensor.coordStream(true).mapToDouble(RefUtil.wrapInterface((ToDoubleFunction<? super Coordinate>) c -> {
+          final int x = c.getCoords()[0] + dx;
+          final int y = c.getCoords()[1] + dy;
+          if (x < 0 || x >= sx) {
+            return 0.0;
+          } else if (y < 0 || y >= sy) {
+            return 0.0;
+          } else {
+            return tensor.get(x, y);
+          }
+        }, tensor == null ? null : tensor)).toArray(), tensor.getDimensions());
     return temp_16_0004;
   }
 
@@ -96,8 +92,7 @@ class SupplementedProblemData implements ImageProblemData {
         final int dy = random.nextInt(10) - 5;
         return SupplementedProblemData.addNoise(SupplementedProblemData.translate(dx, dy, labeledObject.data.addRef()));
       }).map(t -> {
-        LabeledObject<Tensor> temp_16_0002 = new LabeledObject<>(
-            t == null ? null : t.addRef(), labeledObject.label);
+        LabeledObject<Tensor> temp_16_0002 = new LabeledObject<>(t == null ? null : t.addRef(), labeledObject.label);
         if (null != t)
           t.freeRef();
         return temp_16_0002;

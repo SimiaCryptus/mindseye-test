@@ -29,8 +29,7 @@ import javax.annotation.Nonnull;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 
-public @RefAware
-class CaltechDatasetDemo extends ImageCategoryDatasetDemo {
+public class CaltechDatasetDemo extends ImageCategoryDatasetDemo {
 
   @Nonnull
   @Override
@@ -38,16 +37,14 @@ class CaltechDatasetDemo extends ImageCategoryDatasetDemo {
     return Caltech101.class;
   }
 
-  public static @SuppressWarnings("unused")
-  CaltechDatasetDemo[] addRefs(CaltechDatasetDemo[] array) {
+  public static @SuppressWarnings("unused") CaltechDatasetDemo[] addRefs(CaltechDatasetDemo[] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(CaltechDatasetDemo::addRef)
         .toArray((x) -> new CaltechDatasetDemo[x]);
   }
 
-  public static @SuppressWarnings("unused")
-  CaltechDatasetDemo[][] addRefs(CaltechDatasetDemo[][] array) {
+  public static @SuppressWarnings("unused") CaltechDatasetDemo[][] addRefs(CaltechDatasetDemo[][] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(CaltechDatasetDemo::addRefs)
@@ -61,13 +58,10 @@ class CaltechDatasetDemo extends ImageCategoryDatasetDemo {
     });
   }
 
-  public @SuppressWarnings("unused")
-  void _free() {
+  public @SuppressWarnings("unused") void _free() {
   }
 
-  public @Override
-  @SuppressWarnings("unused")
-  CaltechDatasetDemo addRef() {
+  public @Override @SuppressWarnings("unused") CaltechDatasetDemo addRef() {
     return (CaltechDatasetDemo) super.addRef();
   }
 }

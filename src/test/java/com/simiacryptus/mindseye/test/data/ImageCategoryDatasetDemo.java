@@ -35,8 +35,7 @@ import javax.annotation.Nullable;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 
-public abstract @RefAware
-class ImageCategoryDatasetDemo extends NotebookReportBase {
+public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
   @Nonnull
   @Override
   public ReportType getReportType() {
@@ -48,16 +47,14 @@ class ImageCategoryDatasetDemo extends NotebookReportBase {
     return RefComparator.comparingInt(a1 -> com.simiacryptus.ref.wrappers.RefSystem.identityHashCode(a1) ^ seed);
   }
 
-  public static @SuppressWarnings("unused")
-  ImageCategoryDatasetDemo[] addRefs(ImageCategoryDatasetDemo[] array) {
+  public static @SuppressWarnings("unused") ImageCategoryDatasetDemo[] addRefs(ImageCategoryDatasetDemo[] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(ImageCategoryDatasetDemo::addRef)
         .toArray((x) -> new ImageCategoryDatasetDemo[x]);
   }
 
-  public static @SuppressWarnings("unused")
-  ImageCategoryDatasetDemo[][] addRefs(ImageCategoryDatasetDemo[][] array) {
+  public static @SuppressWarnings("unused") ImageCategoryDatasetDemo[][] addRefs(ImageCategoryDatasetDemo[][] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(ImageCategoryDatasetDemo::addRefs)
@@ -84,28 +81,24 @@ class ImageCategoryDatasetDemo extends NotebookReportBase {
     }, testData == null ? null : testData.addRef()));
 
     log.h3("Sample Data");
-    log.p(log.out(RefUtil
-        .wrapInterface((UncheckedSupplier<String>) () -> {
-          return testData.stream().map(labeledObj -> {
-            @Nullable
-            BufferedImage img = labeledObj.data.get();
-            img = ImageUtil.resize(img, 224, true);
-            return log.png(img, labeledObj.label);
-          }).limit(20).reduce((a, b) -> a + b).get();
-        }, testData == null ? null : testData.addRef())));
+    log.p(log.out(RefUtil.wrapInterface((UncheckedSupplier<String>) () -> {
+      return RefUtil.get(testData.stream().map(labeledObj -> {
+        @Nullable
+        BufferedImage img = labeledObj.data.get();
+        img = ImageUtil.resize(img, 224, true);
+        return log.png(img, labeledObj.label);
+      }).limit(20).reduce((a, b) -> a + b));
+    }, testData == null ? null : testData.addRef())));
     if (null != testData)
       testData.freeRef();
   }
 
   public abstract RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(NotebookOutput log);
 
-  public @SuppressWarnings("unused")
-  void _free() {
+  public @SuppressWarnings("unused") void _free() {
   }
 
-  public @Override
-  @SuppressWarnings("unused")
-  ImageCategoryDatasetDemo addRef() {
+  public @Override @SuppressWarnings("unused") ImageCategoryDatasetDemo addRef() {
     return (ImageCategoryDatasetDemo) super.addRef();
   }
 }

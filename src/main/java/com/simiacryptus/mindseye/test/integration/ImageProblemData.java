@@ -26,8 +26,7 @@ import com.simiacryptus.util.test.LabeledObject;
 
 import java.io.IOException;
 
-public @RefAware
-interface ImageProblemData {
+public interface ImageProblemData {
   RefStream<LabeledObject<Tensor>> trainingData() throws IOException;
 
   RefStream<LabeledObject<Tensor>> validationData() throws IOException;

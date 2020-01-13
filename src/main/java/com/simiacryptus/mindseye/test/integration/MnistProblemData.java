@@ -28,8 +28,7 @@ import com.simiacryptus.util.test.LabeledObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public @RefAware
-class MnistProblemData implements ImageProblemData {
+public class MnistProblemData implements ImageProblemData {
   static final Logger log = LoggerFactory.getLogger(MnistProblemData.class);
 
   @Override

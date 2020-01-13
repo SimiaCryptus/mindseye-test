@@ -41,13 +41,11 @@ import java.security.NoSuchAlgorithmException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-public @RefAware
-class Caltech101 {
+public class Caltech101 {
 
   @Nullable
   private static final DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>> training = new DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>>() {
-    public @SuppressWarnings("unused")
-    void _free() {
+    public @SuppressWarnings("unused") void _free() {
     }
 
     @Override
@@ -62,7 +60,8 @@ class Caltech101 {
           throw new RuntimeException(e);
         }
         final boolean continueLoop = true;
-        @Nullable final ZipInputStream tar = new ZipInputStream(stream);
+        @Nullable
+        final ZipInputStream tar = new ZipInputStream(stream);
         while (continueLoop) {
           if (Thread.interrupted()) {
             break;

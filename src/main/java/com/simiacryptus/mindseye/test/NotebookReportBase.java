@@ -39,8 +39,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
 
-public abstract @RefAware
-class NotebookReportBase extends ReferenceCountingBase {
+public abstract class NotebookReportBase extends ReferenceCountingBase {
 
   protected static final Logger logger = LoggerFactory.getLogger(NotebookReportBase.class);
 
@@ -61,7 +60,7 @@ class NotebookReportBase extends ReferenceCountingBase {
 
   @Nullable
   public static CharSequence printHeader(@Nonnull NotebookOutput log, @Nullable Class<?> networkClass,
-                                         final CharSequence prefix) {
+      final CharSequence prefix) {
     if (null == networkClass)
       return null;
     @Nullable
@@ -74,7 +73,7 @@ class NotebookReportBase extends ReferenceCountingBase {
 
   @Nonnull
   public static File getTestReportLocation(@Nonnull final Class<?> sourceClass, String reportingFolder,
-                                           @Nonnull final CharSequence... suffix) {
+      @Nonnull final CharSequence... suffix) {
     final StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[2];
     final CharSequence methodName = callingFrame.getMethodName();
     final String className = sourceClass.getCanonicalName();
@@ -106,16 +105,14 @@ class NotebookReportBase extends ReferenceCountingBase {
     }
   }
 
-  public static @SuppressWarnings("unused")
-  NotebookReportBase[] addRefs(NotebookReportBase[] array) {
+  public static @SuppressWarnings("unused") NotebookReportBase[] addRefs(NotebookReportBase[] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(NotebookReportBase::addRef)
         .toArray((x) -> new NotebookReportBase[x]);
   }
 
-  public static @SuppressWarnings("unused")
-  NotebookReportBase[][] addRefs(NotebookReportBase[][] array) {
+  public static @SuppressWarnings("unused") NotebookReportBase[][] addRefs(NotebookReportBase[][] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(NotebookReportBase::addRefs)
@@ -137,7 +134,7 @@ class NotebookReportBase extends ReferenceCountingBase {
 
   public void run(@Nonnull RefConsumer<NotebookOutput> fn, @Nonnull CharSequence... logPath) {
     try (@Nonnull
-         NotebookOutput log = getLog(logPath)) {
+    NotebookOutput log = getLog(logPath)) {
       withRefLeakMonitor(log, NotebookOutput.concat(this::printHeader, MarkdownNotebookOutput.wrapFrontmatter(fn)));
     } catch (RuntimeException e) {
       throw e;
@@ -149,7 +146,7 @@ class NotebookReportBase extends ReferenceCountingBase {
   @Nonnull
   public NotebookOutput getLog(CharSequence... logPath) {
     if (null == logPath || logPath.length == 0)
-      logPath = new String[]{getClass().getSimpleName()};
+      logPath = new String[] { getClass().getSimpleName() };
     final File path = getTestReportLocation(getTargetClass(), reportingFolder, logPath);
     try {
       StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[3];
@@ -166,13 +163,10 @@ class NotebookReportBase extends ReferenceCountingBase {
     }
   }
 
-  public @SuppressWarnings("unused")
-  void _free() {
+  public @SuppressWarnings("unused") void _free() {
   }
 
-  public @Override
-  @SuppressWarnings("unused")
-  NotebookReportBase addRef() {
+  public @Override @SuppressWarnings("unused") NotebookReportBase addRef() {
     return (NotebookReportBase) super.addRef();
   }
 

@@ -27,8 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nonnull;
 import java.util.Arrays;
 
-public @RefAware
-class TestError extends RuntimeException implements ReferenceCounting {
+public class TestError extends RuntimeException implements ReferenceCounting {
   public final ComponentTest<?> test;
   @Nonnull
   public final Layer layer;
@@ -43,21 +42,14 @@ class TestError extends RuntimeException implements ReferenceCounting {
   };
 
   public TestError(Throwable cause, ComponentTest<?> test, @Nonnull Layer layer) {
-    super(RefString.format("Error in %s apply %s", test, layer), cause);
-    {
-      ComponentTest<?> temp_04_0001 = test == null ? null : test.addRef();
-      this.test = temp_04_0001 == null ? null : temp_04_0001.addRef();
-      if (null != temp_04_0001)
-        temp_04_0001.freeRef();
-    }
+    super(RefString.format("Error in %s apply %s", test.addRef(), layer.addRef()), cause);
+    this.test = test == null ? null : test.addRef();
     if (null != test)
       test.freeRef();
-    {
-      Layer temp_04_0002 = layer == null ? null : layer.addRef();
-      this.layer = temp_04_0002 == null ? null : temp_04_0002.addRef();
-      if (null != temp_04_0002)
-        temp_04_0002.freeRef();
-    }
+    Layer temp_04_0002 = layer == null ? null : layer.addRef();
+    this.layer = temp_04_0002 == null ? null : temp_04_0002.addRef();
+    if (null != temp_04_0002)
+      temp_04_0002.freeRef();
     RefUtil.freeRef(layer.detach());
     layer.freeRef();
   }
@@ -68,20 +60,16 @@ class TestError extends RuntimeException implements ReferenceCounting {
     return refCounter.isFinalized();
   }
 
-  public static @SuppressWarnings("unused")
-  TestError[] addRefs(TestError[] array) {
+  public static @SuppressWarnings("unused") TestError[] addRefs(TestError[] array) {
     if (array == null)
       return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(TestError::addRef)
-        .toArray((x) -> new TestError[x]);
+    return Arrays.stream(array).filter((x) -> x != null).map(TestError::addRef).toArray((x) -> new TestError[x]);
   }
 
-  public static @SuppressWarnings("unused")
-  TestError[][] addRefs(TestError[][] array) {
+  public static @SuppressWarnings("unused") TestError[][] addRefs(TestError[][] array) {
     if (array == null)
       return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(TestError::addRefs)
-        .toArray((x) -> new TestError[x][]);
+    return Arrays.stream(array).filter((x) -> x != null).map(TestError::addRefs).toArray((x) -> new TestError[x][]);
   }
 
   public void _free() {
@@ -122,9 +110,7 @@ class TestError extends RuntimeException implements ReferenceCounting {
     return refCounter.tryAddRef();
   }
 
-  public @Override
-  @SuppressWarnings("unused")
-  TestError addRef() {
+  public @Override @RefIgnore @SuppressWarnings("unused") TestError addRef() {
     refCounter.addRef();
     return this;
   }

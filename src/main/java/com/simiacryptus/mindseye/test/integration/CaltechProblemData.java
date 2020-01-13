@@ -30,8 +30,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public @RefAware
-class CaltechProblemData implements ImageProblemData {
+public class CaltechProblemData implements ImageProblemData {
 
   private final int imageSize;
   @Nullable
@@ -54,8 +53,7 @@ class CaltechProblemData implements ImageProblemData {
     if (null == labels) {
       synchronized (this) {
         if (null == labels) {
-          labels = trainingData().map(x -> x.label).distinct().sorted()
-              .collect(Collectors.toList());
+          labels = trainingData().map(x -> x.label).distinct().sorted().collect(Collectors.toList());
         }
       }
     }

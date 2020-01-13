@@ -28,9 +28,8 @@ import com.simiacryptus.ref.lang.RefAware;
 
 import javax.annotation.Nonnull;
 
-public @RefAware
-interface OptimizationStrategy {
+public interface OptimizationStrategy {
   @Nonnull
   ValidatingTrainer train(NotebookOutput log, SampledTrainable trainingSubject, Trainable validationSubject,
-                          TrainingMonitor monitor);
+      TrainingMonitor monitor);
 }

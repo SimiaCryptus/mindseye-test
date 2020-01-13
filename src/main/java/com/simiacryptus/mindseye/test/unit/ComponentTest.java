@@ -28,18 +28,15 @@ import com.simiacryptus.ref.lang.ReferenceCounting;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 
-public @RefAware
-interface ComponentTest<T> extends ReferenceCounting {
-  public static @SuppressWarnings("unused")
-  ComponentTest[] addRefs(ComponentTest[] array) {
+public interface ComponentTest<T> extends ReferenceCounting {
+  public static @SuppressWarnings("unused") ComponentTest[] addRefs(ComponentTest[] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(ComponentTest::addRef)
         .toArray((x) -> new ComponentTest[x]);
   }
 
-  public static @SuppressWarnings("unused")
-  ComponentTest[][] addRefs(ComponentTest[][] array) {
+  public static @SuppressWarnings("unused") ComponentTest[][] addRefs(ComponentTest[][] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(ComponentTest::addRefs)

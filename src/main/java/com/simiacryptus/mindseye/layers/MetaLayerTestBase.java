@@ -26,8 +26,7 @@ import com.simiacryptus.ref.lang.RefAware;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 
-public abstract @RefAware
-class MetaLayerTestBase extends LayerTestBase {
+public abstract class MetaLayerTestBase extends LayerTestBase {
 
   public MetaLayerTestBase() {
     validateBatchExecution = false;
@@ -40,29 +39,24 @@ class MetaLayerTestBase extends LayerTestBase {
     //return new BatchDerivativeTester(1e-3, 1e-4, 10);
   }
 
-  public static @SuppressWarnings("unused")
-  MetaLayerTestBase[] addRefs(MetaLayerTestBase[] array) {
+  public static @SuppressWarnings("unused") MetaLayerTestBase[] addRefs(MetaLayerTestBase[] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(MetaLayerTestBase::addRef)
         .toArray((x) -> new MetaLayerTestBase[x]);
   }
 
-  public static @SuppressWarnings("unused")
-  MetaLayerTestBase[][] addRefs(MetaLayerTestBase[][] array) {
+  public static @SuppressWarnings("unused") MetaLayerTestBase[][] addRefs(MetaLayerTestBase[][] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(MetaLayerTestBase::addRefs)
         .toArray((x) -> new MetaLayerTestBase[x][]);
   }
 
-  public @SuppressWarnings("unused")
-  void _free() {
+  public @SuppressWarnings("unused") void _free() {
   }
 
-  public @Override
-  @SuppressWarnings("unused")
-  MetaLayerTestBase addRef() {
+  public @Override @SuppressWarnings("unused") MetaLayerTestBase addRef() {
     return (MetaLayerTestBase) super.addRef();
   }
 

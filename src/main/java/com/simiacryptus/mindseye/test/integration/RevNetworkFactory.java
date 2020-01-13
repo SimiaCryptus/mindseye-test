@@ -25,8 +25,7 @@ import com.simiacryptus.ref.lang.RefAware;
 
 import javax.annotation.Nonnull;
 
-public @RefAware
-interface RevNetworkFactory {
+public interface RevNetworkFactory {
   @Nonnull
   DAGNetwork vectorToImage(NotebookOutput log, int features);
 }

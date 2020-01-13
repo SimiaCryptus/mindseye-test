@@ -41,7 +41,6 @@ import com.simiacryptus.ref.lang.ReferenceCounting;
 import com.simiacryptus.ref.wrappers.RefArrays;
 import com.simiacryptus.ref.wrappers.RefDoubleStream;
 import com.simiacryptus.ref.wrappers.RefList;
-import com.simiacryptus.ref.wrappers.RefMap;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.ScalarStatistics;
 import guru.nidi.graphviz.engine.Format;
@@ -57,8 +56,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
-public abstract @RefAware
-class EncodingProblem implements Problem {
+public abstract class EncodingProblem implements Problem {
 
   private static int modelNo = 0;
   private final ImageProblemData data;
@@ -71,7 +69,7 @@ class EncodingProblem implements Problem {
   private int trainingSize = 15000;
 
   public EncodingProblem(final RevNetworkFactory revFactory, final OptimizationStrategy optimizer,
-                         final ImageProblemData data, final int features) {
+      final ImageProblemData data, final int features) {
     this.revFactory = revFactory;
     this.optimizer = optimizer;
     this.data = data;
@@ -131,13 +129,13 @@ class EncodingProblem implements Problem {
   @Nonnull
   @Override
   public EncodingProblem run(@Nonnull final NotebookOutput log) {
-    @Nonnull final TrainingMonitor monitor = TestUtil.getMonitor(history);
+    @Nonnull
+    final TrainingMonitor monitor = TestUtil.getMonitor(history);
     Tensor[][] trainingData;
     try {
       trainingData = data.trainingData().map(labeledObject -> {
         Tensor temp_20_0003 = new Tensor(features);
-        Tensor[] temp_20_0002 = new Tensor[]{temp_20_0003.set(this::random),
-            labeledObject.data};
+        Tensor[] temp_20_0002 = new Tensor[] { temp_20_0003.set(this::random), labeledObject.data };
         if (null != temp_20_0003)
           temp_20_0003.freeRef();
         return temp_20_0002;
@@ -146,27 +144,27 @@ class EncodingProblem implements Problem {
       throw new RuntimeException(e);
     }
 
-    @Nonnull final DAGNetwork imageNetwork = revFactory.vectorToImage(log, features);
+    @Nonnull
+    final DAGNetwork imageNetwork = revFactory.vectorToImage(log, features);
     log.h3("Network Diagram");
-    log.eval(RefUtil
-        .wrapInterface((UncheckedSupplier<BufferedImage>) () -> {
-          return Graphviz.fromGraph((Graph) TestUtil.toGraph(imageNetwork == null ? null : imageNetwork.addRef()))
-              .height(400).width(600).render(Format.PNG).toImage();
-        }, imageNetwork == null ? null : imageNetwork.addRef()));
+    log.eval(RefUtil.wrapInterface((UncheckedSupplier<BufferedImage>) () -> {
+      return Graphviz.fromGraph((Graph) TestUtil.toGraph(imageNetwork == null ? null : imageNetwork.addRef()))
+          .height(400).width(600).render(Format.PNG).toImage();
+    }, imageNetwork == null ? null : imageNetwork.addRef()));
 
     final DAGNetwork trainingNetwork = trainingNetwork(imageNetwork == null ? null : imageNetwork.addRef());
     log.h3("Training");
     log.p("We start by training apply a very small population to improve initial convergence performance:");
     TestUtil.instrumentPerformance(trainingNetwork == null ? null : trainingNetwork.addRef());
-    @Nonnull final Tensor[][] primingData = RefArrays.copyOfRange(Tensor.addRefs(trainingData), 0,
-        1000);
-    SampledArrayTrainable temp_20_0004 = new SampledArrayTrainable(
-        Tensor.addRefs(primingData),
+    @Nonnull
+    final Tensor[][] primingData = RefArrays.copyOfRange(Tensor.addRefs(trainingData), 0, 1000);
+    SampledArrayTrainable temp_20_0004 = new SampledArrayTrainable(Tensor.addRefs(primingData),
         trainingNetwork == null ? null : trainingNetwork.addRef(), trainingSize, batchSize);
     SampledArrayTrainable temp_20_0007 = temp_20_0004.setMinSamples(trainingSize);
-    @Nonnull final ValidatingTrainer preTrainer = optimizer.train(log, (SampledTrainable) temp_20_0007.setMask(true, false),
-        new ArrayTrainable(Tensor.addRefs(primingData),
-            trainingNetwork == null ? null : trainingNetwork.addRef(), batchSize),
+    @Nonnull
+    final ValidatingTrainer preTrainer = optimizer.train(log, (SampledTrainable) temp_20_0007.setMask(true, false),
+        new ArrayTrainable(Tensor.addRefs(primingData), trainingNetwork == null ? null : trainingNetwork.addRef(),
+            batchSize),
         monitor);
     if (null != temp_20_0007)
       temp_20_0007.freeRef();
@@ -174,8 +172,7 @@ class EncodingProblem implements Problem {
       temp_20_0004.freeRef();
     ReferenceCounting.freeRefs(primingData);
     log.run(RefUtil.wrapInterface(() -> {
-      ValidatingTrainer temp_20_0008 = preTrainer.setTimeout(timeoutMinutes / 2,
-          TimeUnit.MINUTES);
+      ValidatingTrainer temp_20_0008 = preTrainer.setTimeout(timeoutMinutes / 2, TimeUnit.MINUTES);
       ValidatingTrainer temp_20_0009 = temp_20_0008.setMaxIterations(batchSize);
       temp_20_0009.run();
       if (null != temp_20_0009)
@@ -187,21 +184,20 @@ class EncodingProblem implements Problem {
 
     log.p("Then our main training phase:");
     TestUtil.instrumentPerformance(trainingNetwork == null ? null : trainingNetwork.addRef());
-    SampledArrayTrainable temp_20_0005 = new SampledArrayTrainable(
-        Tensor.addRefs(trainingData),
+    SampledArrayTrainable temp_20_0005 = new SampledArrayTrainable(Tensor.addRefs(trainingData),
         trainingNetwork == null ? null : trainingNetwork.addRef(), trainingSize, batchSize);
     SampledArrayTrainable temp_20_0010 = temp_20_0005.setMinSamples(trainingSize);
-    @Nonnull final ValidatingTrainer mainTrainer = optimizer.train(log, (SampledTrainable) temp_20_0010.setMask(true, false),
-        new ArrayTrainable(Tensor.addRefs(trainingData),
-            trainingNetwork == null ? null : trainingNetwork.addRef(), batchSize),
+    @Nonnull
+    final ValidatingTrainer mainTrainer = optimizer.train(log, (SampledTrainable) temp_20_0010.setMask(true, false),
+        new ArrayTrainable(Tensor.addRefs(trainingData), trainingNetwork == null ? null : trainingNetwork.addRef(),
+            batchSize),
         monitor);
     if (null != temp_20_0010)
       temp_20_0010.freeRef();
     if (null != temp_20_0005)
       temp_20_0005.freeRef();
     log.run(RefUtil.wrapInterface(() -> {
-      ValidatingTrainer temp_20_0011 = mainTrainer.setTimeout(timeoutMinutes,
-          TimeUnit.MINUTES);
+      ValidatingTrainer temp_20_0011 = mainTrainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES);
       ValidatingTrainer temp_20_0012 = temp_20_0011.setMaxIterations(batchSize);
       temp_20_0012.run();
       if (null != temp_20_0012)
@@ -230,78 +226,81 @@ class EncodingProblem implements Problem {
     }
 
     //log.file()
-    @Nonnull final String modelName = "encoding_model_" + EncodingProblem.modelNo++ + ".json";
+    @Nonnull
+    final String modelName = "encoding_model_" + EncodingProblem.modelNo++ + ".json";
     log.appendFrontMatterProperty("result_model", modelName, ";");
     log.p("Saved model as " + log.file(trainingNetwork.getJson().toString(), modelName, modelName));
 
     log.h3("Results");
-    @Nonnull final PipelineNetwork testNetwork = new PipelineNetwork(2);
-    RefUtil
-        .freeRef(testNetwork.add(imageNetwork == null ? null : imageNetwork.addRef(), testNetwork.getInput(0)));
-    log.eval(RefUtil
-        .wrapInterface((UncheckedSupplier<TableOutput>) () -> {
-          @Nonnull final TableOutput table = new TableOutput();
-          RefArrays.stream(Tensor.addRefs(trainingData))
-              .map(RefUtil.wrapInterface(
-                  (Function<? super Tensor[], ? extends LinkedHashMap<CharSequence, Object>>) tensorArray -> {
-                    Result temp_20_0013 = testNetwork
-                        .eval(Tensor.addRefs(tensorArray));
-                    TensorList temp_20_0014 = temp_20_0013.getData();
-                    @Nullable final Tensor predictionSignal = temp_20_0014.get(0);
-                    if (null != temp_20_0014)
-                      temp_20_0014.freeRef();
-                    if (null != temp_20_0013)
-                      temp_20_0013.freeRef();
-                    @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();
-                    row.put("Source", log.png(tensorArray[1].toImage(), ""));
-                    if (null != tensorArray)
-                      ReferenceCounting.freeRefs(tensorArray);
-                    row.put("Echo", log.png(predictionSignal.toImage(), ""));
-                    if (null != predictionSignal)
-                      predictionSignal.freeRef();
-                    return row;
-                  }, testNetwork == null ? null : testNetwork.addRef()))
-              .filter(x -> null != x).limit(10).forEach(table::putRow);
-          return table;
-        }, testNetwork == null ? null : testNetwork, Tensor.addRefs(trainingData)));
+    @Nonnull
+    final PipelineNetwork testNetwork = new PipelineNetwork(2);
+    RefUtil.freeRef(testNetwork.add(imageNetwork == null ? null : imageNetwork.addRef(), testNetwork.getInput(0)));
+    log.eval(RefUtil.wrapInterface((UncheckedSupplier<TableOutput>) () -> {
+      @Nonnull
+      final TableOutput table = new TableOutput();
+      RefArrays.stream(Tensor.addRefs(trainingData)).map(RefUtil
+          .wrapInterface((Function<? super Tensor[], ? extends LinkedHashMap<CharSequence, Object>>) tensorArray -> {
+            Result temp_20_0013 = testNetwork.eval(Tensor.addRefs(tensorArray));
+            TensorList temp_20_0014 = temp_20_0013.getData();
+            @Nullable
+            final Tensor predictionSignal = temp_20_0014.get(0);
+            if (null != temp_20_0014)
+              temp_20_0014.freeRef();
+            if (null != temp_20_0013)
+              temp_20_0013.freeRef();
+            @Nonnull
+            final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();
+            row.put("Source", log.png(tensorArray[1].toImage(), ""));
+            if (null != tensorArray)
+              ReferenceCounting.freeRefs(tensorArray);
+            row.put("Echo", log.png(predictionSignal.toImage(), ""));
+            if (null != predictionSignal)
+              predictionSignal.freeRef();
+            return row;
+          }, testNetwork == null ? null : testNetwork.addRef())).filter(x -> null != x).limit(10)
+          .forEach(table::putRow);
+      return table;
+    }, testNetwork == null ? null : testNetwork, Tensor.addRefs(trainingData)));
 
     log.p("Learned Model Statistics:");
-    RefUtil.freeRef(log.eval(RefUtil.wrapInterface(
-        (UncheckedSupplier<Map<CharSequence, Object>>) () -> {
-          @Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
-          RefList<double[]> temp_20_0015 = trainingNetwork.state();
-          temp_20_0015.stream().flatMapToDouble(x -> Arrays.stream(x)).forEach(v -> scalarStatistics.add(v));
-          if (null != temp_20_0015)
-            temp_20_0015.freeRef();
-          return scalarStatistics.getMetrics();
-        }, trainingNetwork == null ? null : trainingNetwork.addRef())));
+    RefUtil.freeRef(log.eval(RefUtil.wrapInterface((UncheckedSupplier<Map<CharSequence, Object>>) () -> {
+      @Nonnull
+      final ScalarStatistics scalarStatistics = new ScalarStatistics();
+      RefList<double[]> temp_20_0015 = trainingNetwork.state();
+      temp_20_0015.stream().flatMapToDouble(x -> Arrays.stream(x)).forEach(v -> scalarStatistics.add(v));
+      if (null != temp_20_0015)
+        temp_20_0015.freeRef();
+      return scalarStatistics.getMetrics();
+    }, trainingNetwork == null ? null : trainingNetwork.addRef())));
 
     if (null != trainingNetwork)
       trainingNetwork.freeRef();
     log.p("Learned Representation Statistics:");
-    RefUtil.freeRef(log.eval(RefUtil.wrapInterface(
-        (UncheckedSupplier<Map<CharSequence, Object>>) () -> {
-          @Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
-          RefArrays.stream(Tensor.addRefs(trainingData)).flatMapToDouble(row -> {
-            RefDoubleStream temp_20_0001 = RefArrays.stream(row[0].getData());
-            if (null != row)
-              ReferenceCounting.freeRefs(row);
-            return temp_20_0001;
-          }).forEach(v -> scalarStatistics.add(v));
-          return scalarStatistics.getMetrics();
-        }, Tensor.addRefs(trainingData))));
+    RefUtil.freeRef(log.eval(RefUtil.wrapInterface((UncheckedSupplier<Map<CharSequence, Object>>) () -> {
+      @Nonnull
+      final ScalarStatistics scalarStatistics = new ScalarStatistics();
+      RefArrays.stream(Tensor.addRefs(trainingData)).flatMapToDouble(row -> {
+        RefDoubleStream temp_20_0001 = RefArrays.stream(row[0].getData());
+        if (null != row)
+          ReferenceCounting.freeRefs(row);
+        return temp_20_0001;
+      }).forEach(v -> scalarStatistics.add(v));
+      return scalarStatistics.getMetrics();
+    }, Tensor.addRefs(trainingData))));
 
     if (null != trainingData)
       ReferenceCounting.freeRefs(trainingData);
     log.p("Some rendered unit vectors:");
     for (int featureNumber = 0; featureNumber < features; featureNumber++) {
       Tensor temp_20_0006 = new Tensor(features);
-      @Nonnull final Tensor input = temp_20_0006.set(featureNumber, 1);
+      @Nonnull
+      final Tensor input = temp_20_0006.set(featureNumber, 1);
       if (null != temp_20_0006)
         temp_20_0006.freeRef();
       Result temp_20_0016 = imageNetwork.eval(input == null ? null : input);
       TensorList temp_20_0017 = temp_20_0016.getData();
-      @Nullable final Tensor tensor = temp_20_0017.get(0);
+      @Nullable
+      final Tensor tensor = temp_20_0017.get(0);
       if (null != temp_20_0017)
         temp_20_0017.freeRef();
       if (null != temp_20_0016)

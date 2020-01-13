@@ -22,8 +22,7 @@ package com.simiacryptus.mindseye.test;
 import com.simiacryptus.lang.Settings;
 import com.simiacryptus.ref.lang.RefAware;
 
-public @RefAware
-class TestSettings implements Settings {
+public class TestSettings implements Settings {
   public static final TestSettings INSTANCE = new TestSettings();
   public final String tag;
 

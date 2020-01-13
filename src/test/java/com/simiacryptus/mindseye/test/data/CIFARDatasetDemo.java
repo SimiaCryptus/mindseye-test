@@ -30,8 +30,7 @@ import javax.annotation.Nonnull;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 
-public @RefAware
-class CIFARDatasetDemo extends ImageCategoryDatasetDemo {
+public class CIFARDatasetDemo extends ImageCategoryDatasetDemo {
 
   @Nonnull
   @Override
@@ -39,16 +38,14 @@ class CIFARDatasetDemo extends ImageCategoryDatasetDemo {
     return CIFAR10.class;
   }
 
-  public static @SuppressWarnings("unused")
-  CIFARDatasetDemo[] addRefs(CIFARDatasetDemo[] array) {
+  public static @SuppressWarnings("unused") CIFARDatasetDemo[] addRefs(CIFARDatasetDemo[] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(CIFARDatasetDemo::addRef)
         .toArray((x) -> new CIFARDatasetDemo[x]);
   }
 
-  public static @SuppressWarnings("unused")
-  CIFARDatasetDemo[][] addRefs(CIFARDatasetDemo[][] array) {
+  public static @SuppressWarnings("unused") CIFARDatasetDemo[][] addRefs(CIFARDatasetDemo[][] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(CIFARDatasetDemo::addRefs)
@@ -60,9 +57,7 @@ class CIFARDatasetDemo extends ImageCategoryDatasetDemo {
     return log.eval(() -> {
       return CIFAR10.trainingDataStream().map(x -> x.map(y -> {
         SupplierWeakCache<BufferedImage> temp_11_0001 = new SupplierWeakCache<>(
-            RefUtil.wrapInterface(
-                () -> y.toImage(),
-                y == null ? null : y.addRef()));
+            RefUtil.wrapInterface(() -> y.toImage(), y == null ? null : y.addRef()));
         if (null != y)
           y.freeRef();
         return temp_11_0001;
@@ -70,13 +65,10 @@ class CIFARDatasetDemo extends ImageCategoryDatasetDemo {
     });
   }
 
-  public @SuppressWarnings("unused")
-  void _free() {
+  public @SuppressWarnings("unused") void _free() {
   }
 
-  public @Override
-  @SuppressWarnings("unused")
-  CIFARDatasetDemo addRef() {
+  public @Override @SuppressWarnings("unused") CIFARDatasetDemo addRef() {
     return (CIFARDatasetDemo) super.addRef();
   }
 }
