@@ -22,10 +22,10 @@ package com.simiacryptus.mindseye.test.integration;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.data.Caltech101;
 import com.simiacryptus.mindseye.util.ImageUtil;
-import com.simiacryptus.ref.lang.RefAware;
 import com.simiacryptus.ref.wrappers.RefStream;
 import com.simiacryptus.util.test.LabeledObject;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -60,12 +60,14 @@ public class CaltechProblemData implements ImageProblemData {
     return labels;
   }
 
+  @Nonnull
   @Override
   public RefStream<LabeledObject<Tensor>> trainingData() {
     return Caltech101.trainingDataStream().parallel()
         .map(x -> x.map(y -> Tensor.fromRGB(ImageUtil.resize(y.get(), getImageSize()))));
   }
 
+  @Nonnull
   @Override
   public RefStream<LabeledObject<Tensor>> validationData() {
     return trainingData();

@@ -21,22 +21,25 @@ package com.simiacryptus.mindseye.test.integration;
 
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.data.MNIST;
-import com.simiacryptus.ref.lang.RefAware;
 import com.simiacryptus.ref.wrappers.RefStream;
 import com.simiacryptus.ref.wrappers.RefString;
 import com.simiacryptus.util.test.LabeledObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+
 public class MnistProblemData implements ImageProblemData {
   static final Logger log = LoggerFactory.getLogger(MnistProblemData.class);
 
+  @Nonnull
   @Override
   public RefStream<LabeledObject<Tensor>> trainingData() {
     log.info(RefString.format("Loaded %d items", MNIST.trainingDataStream().count()));
     return MNIST.trainingDataStream();
   }
 
+  @Nonnull
   @Override
   public RefStream<LabeledObject<Tensor>> validationData() {
     return MNIST.validationDataStream();

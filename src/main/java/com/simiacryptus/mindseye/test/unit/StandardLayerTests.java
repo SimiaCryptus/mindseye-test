@@ -30,7 +30,10 @@ import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.notebook.TableOutput;
-import com.simiacryptus.ref.lang.*;
+import com.simiacryptus.ref.lang.LifecycleException;
+import com.simiacryptus.ref.lang.RefUtil;
+import com.simiacryptus.ref.lang.ReferenceCounting;
+import com.simiacryptus.ref.lang.ReferenceCountingBase;
 import com.simiacryptus.ref.wrappers.*;
 import com.simiacryptus.util.IOUtil;
 import com.simiacryptus.util.test.SysOutInterceptor;
@@ -81,12 +84,12 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         return random();
       }
 
-      public @SuppressWarnings("unused") void _free() {
+      public @SuppressWarnings("unused")
+      void _free() {
       }
     };
     BatchingTester temp_07_0010 = temp_07_0011.setBatchSize(testingBatchSize);
-    if (null != temp_07_0011)
-      temp_07_0011.freeRef();
+    temp_07_0011.freeRef();
     return temp_07_0010;
   }
 
@@ -107,17 +110,13 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   public ComponentTest<ToleranceStatistics> getEquivalencyTester() {
     if (!testEquivalency)
       return null;
-    @Nullable
-    final Layer referenceLayer = getReferenceLayer();
+    @Nullable final Layer referenceLayer = getReferenceLayer();
     if (null == referenceLayer) {
-      if (null != referenceLayer)
-        referenceLayer.freeRef();
       return null;
     }
     EquivalencyTester temp_07_0002 = new EquivalencyTester(1e-2,
-        referenceLayer == null ? null : referenceLayer.addRef());
-    if (null != referenceLayer)
-      referenceLayer.freeRef();
+        referenceLayer.addRef());
+    referenceLayer.freeRef();
     return temp_07_0002;
   }
 
@@ -140,8 +139,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   public ComponentTest<ToleranceStatistics> getPerformanceTester() {
     PerformanceTester temp_07_0013 = new PerformanceTester();
     PerformanceTester temp_07_0012 = temp_07_0013.setBatches(this.testingBatchSize);
-    if (null != temp_07_0013)
-      temp_07_0013.freeRef();
+    temp_07_0013.freeRef();
     return temp_07_0012;
   }
 
@@ -150,6 +148,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     return new Random(seed);
   }
 
+  @Nullable
   protected RefHashMap<Tensor[], Tensor> getReferenceIO() {
     return new RefHashMap<>();
   }
@@ -179,9 +178,9 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   protected Class<?> getTargetClass() {
     try {
       Layer layer = getLayer(getSmallDims(new Random()), new Random());
+      assert layer != null;
       Class<?> temp_07_0003 = layer.getClass();
-      if (null != layer)
-        layer.freeRef();
+      layer.freeRef();
       return temp_07_0003;
     } catch (Throwable e) {
       logger.warn("ERROR", e);
@@ -191,9 +190,9 @@ public abstract class StandardLayerTests extends NotebookReportBase {
 
   public Class<?> getTestClass() {
     Layer layer = getLayer(getSmallDims(new Random()), new Random());
+    assert layer != null;
     Class<?> temp_07_0004 = layer.getClass();
-    if (null != layer)
-      layer.freeRef();
+    layer.freeRef();
     return temp_07_0004;
   }
 
@@ -203,9 +202,11 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       {
       }
 
-      public @SuppressWarnings("unused") void _free() {
+      public @SuppressWarnings("unused")
+      void _free() {
       }
 
+      @Nonnull
       @Override
       protected Layer lossLayer() {
         return StandardLayerTests.this.lossLayer();
@@ -222,14 +223,18 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     this.testTraining = testTraining;
   }
 
-  public static @SuppressWarnings("unused") StandardLayerTests[] addRefs(StandardLayerTests[] array) {
+  @Nullable
+  public static @SuppressWarnings("unused")
+  StandardLayerTests[] addRefs(@Nullable StandardLayerTests[] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(StandardLayerTests::addRef)
         .toArray((x) -> new StandardLayerTests[x]);
   }
 
-  public static @SuppressWarnings("unused") StandardLayerTests[][] addRefs(StandardLayerTests[][] array) {
+  @Nullable
+  public static @SuppressWarnings("unused")
+  StandardLayerTests[][] addRefs(@Nullable StandardLayerTests[][] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(StandardLayerTests::addRefs)
@@ -248,10 +253,13 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     }
   }
 
+  @Nonnull
   public abstract int[][] getSmallDims(Random random);
 
+  @javax.annotation.Nullable
   public abstract Layer getLayer(int[][] inputSize, Random random);
 
+  @Nonnull
   public int[][] getLargeDims(Random random) {
     return getSmallDims(new Random());
   }
@@ -264,6 +272,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     return Math.round(1000.0 * (random.nextDouble() - 0.5)) / 250.0;
   }
 
+  @Nonnull
   public Tensor[] randomize(@Nonnull final int[][] inputDims) {
     return RefArrays.stream(inputDims).map(dim -> {
       return new Tensor(dim).set(() -> random());
@@ -295,7 +304,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         log.eval(RefUtil.wrapInterface((UncheckedSupplier<BufferedImage>) () -> {
           return Graphviz.fromGraph((Graph) TestUtil.toGraph(((DAGNetwork) smallLayer).addRef())).height(400).width(600)
               .render(Format.PNG).toImage();
-        }, smallLayer == null ? null : smallLayer.addRef()));
+        }, smallLayer.addRef()));
       } catch (Throwable e) {
         logger.info("Error plotting graph", e);
       }
@@ -309,17 +318,16 @@ public abstract class StandardLayerTests extends NotebookReportBase {
           DAGNetwork network = (DAGNetwork) explode;
           log.eval(RefUtil.wrapInterface((UncheckedSupplier<String>) () -> {
             @Nonnull
-            Graphviz graphviz = Graphviz.fromGraph((Graph) TestUtil.toGraph(network == null ? null : network.addRef()))
+            Graphviz graphviz = Graphviz.fromGraph((Graph) TestUtil.toGraph(network.addRef()))
                 .height(400).width(600);
             @Nonnull
             File file = new File(log.getResourceDir(), log.getName() + "_network.svg");
             graphviz.render(Format.SVG_STANDALONE).toFile(file);
             log.link(file, "Saved to File");
             return graphviz.render(Format.SVG).toString();
-          }, network == null ? null : network));
+          }, network));
         }
-        if (null != explode)
-          explode.freeRef();
+        explode.freeRef();
       } catch (Throwable e) {
         logger.info("Error plotting graph", e);
       }
@@ -328,36 +336,36 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     RefList<TestError> exceptions = standardTests(log, seed, results);
     if (!exceptions.isEmpty()) {
       if (smallLayer instanceof DAGNetwork) {
-        RefCollection<Invocation> invocations = getInvocations(smallLayer == null ? null : smallLayer.addRef(), smallDims);
+        RefCollection<Invocation> invocations = getInvocations(smallLayer.addRef(), smallDims);
         invocations.forEach(invocation -> {
           Layer temp_07_0014 = invocation.getLayer();
+          assert temp_07_0014 != null;
           log.h1("Small SubTests: " + temp_07_0014.getClass().getSimpleName());
-          if (null != temp_07_0014)
-            temp_07_0014.freeRef();
+          temp_07_0014.freeRef();
           log.p(RefArrays.deepToString(invocation.getDims()));
-          tests(log, getLittleTests(), invocation == null ? null : invocation.addRef(),
-              exceptions == null ? null : exceptions.addRef(), results);
+          tests(log, getLittleTests(), invocation.addRef(),
+              exceptions.addRef(), results);
         });
         invocations.freeRef();
       }
       if (largeLayer instanceof DAGNetwork) {
         testEquivalency = false;
-        RefCollection<Invocation> invocations = getInvocations(largeLayer == null ? null : largeLayer.addRef(), largeDims);
+        RefCollection<Invocation> invocations = getInvocations(largeLayer.addRef(), largeDims);
         invocations.forEach(invocation -> {
           Layer temp_07_0015 = invocation.getLayer();
+          assert temp_07_0015 != null;
           log.h1("Large SubTests: " + temp_07_0015.getClass().getSimpleName());
-          if (null != temp_07_0015)
-            temp_07_0015.freeRef();
+          temp_07_0015.freeRef();
           log.p(RefArrays.deepToString(invocation.getDims()));
-          tests(log, getBigTests(), invocation == null ? null : invocation.addRef(),
-              exceptions == null ? null : exceptions.addRef(), results);
+          tests(log, getBigTests(), invocation.addRef(),
+              exceptions.addRef(), results);
         });
         invocations.freeRef();
       }
     }
     log.run(RefUtil.wrapInterface(() -> {
-      throwException(exceptions == null ? null : exceptions.addRef());
-    }, exceptions == null ? null : exceptions));
+      throwException(exceptions.addRef());
+    }, exceptions));
     if (null != largeLayer)
       largeLayer.freeRef();
     if (null != smallLayer)
@@ -371,12 +379,12 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     }).forEach(test -> {
       final Layer perfLayer;
       perfLayer = getLayer(largeDims, new Random(seed));
+      assert perfLayer != null;
       perfLayer.assertAlive();
       @Nonnull
       Layer copy;
       copy = perfLayer.copy();
-      if (null != perfLayer)
-        perfLayer.freeRef();
+      perfLayer.freeRef();
       Tensor[] randomize = randomize(largeDims);
       Map<CharSequence, Object> testResultProps = new HashMap<>();
       try {
@@ -388,9 +396,9 @@ public abstract class StandardLayerTests extends NotebookReportBase {
           name = testClass.toString();
         testResultProps.put("class", name);
         Object result = log.subreport(RefUtil.wrapInterface(
-            (Function<NotebookOutput, ?>) sublog -> test.test(sublog, copy == null ? null : copy.addRef(),
+            (Function<NotebookOutput, ?>) sublog -> test.test(sublog, copy.addRef(),
                 Tensor.addRefs(randomize)),
-            copy == null ? null : copy.addRef(), Tensor.addRefs(randomize), test == null ? null : test.addRef()),
+            copy.addRef(), Tensor.addRefs(randomize), test.addRef()),
             log.getName() + "_" + name);
         testResultProps.put("details", null == result ? null : result.toString());
         testResultProps.put("result", "OK");
@@ -400,14 +408,11 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       } finally {
         results.putRow(testResultProps);
       }
-      if (null != randomize)
-        ReferenceCounting.freeRefs(randomize);
+      ReferenceCounting.freeRefs(randomize);
       copy.freeRef();
-      if (null != test)
-        test.freeRef();
+      test.freeRef();
     });
-    if (null != temp_07_0016)
-      temp_07_0016.freeRef();
+    temp_07_0016.freeRef();
     log.h1("Test Matrix");
     log.out(results.toMarkdownTable());
 
@@ -438,13 +443,11 @@ public abstract class StandardLayerTests extends NotebookReportBase {
           @Nullable
           Result result = inner.eval(Result.addRefs(array));
           invocations.add(
-              new Invocation(inner == null ? null : inner.addRef(), RefArrays.stream(Result.addRefs(array)).map(x -> {
+              new Invocation(inner.addRef(), RefArrays.stream(Result.addRefs(array)).map(x -> {
                 TensorList temp_07_0017 = x.getData();
                 int[] temp_07_0006 = temp_07_0017.getDimensions();
-                if (null != temp_07_0017)
-                  temp_07_0017.freeRef();
-                if (null != x)
-                  x.freeRef();
+                temp_07_0017.freeRef();
+                x.freeRef();
                 return temp_07_0006;
               }).toArray(i -> new int[i][])));
           ReferenceCounting.freeRefs(array);
@@ -453,12 +456,14 @@ public abstract class StandardLayerTests extends NotebookReportBase {
 
         @Override
         public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
+          assert inner != null;
           return inner.getJson(resources, dataSerializer).getAsJsonObject();
         }
 
         @Nullable
         @Override
         public RefList<double[]> state() {
+          assert inner != null;
           return inner.state();
         }
 
@@ -467,20 +472,17 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       };
       if (null != inner)
         inner.freeRef();
-      node.setLayer(wrapper == null ? null : wrapper.addRef());
-      if (null != wrapper)
-        wrapper.freeRef();
-      if (null != node)
-        node.freeRef();
-    }, invocations == null ? null : invocations.addRef()));
+      node.setLayer(wrapper.addRef());
+      wrapper.freeRef();
+      node.freeRef();
+    }, invocations.addRef()));
     Tensor[] input = RefArrays.stream(smallDims).map(i -> new Tensor(i)).toArray(i -> new Tensor[i]);
     Result eval = smallCopy.eval(Tensor.addRefs(input));
-    if (null != input)
-      ReferenceCounting.freeRefs(input);
+    ReferenceCounting.freeRefs(input);
     smallCopy.freeRef();
+    assert eval != null;
     RefUtil.freeRef(eval.getData());
-    if (null != eval)
-      eval.freeRef();
+    eval.freeRef();
     return invocations;
   }
 
@@ -505,7 +507,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   }
 
   @Nonnull
-  public RefArrayList<TestError> standardTests(@Nonnull NotebookOutput log, long seed, TableOutput results) {
+  public RefArrayList<TestError> standardTests(@Nonnull NotebookOutput log, long seed, @Nonnull TableOutput results) {
     log.p(RefString.format("Using Seed %d", seed));
     @Nonnull
     RefArrayList<TestError> exceptions = new RefArrayList<>();
@@ -513,20 +515,19 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     Invocation invocation = new Invocation(layer == null ? null : layer.addRef(), getSmallDims(new Random(seed)));
     if (null != layer)
       layer.freeRef();
-    tests(log, getLittleTests(), invocation == null ? null : invocation.addRef(),
-        exceptions == null ? null : exceptions.addRef(), results);
-    if (null != invocation)
-      invocation.freeRef();
+    tests(log, getLittleTests(), invocation.addRef(),
+        exceptions.addRef(), results);
+    invocation.freeRef();
     final Layer perfLayer = getLayer(getLargeDims(new Random(seed)), new Random(seed));
-    bigTests(log, seed, perfLayer == null ? null : perfLayer.addRef(), exceptions == null ? null : exceptions.addRef(),
+    bigTests(log, seed, perfLayer == null ? null : perfLayer.addRef(), exceptions.addRef(),
         results);
     if (null != perfLayer)
       perfLayer.freeRef();
     return exceptions;
   }
 
-  public void bigTests(NotebookOutput log, long seed, @Nonnull Layer perfLayer,
-      @Nonnull RefArrayList<TestError> exceptions, TableOutput results) {
+  public void bigTests(@Nonnull NotebookOutput log, long seed, @Nonnull Layer perfLayer,
+                       @Nonnull RefArrayList<TestError> exceptions, @Nonnull TableOutput results) {
     RefList<ComponentTest<?>> temp_07_0018 = getBigTests();
     temp_07_0018.stream().filter(x -> {
       boolean temp_07_0007 = null != x;
@@ -545,9 +546,9 @@ public abstract class StandardLayerTests extends NotebookReportBase {
             testclass = test.toString();
           testResultProps.put("class", testclass);
           Object result = log.subreport(RefUtil.wrapInterface(
-              (Function<NotebookOutput, ?>) sublog -> test.test(sublog, layer == null ? null : layer.addRef(),
+              (Function<NotebookOutput, ?>) sublog -> test.test(sublog, layer.addRef(),
                   Tensor.addRefs(input)),
-              Tensor.addRefs(input), test == null ? null : test.addRef(), layer == null ? null : layer.addRef()),
+              Tensor.addRefs(input), test.addRef(), layer.addRef()),
               log.getName() + "_" + testclass);
           testResultProps.put("details", null == result ? null : result.toString());
           testResultProps.put("result", "OK");
@@ -557,33 +558,35 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         } finally {
           results.putRow(testResultProps);
         }
-        if (null != input)
-          ReferenceCounting.freeRefs(input);
+        ReferenceCounting.freeRefs(input);
       } catch (LifecycleException e) {
         throw e;
       } catch (Throwable e) {
         if (e.getClass().getSimpleName().equals("CudaError"))
           throw e;
-        exceptions.add(new TestError(e, test == null ? null : test.addRef(), layer == null ? null : layer.addRef()));
+        exceptions.add(new TestError(e, test == null ? null : test.addRef(), layer.addRef()));
       } finally {
-        com.simiacryptus.ref.wrappers.RefSystem.gc();
+        RefSystem.gc();
       }
       layer.freeRef();
       if (null != test)
         test.freeRef();
-    }, exceptions == null ? null : exceptions, perfLayer == null ? null : perfLayer));
-    if (null != temp_07_0018)
-      temp_07_0018.freeRef();
+    }, exceptions, perfLayer));
+    temp_07_0018.freeRef();
   }
 
-  public @SuppressWarnings("unused") void _free() {
+  public @SuppressWarnings("unused")
+  void _free() {
   }
 
-  public @Override @SuppressWarnings("unused") StandardLayerTests addRef() {
+  public @Override
+  @SuppressWarnings("unused")
+  StandardLayerTests addRef() {
     return (StandardLayerTests) super.addRef();
   }
 
-  protected final Layer convertToReferenceLayer(Layer layer) {
+  @Nullable
+  protected final Layer convertToReferenceLayer(@Nullable Layer layer) {
     AtomicInteger counter = new AtomicInteger(0);
     Layer cvt = cvt(layer == null ? null : layer.addRef(), counter);
     if (null != layer)
@@ -597,17 +600,18 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     }
   }
 
+  @Nonnull
   protected abstract Layer lossLayer();
 
-  private final Layer cvt(Layer layer, AtomicInteger counter) {
+  @Nullable
+  private final Layer cvt(Layer layer, @Nonnull AtomicInteger counter) {
     if (layer instanceof DAGNetwork) {
       ((DAGNetwork) layer).visitNodes(node -> {
         Layer cvt = cvt(node.getLayer(), counter);
         node.setLayer(cvt == null ? null : cvt.addRef());
         if (null != cvt)
           cvt.freeRef();
-        if (null != node)
-          node.freeRef();
+        node.freeRef();
       });
       return layer;
     } else if (getTestClass().isAssignableFrom(layer.getClass())) {
@@ -628,8 +632,8 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     }
   }
 
-  private void tests(final NotebookOutput log, final RefList<ComponentTest<?>> tests,
-      @Nonnull final Invocation invocation, @Nonnull final RefList<TestError> exceptions, TableOutput results) {
+  private void tests(@Nonnull final NotebookOutput log, @Nonnull final RefList<ComponentTest<?>> tests,
+                     @Nonnull final Invocation invocation, @Nonnull final RefList<TestError> exceptions, @Nonnull TableOutput results) {
     tests.stream().filter(x -> {
       boolean temp_07_0008 = null != x;
       if (null != x)
@@ -637,19 +641,19 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       return temp_07_0008;
     }).forEach(RefUtil.wrapInterface((Consumer<ComponentTest<?>>) (ComponentTest<?> test) -> {
       Layer temp_07_0019 = invocation.getLayer();
+      assert temp_07_0019 != null;
       @Nonnull
       Layer layer = temp_07_0019.copy();
-      if (null != temp_07_0019)
-        temp_07_0019.freeRef();
+      temp_07_0019.freeRef();
       Tensor[] inputs = randomize(invocation.getDims());
       Map<CharSequence, Object> testResultProps = new LinkedHashMap<>();
       try {
         String testname = test.getClass().getCanonicalName();
         testResultProps.put("class", testname);
         Object result = log.subreport(RefUtil.wrapInterface(
-            (Function<NotebookOutput, ?>) sublog -> test.test(sublog, layer == null ? null : layer.addRef(),
+            (Function<NotebookOutput, ?>) sublog -> test.test(sublog, layer.addRef(),
                 Tensor.addRefs(inputs)),
-            Tensor.addRefs(inputs), layer == null ? null : layer.addRef(), test == null ? null : test.addRef()),
+            Tensor.addRefs(inputs), layer.addRef(), test.addRef()),
             log.getName() + "_" + testname);
         testResultProps.put("details", null == result ? null : result.toString());
         testResultProps.put("result", "OK");
@@ -657,26 +661,25 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         throw e;
       } catch (Throwable e) {
         testResultProps.put("result", e.toString());
-        exceptions.add(new TestError(e, test == null ? null : test.addRef(), layer == null ? null : layer.addRef()));
+        exceptions.add(new TestError(e, test == null ? null : test.addRef(), layer.addRef()));
       } finally {
         results.putRow(testResultProps);
-        com.simiacryptus.ref.wrappers.RefSystem.gc();
+        RefSystem.gc();
       }
       if (null != test)
         test.freeRef();
-      if (null != inputs)
-        ReferenceCounting.freeRefs(inputs);
+      ReferenceCounting.freeRefs(inputs);
       layer.freeRef();
-    }, exceptions == null ? null : exceptions, invocation == null ? null : invocation));
-    if (null != tests)
-      tests.freeRef();
+    }, exceptions, invocation));
+    tests.freeRef();
   }
 
   private static class Invocation extends ReferenceCountingBase {
+    @Nullable
     private final Layer layer;
     private final int[][] smallDims;
 
-    private Invocation(Layer layer, int[][] smallDims) {
+    private Invocation(@Nullable Layer layer, int[][] smallDims) {
       Layer temp_07_0001 = layer == null ? null : layer.addRef();
       this.layer = temp_07_0001 == null ? null : temp_07_0001.addRef();
       if (null != temp_07_0001)
@@ -690,11 +693,14 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       return smallDims;
     }
 
+    @Nullable
     public Layer getLayer() {
       return layer == null ? null : layer.addRef();
     }
 
-    public static @SuppressWarnings("unused") Invocation[] addRefs(Invocation[] array) {
+    @Nullable
+    public static @SuppressWarnings("unused")
+    Invocation[] addRefs(@Nullable Invocation[] array) {
       if (array == null)
         return null;
       return Arrays.stream(array).filter((x) -> x != null).map(Invocation::addRef).toArray((x) -> new Invocation[x]);
@@ -710,7 +716,8 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       @Nonnull
       Invocation that = (Invocation) o;
 
-      if (layer != null ? !layer.getClass().equals(that.layer.getClass()) : that.layer != null) {
+      assert that.layer != null;
+      if (layer != null ? !layer.getClass().equals(that.layer.getClass()) : true) {
         that.freeRef();
         return false;
       }
@@ -732,7 +739,10 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       super._free();
     }
 
-    public @Override @SuppressWarnings("unused") Invocation addRef() {
+    @Nonnull
+    public @Override
+    @SuppressWarnings("unused")
+    Invocation addRef() {
       return (Invocation) super.addRef();
     }
   }

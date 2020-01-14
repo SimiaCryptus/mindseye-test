@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.test;
 
-import com.simiacryptus.ref.lang.RefAware;
 import com.simiacryptus.ref.wrappers.RefIntStream;
 import com.simiacryptus.util.data.DoubleStatistics;
 

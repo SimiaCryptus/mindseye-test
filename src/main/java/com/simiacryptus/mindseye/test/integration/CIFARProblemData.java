@@ -21,22 +21,25 @@ package com.simiacryptus.mindseye.test.integration;
 
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.data.CIFAR10;
-import com.simiacryptus.ref.lang.RefAware;
 import com.simiacryptus.ref.wrappers.RefStream;
 import com.simiacryptus.ref.wrappers.RefString;
 import com.simiacryptus.util.test.LabeledObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+
 public class CIFARProblemData implements ImageProblemData {
   private static final Logger log = LoggerFactory.getLogger(CIFARProblemData.class);
 
+  @Nonnull
   @Override
   public RefStream<LabeledObject<Tensor>> trainingData() {
     log.info(RefString.format("Loaded %d items", CIFAR10.trainingDataStream().count()));
     return CIFAR10.trainingDataStream();
   }
 
+  @Nonnull
   @Override
   public RefStream<LabeledObject<Tensor>> validationData() {
     return CIFAR10.trainingDataStream();

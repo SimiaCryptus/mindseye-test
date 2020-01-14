@@ -20,13 +20,14 @@
 package com.simiacryptus.mindseye.test.integration;
 
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.ref.lang.RefAware;
 import com.simiacryptus.ref.wrappers.RefStream;
 import com.simiacryptus.util.test.LabeledObject;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 
 public interface ImageProblemData {
+  @Nonnull
   RefStream<LabeledObject<Tensor>> trainingData() throws IOException;
 
   RefStream<LabeledObject<Tensor>> validationData() throws IOException;

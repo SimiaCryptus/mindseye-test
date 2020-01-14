@@ -21,11 +21,10 @@ package com.simiacryptus.mindseye.test.data;
 
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.TestUtil;
-import com.simiacryptus.ref.lang.RefAware;
-import com.simiacryptus.ref.lang.RefUtil;
 import com.simiacryptus.ref.wrappers.RefArrays;
 import com.simiacryptus.ref.wrappers.RefList;
 import com.simiacryptus.ref.wrappers.RefStream;
+import com.simiacryptus.ref.wrappers.RefSystem;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.BinaryChunkIterator;
 import com.simiacryptus.util.io.DataLoader;
@@ -51,7 +50,8 @@ public class CIFAR10 {
     {
     }
 
-    public @SuppressWarnings("unused") void _free() {
+    public @SuppressWarnings("unused")
+    void _free() {
     }
 
     @Override
@@ -65,10 +65,8 @@ public class CIFAR10 {
           throw new RuntimeException(e);
         }
         final int recordSize = 3073;
-        @Nonnull
-        final GZIPInputStream inflatedInput = new GZIPInputStream(stream);
-        @Nullable
-        final TarArchiveInputStream tar = new TarArchiveInputStream(inflatedInput);
+        @Nonnull final GZIPInputStream inflatedInput = new GZIPInputStream(stream);
+        @Nullable final TarArchiveInputStream tar = new TarArchiveInputStream(inflatedInput);
         while (0 < inflatedInput.available()) {
           if (Thread.interrupted()) {
             break;
@@ -77,15 +75,14 @@ public class CIFAR10 {
           if (null == nextTarEntry) {
             break;
           }
-          @Nonnull
-          final BinaryChunkIterator iterator = new BinaryChunkIterator(
+          @Nonnull final BinaryChunkIterator iterator = new BinaryChunkIterator(
               new DataInputStream(new BoundedInputStream(tar, nextTarEntry.getSize())), recordSize);
-          for (final byte[] chunk : RefUtil.wrapInterface((Iterable<byte[]>) () -> iterator,
-              iterator == null ? null : iterator)) {
+          for (final byte[] chunk : (Iterable<byte[]>) () -> iterator) {
             queue.add(CIFAR10.toImage(chunk).map(img -> Tensor.fromRGB(img)));
           }
+          iterator.freeRef();
         }
-        com.simiacryptus.ref.wrappers.RefSystem.err.println("Done loading");
+        RefSystem.err.println("Done loading");
       } catch (@Nonnull final IOException e) {
         e.printStackTrace();
         throw new RuntimeException(e);
@@ -95,16 +92,19 @@ public class CIFAR10 {
   };
 
   public static void halt() {
+    assert CIFAR10.training != null;
     CIFAR10.training.stop();
   }
 
+  @Nonnull
   public static RefStream<LabeledObject<Tensor>> trainingDataStream() {
+    assert CIFAR10.training != null;
     return CIFAR10.training.stream();
   }
 
+  @Nonnull
   private static LabeledObject<BufferedImage> toImage(final byte[] b) {
-    @Nonnull
-    final BufferedImage img = new BufferedImage(32, 32, BufferedImage.TYPE_INT_RGB);
+    @Nonnull final BufferedImage img = new BufferedImage(32, 32, BufferedImage.TYPE_INT_RGB);
     for (int x = 0; x < img.getWidth(); x++) {
       for (int y = 0; y < img.getHeight(); y++) {
         final int red = 0xFF & b[1 + 1024 * 0 + x + y * 32];
@@ -114,7 +114,7 @@ public class CIFAR10 {
         img.setRGB(x, y, c);
       }
     }
-    return new LabeledObject<>(img, RefArrays.toString(new byte[] { b[0] }));
+    return new LabeledObject<>(img, RefArrays.toString(new byte[]{b[0]}));
   }
 
 }

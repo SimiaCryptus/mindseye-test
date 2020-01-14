@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.test;
 
-import com.simiacryptus.ref.lang.RefAware;
 import smile.plot.LinePlot;
 import smile.plot.Plot;
 import smile.plot.ScatterPlot;
@@ -44,18 +43,18 @@ public class ProblemRun {
   public Plot plot(final double[][] pts) {
     Plot plot;
     switch (type) {
-    case Scatter:
-      plot = new ScatterPlot(pts);
-      plot.setID(name);
-      plot.setColor(color);
-      return plot;
-    case Line:
-      plot = new LinePlot(pts);
-      plot.setID(name);
-      plot.setColor(color);
-      return plot;
-    default:
-      throw new IllegalStateException(type.toString());
+      case Scatter:
+        plot = new ScatterPlot(pts);
+        plot.setID(name);
+        plot.setColor(color);
+        return plot;
+      case Line:
+        plot = new LinePlot(pts);
+        plot.setID(name);
+        plot.setColor(color);
+        return plot;
+      default:
+        throw new IllegalStateException(type.toString());
     }
   }
 

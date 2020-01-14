@@ -21,10 +21,10 @@ package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.notebook.MarkdownNotebookOutput;
 import com.simiacryptus.notebook.NotebookOutput;
-import com.simiacryptus.ref.lang.RefAware;
 import com.simiacryptus.ref.lang.ReferenceCountingBase;
 import com.simiacryptus.ref.wrappers.RefConsumer;
 import com.simiacryptus.ref.wrappers.RefString;
+import com.simiacryptus.ref.wrappers.RefSystem;
 import com.simiacryptus.util.CodeUtil;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.test.SysOutInterceptor;
@@ -47,6 +47,7 @@ public abstract class NotebookReportBase extends ReferenceCountingBase {
     SysOutInterceptor.INSTANCE.init();
   }
 
+  @Nonnull
   protected String reportingFolder = "reports/_reports";
 
   public Class<? extends NotebookReportBase> getReportClass() {
@@ -60,20 +61,21 @@ public abstract class NotebookReportBase extends ReferenceCountingBase {
 
   @Nullable
   public static CharSequence printHeader(@Nonnull NotebookOutput log, @Nullable Class<?> networkClass,
-      final CharSequence prefix) {
+                                         final CharSequence prefix) {
     if (null == networkClass)
       return null;
     @Nullable
     String javadoc = CodeUtil.getJavadoc(networkClass);
     log.setFrontMatterProperty(prefix + "_class_short", networkClass.getSimpleName());
     log.setFrontMatterProperty(prefix + "_class_full", networkClass.getCanonicalName());
+    assert javadoc != null;
     log.setFrontMatterProperty(prefix + "_class_doc", javadoc.replaceAll("\n", ""));
     return javadoc;
   }
 
   @Nonnull
   public static File getTestReportLocation(@Nonnull final Class<?> sourceClass, String reportingFolder,
-      @Nonnull final CharSequence... suffix) {
+                                           @Nonnull final CharSequence... suffix) {
     final StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[2];
     final CharSequence methodName = callingFrame.getMethodName();
     final String className = sourceClass.getCanonicalName();
@@ -91,11 +93,11 @@ public abstract class NotebookReportBase extends ReferenceCountingBase {
     return path;
   }
 
-  public static void withRefLeakMonitor(NotebookOutput log, @Nonnull RefConsumer<NotebookOutput> fn) {
+  public static void withRefLeakMonitor(@Nonnull NotebookOutput log, @Nonnull RefConsumer<NotebookOutput> fn) {
     try (
         CodeUtil.LogInterception refLeakLog = CodeUtil.intercept(log, ReferenceCountingBase.class.getCanonicalName())) {
       fn.accept(log);
-      com.simiacryptus.ref.wrappers.RefSystem.gc();
+      RefSystem.gc();
       if (refLeakLog.counter.get() != 0)
         throw new AssertionError(RefString.format("RefLeak logged %d bytes", refLeakLog.counter.get()));
     } catch (RuntimeException e) {
@@ -105,14 +107,18 @@ public abstract class NotebookReportBase extends ReferenceCountingBase {
     }
   }
 
-  public static @SuppressWarnings("unused") NotebookReportBase[] addRefs(NotebookReportBase[] array) {
+  @Nullable
+  public static @SuppressWarnings("unused")
+  NotebookReportBase[] addRefs(@Nullable NotebookReportBase[] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(NotebookReportBase::addRef)
         .toArray((x) -> new NotebookReportBase[x]);
   }
 
-  public static @SuppressWarnings("unused") NotebookReportBase[][] addRefs(NotebookReportBase[][] array) {
+  @Nullable
+  public static @SuppressWarnings("unused")
+  NotebookReportBase[][] addRefs(@Nullable NotebookReportBase[][] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(NotebookReportBase::addRefs)
@@ -134,7 +140,7 @@ public abstract class NotebookReportBase extends ReferenceCountingBase {
 
   public void run(@Nonnull RefConsumer<NotebookOutput> fn, @Nonnull CharSequence... logPath) {
     try (@Nonnull
-    NotebookOutput log = getLog(logPath)) {
+         NotebookOutput log = getLog(logPath)) {
       withRefLeakMonitor(log, NotebookOutput.concat(this::printHeader, MarkdownNotebookOutput.wrapFrontmatter(fn)));
     } catch (RuntimeException e) {
       throw e;
@@ -144,15 +150,16 @@ public abstract class NotebookReportBase extends ReferenceCountingBase {
   }
 
   @Nonnull
-  public NotebookOutput getLog(CharSequence... logPath) {
+  public NotebookOutput getLog(@Nullable CharSequence... logPath) {
     if (null == logPath || logPath.length == 0)
-      logPath = new String[] { getClass().getSimpleName() };
+      logPath = new String[]{getClass().getSimpleName()};
     final File path = getTestReportLocation(getTargetClass(), reportingFolder, logPath);
     try {
       StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[3];
       String methodName = callingFrame.getMethodName() + "_" + UUID.randomUUID().toString();
       path.getParentFile().mkdirs();
       return new MarkdownNotebookOutput(new File(path, methodName), true) {
+        @Nullable
         @Override
         public File writeZip(File root, String baseName) {
           return null;
@@ -163,10 +170,13 @@ public abstract class NotebookReportBase extends ReferenceCountingBase {
     }
   }
 
-  public @SuppressWarnings("unused") void _free() {
+  public @SuppressWarnings("unused")
+  void _free() {
   }
 
-  public @Override @SuppressWarnings("unused") NotebookReportBase addRef() {
+  public @Override
+  @SuppressWarnings("unused")
+  NotebookReportBase addRef() {
     return (NotebookReportBase) super.addRef();
   }
 

@@ -24,12 +24,11 @@ import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.notebook.NotebookOutput;
-import com.simiacryptus.ref.lang.RefAware;
 
 import javax.annotation.Nonnull;
 
 public interface OptimizationStrategy {
   @Nonnull
   ValidatingTrainer train(NotebookOutput log, SampledTrainable trainingSubject, Trainable validationSubject,
-      TrainingMonitor monitor);
+                          TrainingMonitor monitor);
 }

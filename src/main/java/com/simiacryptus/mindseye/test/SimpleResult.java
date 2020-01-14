@@ -21,26 +21,34 @@ package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.ref.lang.RefAware;
 import com.simiacryptus.ref.lang.ReferenceCounting;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.UUID;
 
 public interface SimpleResult extends ReferenceCounting {
+  @javax.annotation.Nullable
   TensorList[] getInputDerivative();
 
+  @javax.annotation.Nullable
   DeltaSet<UUID> getLayerDerivative();
 
+  @javax.annotation.Nullable
   TensorList getOutput();
 
-  public static @SuppressWarnings("unused") SimpleResult[] addRefs(SimpleResult[] array) {
+  @Nullable
+  public static @SuppressWarnings("unused")
+  SimpleResult[] addRefs(@Nullable SimpleResult[] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(SimpleResult::addRef).toArray((x) -> new SimpleResult[x]);
   }
 
-  public static @SuppressWarnings("unused") SimpleResult[][] addRefs(SimpleResult[][] array) {
+  @Nullable
+  public static @SuppressWarnings("unused")
+  SimpleResult[][] addRefs(@Nullable SimpleResult[][] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(SimpleResult::addRefs)
@@ -49,5 +57,6 @@ public interface SimpleResult extends ReferenceCounting {
 
   public void _free();
 
+  @Nonnull
   public SimpleResult addRef();
 }

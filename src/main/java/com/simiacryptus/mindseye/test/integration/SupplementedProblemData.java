@@ -22,7 +22,6 @@ package com.simiacryptus.mindseye.test.integration;
 import com.simiacryptus.mindseye.lang.Coordinate;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.notebook.NotebookOutput;
-import com.simiacryptus.ref.lang.RefAware;
 import com.simiacryptus.ref.lang.RefUtil;
 import com.simiacryptus.ref.lang.ReferenceCounting;
 import com.simiacryptus.ref.wrappers.*;
@@ -44,28 +43,27 @@ public class SupplementedProblemData implements ImageProblemData {
     this.inner = inner;
   }
 
-  public static void printSample(@Nonnull final NotebookOutput log, final Tensor[][] expanded, final int size) {
-    @Nonnull
-    final RefArrayList<Tensor[]> list = new RefArrayList<>(RefArrays.asList(Tensor.addRefs(expanded)));
+  public static void printSample(@Nonnull final NotebookOutput log, @Nullable final Tensor[][] expanded, final int size) {
+    @Nonnull final RefArrayList<Tensor[]> list = new RefArrayList<>(RefArrays.asList(Tensor.addRefs(expanded)));
     if (null != expanded)
       ReferenceCounting.freeRefs(expanded);
-    RefCollections.shuffle(list == null ? null : list.addRef());
+    RefCollections.shuffle(list.addRef());
     log.p("Expanded Training Data Sample: " + RefUtil.get(list.stream().limit(size).map(x -> {
       String temp_16_0001 = log.png(x[0].toGrayImage(), "");
-      if (null != x)
-        ReferenceCounting.freeRefs(x);
+      ReferenceCounting.freeRefs(x);
       return temp_16_0001;
     }).reduce((a, b) -> a + b)));
     list.freeRef();
   }
 
-  @Nullable
+  @Nonnull
   protected static Tensor addNoise(@Nonnull final Tensor tensor) {
     Tensor temp_16_0003 = tensor.mapParallel((v) -> Math.random() < 0.9 ? v : v + Math.random() * 100);
     tensor.freeRef();
     return temp_16_0003;
   }
 
+  @Nonnull
   protected static Tensor translate(final int dx, final int dy, @Nonnull final Tensor tensor) {
     final int sx = tensor.getDimensions()[0];
     final int sy = tensor.getDimensions()[1];
@@ -80,10 +78,11 @@ public class SupplementedProblemData implements ImageProblemData {
           } else {
             return tensor.get(x, y);
           }
-        }, tensor == null ? null : tensor)).toArray(), tensor.getDimensions());
+        }, tensor)).toArray(), tensor.getDimensions());
     return temp_16_0004;
   }
 
+  @Nonnull
   @Override
   public RefStream<LabeledObject<Tensor>> trainingData() throws IOException {
     return inner.trainingData().flatMap(labeledObject -> {
@@ -92,9 +91,8 @@ public class SupplementedProblemData implements ImageProblemData {
         final int dy = random.nextInt(10) - 5;
         return SupplementedProblemData.addNoise(SupplementedProblemData.translate(dx, dy, labeledObject.data.addRef()));
       }).map(t -> {
-        LabeledObject<Tensor> temp_16_0002 = new LabeledObject<>(t == null ? null : t.addRef(), labeledObject.label);
-        if (null != t)
-          t.freeRef();
+        LabeledObject<Tensor> temp_16_0002 = new LabeledObject<>(t.addRef(), labeledObject.label);
+        t.freeRef();
         return temp_16_0002;
       });
     });

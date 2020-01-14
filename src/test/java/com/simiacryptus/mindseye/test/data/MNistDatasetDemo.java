@@ -21,12 +21,12 @@ package com.simiacryptus.mindseye.test.data;
 
 import com.simiacryptus.lang.SupplierWeakCache;
 import com.simiacryptus.notebook.NotebookOutput;
-import com.simiacryptus.ref.lang.RefAware;
 import com.simiacryptus.ref.lang.RefUtil;
 import com.simiacryptus.ref.wrappers.RefStream;
 import com.simiacryptus.util.test.LabeledObject;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 
@@ -38,14 +38,18 @@ public class MNistDatasetDemo extends ImageCategoryDatasetDemo {
     return MNIST.class;
   }
 
-  public static @SuppressWarnings("unused") MNistDatasetDemo[] addRefs(MNistDatasetDemo[] array) {
+  @Nullable
+  public static @SuppressWarnings("unused")
+  MNistDatasetDemo[] addRefs(@Nullable MNistDatasetDemo[] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(MNistDatasetDemo::addRef)
         .toArray((x) -> new MNistDatasetDemo[x]);
   }
 
-  public static @SuppressWarnings("unused") MNistDatasetDemo[][] addRefs(MNistDatasetDemo[][] array) {
+  @Nullable
+  public static @SuppressWarnings("unused")
+  MNistDatasetDemo[][] addRefs(@Nullable MNistDatasetDemo[][] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(MNistDatasetDemo::addRefs)
@@ -65,10 +69,14 @@ public class MNistDatasetDemo extends ImageCategoryDatasetDemo {
     });
   }
 
-  public @SuppressWarnings("unused") void _free() {
+  public @SuppressWarnings("unused")
+  void _free() {
   }
 
-  public @Override @SuppressWarnings("unused") MNistDatasetDemo addRef() {
+  @Nonnull
+  public @Override
+  @SuppressWarnings("unused")
+  MNistDatasetDemo addRef() {
     return (MNistDatasetDemo) super.addRef();
   }
 }

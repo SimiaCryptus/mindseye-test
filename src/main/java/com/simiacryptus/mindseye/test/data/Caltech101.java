@@ -21,9 +21,9 @@ package com.simiacryptus.mindseye.test.data;
 
 import com.simiacryptus.lang.SupplierWeakCache;
 import com.simiacryptus.mindseye.test.TestUtil;
-import com.simiacryptus.ref.lang.RefAware;
 import com.simiacryptus.ref.wrappers.RefList;
 import com.simiacryptus.ref.wrappers.RefStream;
+import com.simiacryptus.ref.wrappers.RefSystem;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.DataLoader;
 import com.simiacryptus.util.test.LabeledObject;
@@ -45,7 +45,8 @@ public class Caltech101 {
 
   @Nullable
   private static final DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>> training = new DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>>() {
-    public @SuppressWarnings("unused") void _free() {
+    public @SuppressWarnings("unused")
+    void _free() {
     }
 
     @Override
@@ -60,15 +61,14 @@ public class Caltech101 {
           throw new RuntimeException(e);
         }
         final boolean continueLoop = true;
-        @Nullable
-        final ZipInputStream tar = new ZipInputStream(stream);
-        while (continueLoop) {
+        @Nullable final ZipInputStream tar = new ZipInputStream(stream);
+        while (true) {
           if (Thread.interrupted()) {
             break;
           }
           final ZipEntry entry = tar.getNextEntry();
           if (null == entry) {
-            com.simiacryptus.ref.wrappers.RefSystem.err.println("Null Entry");
+            RefSystem.err.println("Null Entry");
             break;
           }
           if (0 == entry.getSize()) {
@@ -97,10 +97,13 @@ public class Caltech101 {
   };
 
   public static void halt() {
+    assert Caltech101.training != null;
     Caltech101.training.stop();
   }
 
+  @Nonnull
   public static RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> trainingDataStream() {
+    assert Caltech101.training != null;
     return Caltech101.training.stream();
   }
 

@@ -21,12 +21,12 @@ package com.simiacryptus.mindseye.test.data;
 
 import com.simiacryptus.lang.SupplierWeakCache;
 import com.simiacryptus.notebook.NotebookOutput;
-import com.simiacryptus.ref.lang.RefAware;
 import com.simiacryptus.ref.lang.RefUtil;
 import com.simiacryptus.ref.wrappers.RefStream;
 import com.simiacryptus.util.test.LabeledObject;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 
@@ -38,14 +38,18 @@ public class CIFARDatasetDemo extends ImageCategoryDatasetDemo {
     return CIFAR10.class;
   }
 
-  public static @SuppressWarnings("unused") CIFARDatasetDemo[] addRefs(CIFARDatasetDemo[] array) {
+  @Nullable
+  public static @SuppressWarnings("unused")
+  CIFARDatasetDemo[] addRefs(@Nullable CIFARDatasetDemo[] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(CIFARDatasetDemo::addRef)
         .toArray((x) -> new CIFARDatasetDemo[x]);
   }
 
-  public static @SuppressWarnings("unused") CIFARDatasetDemo[][] addRefs(CIFARDatasetDemo[][] array) {
+  @Nullable
+  public static @SuppressWarnings("unused")
+  CIFARDatasetDemo[][] addRefs(@Nullable CIFARDatasetDemo[][] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(CIFARDatasetDemo::addRefs)
@@ -65,10 +69,14 @@ public class CIFARDatasetDemo extends ImageCategoryDatasetDemo {
     });
   }
 
-  public @SuppressWarnings("unused") void _free() {
+  public @SuppressWarnings("unused")
+  void _free() {
   }
 
-  public @Override @SuppressWarnings("unused") CIFARDatasetDemo addRef() {
+  @Nonnull
+  public @Override
+  @SuppressWarnings("unused")
+  CIFARDatasetDemo addRef() {
     return (CIFARDatasetDemo) super.addRef();
   }
 }

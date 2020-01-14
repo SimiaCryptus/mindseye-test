@@ -24,7 +24,6 @@ import com.simiacryptus.lang.UncheckedSupplier;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.util.ImageUtil;
 import com.simiacryptus.notebook.NotebookOutput;
-import com.simiacryptus.ref.lang.RefAware;
 import com.simiacryptus.ref.lang.RefUtil;
 import com.simiacryptus.ref.wrappers.*;
 import com.simiacryptus.util.test.LabeledObject;
@@ -42,19 +41,24 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
     return ReportType.Data;
   }
 
+  @Nonnull
   public <T> RefComparator<T> getShuffleComparator() {
-    final int seed = (int) ((com.simiacryptus.ref.wrappers.RefSystem.nanoTime() >>> 8) % (Integer.MAX_VALUE - 84));
-    return RefComparator.comparingInt(a1 -> com.simiacryptus.ref.wrappers.RefSystem.identityHashCode(a1) ^ seed);
+    final int seed = (int) ((RefSystem.nanoTime() >>> 8) % (Integer.MAX_VALUE - 84));
+    return RefComparator.comparingInt(a1 -> RefSystem.identityHashCode(a1) ^ seed);
   }
 
-  public static @SuppressWarnings("unused") ImageCategoryDatasetDemo[] addRefs(ImageCategoryDatasetDemo[] array) {
+  @Nullable
+  public static @SuppressWarnings("unused")
+  ImageCategoryDatasetDemo[] addRefs(@Nullable ImageCategoryDatasetDemo[] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(ImageCategoryDatasetDemo::addRef)
         .toArray((x) -> new ImageCategoryDatasetDemo[x]);
   }
 
-  public static @SuppressWarnings("unused") ImageCategoryDatasetDemo[][] addRefs(ImageCategoryDatasetDemo[][] array) {
+  @Nullable
+  public static @SuppressWarnings("unused")
+  ImageCategoryDatasetDemo[][] addRefs(@Nullable ImageCategoryDatasetDemo[][] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(ImageCategoryDatasetDemo::addRefs)
@@ -76,15 +80,16 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
       RefMap<String, Long> temp_22_0001 = testData.stream()
           .collect(RefCollectors.groupingBy(x -> x.label, RefCollectors.counting()));
       temp_22_0001.forEach((k, v) -> ImageCategoryDatasetDemo.logger.info(RefString.format("%s -> %d", k, v)));
-      if (null != temp_22_0001)
-        temp_22_0001.freeRef();
+      temp_22_0001.freeRef();
     }, testData == null ? null : testData.addRef()));
 
     log.h3("Sample Data");
     log.p(log.out(RefUtil.wrapInterface((UncheckedSupplier<String>) () -> {
+      assert testData != null;
       return RefUtil.get(testData.stream().map(labeledObj -> {
         @Nullable
         BufferedImage img = labeledObj.data.get();
+        assert img != null;
         img = ImageUtil.resize(img, 224, true);
         return log.png(img, labeledObj.label);
       }).limit(20).reduce((a, b) -> a + b));
@@ -95,10 +100,14 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
 
   public abstract RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(NotebookOutput log);
 
-  public @SuppressWarnings("unused") void _free() {
+  public @SuppressWarnings("unused")
+  void _free() {
   }
 
-  public @Override @SuppressWarnings("unused") ImageCategoryDatasetDemo addRef() {
+  @Nonnull
+  public @Override
+  @SuppressWarnings("unused")
+  ImageCategoryDatasetDemo addRef() {
     return (ImageCategoryDatasetDemo) super.addRef();
   }
 }

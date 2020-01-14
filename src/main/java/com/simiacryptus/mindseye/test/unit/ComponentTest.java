@@ -22,21 +22,24 @@ package com.simiacryptus.mindseye.test.unit;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.notebook.NotebookOutput;
-import com.simiacryptus.ref.lang.RefAware;
 import com.simiacryptus.ref.lang.ReferenceCounting;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
 
 public interface ComponentTest<T> extends ReferenceCounting {
-  public static @SuppressWarnings("unused") ComponentTest[] addRefs(ComponentTest[] array) {
+  @Nullable
+  public static @SuppressWarnings("unused")
+  ComponentTest[] addRefs(@Nullable ComponentTest[] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(ComponentTest::addRef)
         .toArray((x) -> new ComponentTest[x]);
   }
 
-  public static @SuppressWarnings("unused") ComponentTest[][] addRefs(ComponentTest[][] array) {
+  @Nullable
+  public static @SuppressWarnings("unused")
+  ComponentTest[][] addRefs(@Nullable ComponentTest[][] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(ComponentTest::addRefs)

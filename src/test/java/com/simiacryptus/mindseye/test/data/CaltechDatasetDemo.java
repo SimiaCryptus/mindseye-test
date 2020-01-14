@@ -21,11 +21,11 @@ package com.simiacryptus.mindseye.test.data;
 
 import com.simiacryptus.lang.SupplierWeakCache;
 import com.simiacryptus.notebook.NotebookOutput;
-import com.simiacryptus.ref.lang.RefAware;
 import com.simiacryptus.ref.wrappers.RefStream;
 import com.simiacryptus.util.test.LabeledObject;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 
@@ -37,14 +37,18 @@ public class CaltechDatasetDemo extends ImageCategoryDatasetDemo {
     return Caltech101.class;
   }
 
-  public static @SuppressWarnings("unused") CaltechDatasetDemo[] addRefs(CaltechDatasetDemo[] array) {
+  @Nullable
+  public static @SuppressWarnings("unused")
+  CaltechDatasetDemo[] addRefs(@Nullable CaltechDatasetDemo[] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(CaltechDatasetDemo::addRef)
         .toArray((x) -> new CaltechDatasetDemo[x]);
   }
 
-  public static @SuppressWarnings("unused") CaltechDatasetDemo[][] addRefs(CaltechDatasetDemo[][] array) {
+  @Nullable
+  public static @SuppressWarnings("unused")
+  CaltechDatasetDemo[][] addRefs(@Nullable CaltechDatasetDemo[][] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(CaltechDatasetDemo::addRefs)
@@ -58,10 +62,14 @@ public class CaltechDatasetDemo extends ImageCategoryDatasetDemo {
     });
   }
 
-  public @SuppressWarnings("unused") void _free() {
+  public @SuppressWarnings("unused")
+  void _free() {
   }
 
-  public @Override @SuppressWarnings("unused") CaltechDatasetDemo addRef() {
+  @Nonnull
+  public @Override
+  @SuppressWarnings("unused")
+  CaltechDatasetDemo addRef() {
     return (CaltechDatasetDemo) super.addRef();
   }
 }

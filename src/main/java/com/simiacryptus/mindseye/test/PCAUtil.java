@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.ref.lang.RecycleBin;
-import com.simiacryptus.ref.lang.RefAware;
 import com.simiacryptus.ref.lang.RefUtil;
 import com.simiacryptus.ref.lang.ReferenceCounting;
 import com.simiacryptus.ref.wrappers.*;
@@ -48,10 +47,10 @@ public class PCAUtil {
       }
       RecycleBin.DOUBLES.recycle(array, array.length);
     }, statList == null ? null : statList.addRef()));
-    @Nonnull
-    final RealMatrix covariance = new BlockRealMatrix(dimension, dimension);
+    @Nonnull final RealMatrix covariance = new BlockRealMatrix(dimension, dimension);
     for (int i = 0; i < dimension; i++) {
       for (int j = 0; j <= i; j++) {
+        assert statList != null;
         final double v = statList.get(i + dimension * j).getAverage();
         covariance.setEntry(i, j, v);
         covariance.setEntry(j, i, v);
@@ -62,33 +61,29 @@ public class PCAUtil {
     return covariance;
   }
 
-  public static Tensor[] pcaFeatures(final RealMatrix covariance, final int components, final int[] featureDimensions,
-      final double power) {
-    @Nonnull
-    final EigenDecomposition decomposition = new EigenDecomposition(covariance);
+  @Nonnull
+  public static Tensor[] pcaFeatures(@Nonnull final RealMatrix covariance, final int components, final int[] featureDimensions,
+                                     final double power) {
+    @Nonnull final EigenDecomposition decomposition = new EigenDecomposition(covariance);
     final int[] orderedVectors = RefIntStream.range(0, components).mapToObj(x -> x)
         .sorted(RefComparator.comparing(x -> -decomposition.getRealEigenvalue(x))).mapToInt(x -> x).toArray();
     return RefIntStream.range(0, orderedVectors.length).mapToObj(i -> {
       Tensor temp_19_0002 = new Tensor(decomposition.getEigenvector(orderedVectors[i]).toArray(), featureDimensions);
-      @Nonnull
-      final Tensor src = temp_19_0002.copy();
-      if (null != temp_19_0002)
-        temp_19_0002.freeRef();
+      @Nonnull final Tensor src = temp_19_0002.copy();
+      temp_19_0002.freeRef();
       Tensor temp_19_0003 = src.scale(1.0 / src.rms());
       Tensor temp_19_0001 = temp_19_0003.scale((Math.pow(
           decomposition.getRealEigenvalue(orderedVectors[i]) / decomposition.getRealEigenvalue(orderedVectors[0]),
           power)));
-      if (null != temp_19_0003)
-        temp_19_0003.freeRef();
+      temp_19_0003.freeRef();
       src.freeRef();
       return temp_19_0001;
     }).toArray(i -> new Tensor[i]);
   }
 
-  public static void populatePCAKernel_1(final Tensor kernel, final Tensor[] featureSpaceVectors) {
+  public static void populatePCAKernel_1(@Nonnull final Tensor kernel, @Nonnull final Tensor[] featureSpaceVectors) {
     final int outputBands = featureSpaceVectors.length;
-    @Nonnull
-    final int[] filterDimensions = kernel.getDimensions();
+    @Nonnull final int[] filterDimensions = kernel.getDimensions();
     RefUtil.freeRef(kernel.setByCoord(RefUtil.wrapInterface(c -> {
       final int kband = c.getCoords()[2];
       final int outband = kband % outputBands;
@@ -99,17 +94,14 @@ public class PCAUtil {
       y = filterDimensions[1] - (y + 1);
       final double v = featureSpaceVectors[outband].get(x, y, inband);
       return Double.isFinite(v) ? v : kernel.get(c);
-    }, kernel == null ? null : kernel.addRef(), Tensor.addRefs(featureSpaceVectors))));
-    if (null != featureSpaceVectors)
-      ReferenceCounting.freeRefs(featureSpaceVectors);
-    if (null != kernel)
-      kernel.freeRef();
+    }, kernel.addRef(), Tensor.addRefs(featureSpaceVectors))));
+    ReferenceCounting.freeRefs(featureSpaceVectors);
+    kernel.freeRef();
   }
 
-  public static void populatePCAKernel_2(final Tensor kernel, final Tensor[] featureSpaceVectors) {
+  public static void populatePCAKernel_2(@Nonnull final Tensor kernel, @Nonnull final Tensor[] featureSpaceVectors) {
     final int outputBands = featureSpaceVectors.length;
-    @Nonnull
-    final int[] filterDimensions = kernel.getDimensions();
+    @Nonnull final int[] filterDimensions = kernel.getDimensions();
     RefUtil.freeRef(kernel.setByCoord(RefUtil.wrapInterface(c -> {
       final int kband = c.getCoords()[2];
       final int outband = kband % outputBands;
@@ -120,10 +112,8 @@ public class PCAUtil {
       y = filterDimensions[1] - (y + 1);
       final double v = featureSpaceVectors[inband].get(x, y, outband);
       return Double.isFinite(v) ? v : kernel.get(c);
-    }, kernel == null ? null : kernel.addRef(), Tensor.addRefs(featureSpaceVectors))));
-    if (null != featureSpaceVectors)
-      ReferenceCounting.freeRefs(featureSpaceVectors);
-    if (null != kernel)
-      kernel.freeRef();
+    }, kernel.addRef(), Tensor.addRefs(featureSpaceVectors))));
+    ReferenceCounting.freeRefs(featureSpaceVectors);
+    kernel.freeRef();
   }
 }

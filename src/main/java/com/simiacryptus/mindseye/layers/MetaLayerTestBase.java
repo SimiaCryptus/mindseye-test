@@ -21,8 +21,8 @@ package com.simiacryptus.mindseye.layers;
 
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
-import com.simiacryptus.ref.lang.RefAware;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 
@@ -39,24 +39,32 @@ public abstract class MetaLayerTestBase extends LayerTestBase {
     //return new BatchDerivativeTester(1e-3, 1e-4, 10);
   }
 
-  public static @SuppressWarnings("unused") MetaLayerTestBase[] addRefs(MetaLayerTestBase[] array) {
+  @Nullable
+  public static @SuppressWarnings("unused")
+  MetaLayerTestBase[] addRefs(@Nullable MetaLayerTestBase[] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(MetaLayerTestBase::addRef)
         .toArray((x) -> new MetaLayerTestBase[x]);
   }
 
-  public static @SuppressWarnings("unused") MetaLayerTestBase[][] addRefs(MetaLayerTestBase[][] array) {
+  @Nullable
+  public static @SuppressWarnings("unused")
+  MetaLayerTestBase[][] addRefs(@Nullable MetaLayerTestBase[][] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(MetaLayerTestBase::addRefs)
         .toArray((x) -> new MetaLayerTestBase[x][]);
   }
 
-  public @SuppressWarnings("unused") void _free() {
+  public @SuppressWarnings("unused")
+  void _free() {
   }
 
-  public @Override @SuppressWarnings("unused") MetaLayerTestBase addRef() {
+  @Nonnull
+  public @Override
+  @SuppressWarnings("unused")
+  MetaLayerTestBase addRef() {
     return (MetaLayerTestBase) super.addRef();
   }
 

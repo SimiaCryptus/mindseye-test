@@ -20,14 +20,18 @@
 package com.simiacryptus.mindseye.test.unit;
 
 import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.ref.lang.*;
+import com.simiacryptus.ref.lang.RefIgnore;
+import com.simiacryptus.ref.lang.RefUtil;
+import com.simiacryptus.ref.lang.ReferenceCounting;
+import com.simiacryptus.ref.lang.ReferenceCountingBase;
 import com.simiacryptus.ref.wrappers.RefString;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 
 public class TestError extends RuntimeException implements ReferenceCounting {
+  @Nullable
   public final ComponentTest<?> test;
   @Nonnull
   public final Layer layer;
@@ -41,12 +45,11 @@ public class TestError extends RuntimeException implements ReferenceCounting {
     }
   };
 
-  public TestError(Throwable cause, ComponentTest<?> test, @Nonnull Layer layer) {
+  public TestError(Throwable cause, @Nonnull ComponentTest<?> test, @Nonnull Layer layer) {
     super(RefString.format("Error in %s apply %s", test.addRef(), layer.addRef()), cause);
-    this.test = test == null ? null : test.addRef();
-    if (null != test)
-      test.freeRef();
-    Layer temp_04_0002 = layer == null ? null : layer.addRef();
+    this.test = test.addRef();
+    test.freeRef();
+    Layer temp_04_0002 = layer.addRef();
     this.layer = temp_04_0002 == null ? null : temp_04_0002.addRef();
     if (null != temp_04_0002)
       temp_04_0002.freeRef();
@@ -60,21 +63,24 @@ public class TestError extends RuntimeException implements ReferenceCounting {
     return refCounter.isFinalized();
   }
 
-  public static @SuppressWarnings("unused") TestError[] addRefs(TestError[] array) {
+  @Nullable
+  public static @SuppressWarnings("unused")
+  TestError[] addRefs(@Nullable TestError[] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(TestError::addRef).toArray((x) -> new TestError[x]);
   }
 
-  public static @SuppressWarnings("unused") TestError[][] addRefs(TestError[][] array) {
+  @Nullable
+  public static @SuppressWarnings("unused")
+  TestError[][] addRefs(@Nullable TestError[][] array) {
     if (array == null)
       return null;
     return Arrays.stream(array).filter((x) -> x != null).map(TestError::addRefs).toArray((x) -> new TestError[x][]);
   }
 
   public void _free() {
-    if (null != refCounter)
-      refCounter.freeRef();
+    refCounter.freeRef();
     layer.freeRef();
     if (null != test)
       test.freeRef();
@@ -94,7 +100,8 @@ public class TestError extends RuntimeException implements ReferenceCounting {
 
   @RefIgnore
   @Override
-  public @NotNull ReferenceCounting detach() {
+  public @Nonnull
+  ReferenceCounting detach() {
     return refCounter.detach();
   }
 
@@ -110,7 +117,11 @@ public class TestError extends RuntimeException implements ReferenceCounting {
     return refCounter.tryAddRef();
   }
 
-  public @Override @RefIgnore @SuppressWarnings("unused") TestError addRef() {
+  @Nonnull
+  public @Override
+  @RefIgnore
+  @SuppressWarnings("unused")
+  TestError addRef() {
     refCounter.addRef();
     return this;
   }
