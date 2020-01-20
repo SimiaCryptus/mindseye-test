@@ -99,17 +99,17 @@ public class TestUtil {
           .mapToDouble(x -> x.fitness).filter(x -> x > 0).summaryStatistics();
       logger.info(RefString.format("Plotting range=%s, %s; valueStats=%s", RefArrays.toString(lowerBound),
           RefArrays.toString(upperBound), valueStatistics));
-      for (@Nonnull final ProblemRun trial : filtered) {
+      filtered.forEach(trial -> {
         final double[][] pts = trial.history.stream()
             .map(step -> new double[]{step.iteration, Math.log10(Math.max(step.fitness, valueStatistics.getMin()))})
-            .filter(x -> RefArrays.stream(x).allMatch(Double::isFinite)).toArray(i -> new double[i][]);
+            .filter(x -> RefArrays.stream(x).allMatch(Double::isFinite)).toArray(double[][]::new);
         if (pts.length > 1) {
           logger.info(RefString.format("Plotting %s points for %s", pts.length, trial.name));
           canvas.add(trial.plot(pts));
         } else {
           logger.info(RefString.format("Only %s points for %s", pts.length, trial.name));
         }
-      }
+      });
       filtered.freeRef();
       return canvas;
     } catch (@Nonnull final Exception e) {
@@ -180,7 +180,7 @@ public class TestUtil {
       network.visitNodes(RefUtil.wrapInterface(node -> {
         Layer nodeLayer = node.getLayer();
         if (nodeLayer instanceof MonitoringWrapperLayer) {
-          @Nullable final MonitoringWrapperLayer layer = (MonitoringWrapperLayer) nodeLayer;
+          @Nullable final MonitoringWrapperLayer layer = (MonitoringWrapperLayer) nodeLayer.addRef();
           Layer inner = layer.getInner();
           assert inner != null;
           String str = inner.toString();
@@ -298,11 +298,13 @@ public class TestUtil {
     network.visitNodes(node -> {
       Layer layer = node.getLayer();
       if (layer instanceof MonitoringWrapperLayer) {
-        RefUtil.freeRef(((MonitoringWrapperLayer) layer).shouldRecordSignalMetrics(false));
+        ((MonitoringWrapperLayer) layer).shouldRecordSignalMetrics(false);
+        RefUtil.freeRef(((MonitoringWrapperLayer) layer).addRef());
       } else {
         MonitoringWrapperLayer temp_13_0015 = new MonitoringWrapperLayer(layer == null ? null : layer.addRef());
+        temp_13_0015.shouldRecordSignalMetrics(false);
         @Nonnull
-        MonitoringWrapperLayer monitoringWrapperLayer = temp_13_0015.shouldRecordSignalMetrics(false);
+        MonitoringWrapperLayer monitoringWrapperLayer = temp_13_0015.addRef();
         temp_13_0015.freeRef();
         node.setLayer(monitoringWrapperLayer);
       }
@@ -569,7 +571,8 @@ public class TestUtil {
     Tensor temp_13_0027 = sum(values.stream().map(x -> {
       return x;
     }));
-    Tensor temp_13_0013 = temp_13_0027.scaleInPlace(1.0 / values.size());
+    temp_13_0027.scaleInPlace(1.0 / values.size());
+    Tensor temp_13_0013 = temp_13_0027.addRef();
     temp_13_0027.freeRef();
     values.freeRef();
     return temp_13_0013;

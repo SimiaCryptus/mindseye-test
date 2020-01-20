@@ -38,24 +38,6 @@ public class MNistDatasetDemo extends ImageCategoryDatasetDemo {
     return MNIST.class;
   }
 
-  @Nullable
-  public static @SuppressWarnings("unused")
-  MNistDatasetDemo[] addRefs(@Nullable MNistDatasetDemo[] array) {
-    if (array == null)
-      return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(MNistDatasetDemo::addRef)
-        .toArray((x) -> new MNistDatasetDemo[x]);
-  }
-
-  @Nullable
-  public static @SuppressWarnings("unused")
-  MNistDatasetDemo[][] addRefs(@Nullable MNistDatasetDemo[][] array) {
-    if (array == null)
-      return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(MNistDatasetDemo::addRefs)
-        .toArray((x) -> new MNistDatasetDemo[x][]);
-  }
-
   @Override
   public RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(@Nonnull NotebookOutput log) {
     return log.eval(() -> {

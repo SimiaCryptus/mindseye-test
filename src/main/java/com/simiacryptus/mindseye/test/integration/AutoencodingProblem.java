@@ -167,15 +167,17 @@ public abstract class AutoencodingProblem implements Problem {
     log.h3("Training");
     TestUtil.instrumentPerformance(supervisedNetwork.addRef());
     @Nonnull final ValidatingTrainer trainer = optimizer.train(log,
-        new SampledArrayTrainable(Tensor.addRefs(trainingData),
+        new SampledArrayTrainable(RefUtil.addRefs(trainingData),
             supervisedNetwork.addRef(), trainingData.length / 2, batchSize),
-        new ArrayTrainable(Tensor.addRefs(trainingData), supervisedNetwork.addRef(),
+        new ArrayTrainable(RefUtil.addRefs(trainingData), supervisedNetwork.addRef(),
             batchSize),
         monitor);
     ReferenceCounting.freeRefs(trainingData);
     log.run(RefUtil.wrapInterface(() -> {
-      ValidatingTrainer temp_21_0003 = trainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES);
-      ValidatingTrainer temp_21_0004 = temp_21_0003.setMaxIterations(10000);
+      trainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES);
+      ValidatingTrainer temp_21_0003 = trainer.addRef();
+      temp_21_0003.setMaxIterations(10000);
+      ValidatingTrainer temp_21_0004 = temp_21_0003.addRef();
       temp_21_0004.run();
       temp_21_0004.freeRef();
       temp_21_0003.freeRef();
@@ -228,7 +230,8 @@ public abstract class AutoencodingProblem implements Problem {
     log.p("Some rendered unit vectors:");
     for (int featureNumber = 0; featureNumber < features; featureNumber++) {
       Tensor temp_21_0001 = new Tensor(features);
-      @Nonnull final Tensor input = temp_21_0001.set(featureNumber, 1);
+      temp_21_0001.set(featureNumber, 1);
+      @Nonnull final Tensor input = temp_21_0001.addRef();
       temp_21_0001.freeRef();
       Result temp_21_0007 = revNetwork.eval(input);
       assert temp_21_0007 != null;

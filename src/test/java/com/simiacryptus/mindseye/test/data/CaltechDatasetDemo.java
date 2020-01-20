@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.test.data;
 
 import com.simiacryptus.lang.SupplierWeakCache;
 import com.simiacryptus.notebook.NotebookOutput;
+import com.simiacryptus.ref.lang.RefUtil;
 import com.simiacryptus.ref.wrappers.RefStream;
 import com.simiacryptus.util.test.LabeledObject;
 
@@ -35,24 +36,6 @@ public class CaltechDatasetDemo extends ImageCategoryDatasetDemo {
   @Override
   protected Class<?> getTargetClass() {
     return Caltech101.class;
-  }
-
-  @Nullable
-  public static @SuppressWarnings("unused")
-  CaltechDatasetDemo[] addRefs(@Nullable CaltechDatasetDemo[] array) {
-    if (array == null)
-      return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(CaltechDatasetDemo::addRef)
-        .toArray((x) -> new CaltechDatasetDemo[x]);
-  }
-
-  @Nullable
-  public static @SuppressWarnings("unused")
-  CaltechDatasetDemo[][] addRefs(@Nullable CaltechDatasetDemo[][] array) {
-    if (array == null)
-      return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(CaltechDatasetDemo::addRefs)
-        .toArray((x) -> new CaltechDatasetDemo[x][]);
   }
 
   @Override

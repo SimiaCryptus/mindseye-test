@@ -84,7 +84,7 @@ public class PCAUtil {
   public static void populatePCAKernel_1(@Nonnull final Tensor kernel, @Nonnull final Tensor[] featureSpaceVectors) {
     final int outputBands = featureSpaceVectors.length;
     @Nonnull final int[] filterDimensions = kernel.getDimensions();
-    RefUtil.freeRef(kernel.setByCoord(RefUtil.wrapInterface(c -> {
+    kernel.setByCoord(RefUtil.wrapInterface(c -> {
       final int kband = c.getCoords()[2];
       final int outband = kband % outputBands;
       final int inband = (kband - outband) / outputBands;
@@ -94,7 +94,7 @@ public class PCAUtil {
       y = filterDimensions[1] - (y + 1);
       final double v = featureSpaceVectors[outband].get(x, y, inband);
       return Double.isFinite(v) ? v : kernel.get(c);
-    }, kernel.addRef(), Tensor.addRefs(featureSpaceVectors))));
+    }, kernel.addRef(), RefUtil.addRefs(featureSpaceVectors)));
     ReferenceCounting.freeRefs(featureSpaceVectors);
     kernel.freeRef();
   }
@@ -102,7 +102,7 @@ public class PCAUtil {
   public static void populatePCAKernel_2(@Nonnull final Tensor kernel, @Nonnull final Tensor[] featureSpaceVectors) {
     final int outputBands = featureSpaceVectors.length;
     @Nonnull final int[] filterDimensions = kernel.getDimensions();
-    RefUtil.freeRef(kernel.setByCoord(RefUtil.wrapInterface(c -> {
+    kernel.setByCoord(RefUtil.wrapInterface(c -> {
       final int kband = c.getCoords()[2];
       final int outband = kband % outputBands;
       final int inband = (kband - outband) / outputBands;
@@ -112,7 +112,7 @@ public class PCAUtil {
       y = filterDimensions[1] - (y + 1);
       final double v = featureSpaceVectors[inband].get(x, y, outband);
       return Double.isFinite(v) ? v : kernel.get(c);
-    }, kernel.addRef(), Tensor.addRefs(featureSpaceVectors))));
+    }, kernel.addRef(), RefUtil.addRefs(featureSpaceVectors)));
     ReferenceCounting.freeRefs(featureSpaceVectors);
     kernel.freeRef();
   }

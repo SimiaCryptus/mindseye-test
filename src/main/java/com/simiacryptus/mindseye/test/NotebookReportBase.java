@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.notebook.MarkdownNotebookOutput;
 import com.simiacryptus.notebook.NotebookOutput;
+import com.simiacryptus.ref.lang.RefUtil;
 import com.simiacryptus.ref.lang.ReferenceCountingBase;
 import com.simiacryptus.ref.wrappers.RefConsumer;
 import com.simiacryptus.ref.wrappers.RefString;
@@ -105,24 +106,6 @@ public abstract class NotebookReportBase extends ReferenceCountingBase {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-  }
-
-  @Nullable
-  public static @SuppressWarnings("unused")
-  NotebookReportBase[] addRefs(@Nullable NotebookReportBase[] array) {
-    if (array == null)
-      return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(NotebookReportBase::addRef)
-        .toArray((x) -> new NotebookReportBase[x]);
-  }
-
-  @Nullable
-  public static @SuppressWarnings("unused")
-  NotebookReportBase[][] addRefs(@Nullable NotebookReportBase[][] array) {
-    if (array == null)
-      return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(NotebookReportBase::addRefs)
-        .toArray((x) -> new NotebookReportBase[x][]);
   }
 
   public void printHeader(@Nonnull NotebookOutput log) {

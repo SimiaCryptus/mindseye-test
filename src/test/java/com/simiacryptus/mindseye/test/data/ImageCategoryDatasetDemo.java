@@ -47,24 +47,6 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
     return RefComparator.comparingInt(a1 -> RefSystem.identityHashCode(a1) ^ seed);
   }
 
-  @Nullable
-  public static @SuppressWarnings("unused")
-  ImageCategoryDatasetDemo[] addRefs(@Nullable ImageCategoryDatasetDemo[] array) {
-    if (array == null)
-      return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(ImageCategoryDatasetDemo::addRef)
-        .toArray((x) -> new ImageCategoryDatasetDemo[x]);
-  }
-
-  @Nullable
-  public static @SuppressWarnings("unused")
-  ImageCategoryDatasetDemo[][] addRefs(@Nullable ImageCategoryDatasetDemo[][] array) {
-    if (array == null)
-      return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(ImageCategoryDatasetDemo::addRefs)
-        .toArray((x) -> new ImageCategoryDatasetDemo[x][]);
-  }
-
   @Test
   public void run() {
     run(this::run);

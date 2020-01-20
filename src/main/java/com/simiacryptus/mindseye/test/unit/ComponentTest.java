@@ -22,35 +22,19 @@ package com.simiacryptus.mindseye.test.unit;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.notebook.NotebookOutput;
+import com.simiacryptus.ref.lang.RefUtil;
 import com.simiacryptus.ref.lang.ReferenceCounting;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
 
 public interface ComponentTest<T> extends ReferenceCounting {
-  @Nullable
-  public static @SuppressWarnings("unused")
-  ComponentTest[] addRefs(@Nullable ComponentTest[] array) {
-    if (array == null)
-      return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(ComponentTest::addRef)
-        .toArray((x) -> new ComponentTest[x]);
-  }
-
-  @Nullable
-  public static @SuppressWarnings("unused")
-  ComponentTest[][] addRefs(@Nullable ComponentTest[][] array) {
-    if (array == null)
-      return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(ComponentTest::addRefs)
-        .toArray((x) -> new ComponentTest[x][]);
-  }
 
   @Nullable
   T test(NotebookOutput log, Layer component, Tensor... inputPrototype);
 
-  public void _free();
+  void _free();
 
-  public ComponentTest<T> addRef();
+  ComponentTest<T> addRef();
 
 }

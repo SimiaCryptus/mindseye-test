@@ -47,12 +47,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.*;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiFunction;
 import java.util.function.IntFunction;
 
 public abstract class TrainingTester extends ComponentTestBase<TrainingTester.ComponentResult> {
@@ -70,40 +68,32 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     return batches;
   }
 
-  @Nonnull
-  public TrainingTester setBatches(final int batches) {
+  public void setBatches(int batches) {
     this.batches = batches;
-    return this.addRef();
   }
 
   public RandomizationMode getRandomizationMode() {
     return randomizationMode;
   }
 
-  @Nonnull
-  public TrainingTester setRandomizationMode(final RandomizationMode randomizationMode) {
+  public void setRandomizationMode(RandomizationMode randomizationMode) {
     this.randomizationMode = randomizationMode;
-    return this.addRef();
   }
 
   public boolean isThrowExceptions() {
     return throwExceptions;
   }
 
-  @Nonnull
-  public TrainingTester setThrowExceptions(boolean throwExceptions) {
+  public void setThrowExceptions(boolean throwExceptions) {
     this.throwExceptions = throwExceptions;
-    return this.addRef();
   }
 
   public boolean isVerbose() {
     return verbose;
   }
 
-  @Nonnull
-  public TrainingTester setVerbose(final boolean verbose) {
+  public void setVerbose(boolean verbose) {
     this.verbose = verbose;
-    return this.addRef();
   }
 
   @Nonnull
@@ -137,8 +127,8 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     }
     Tensor[][] temp_18_0020 = RefIntStream.range(0, left.length)
         .mapToObj(RefUtil.wrapInterface((IntFunction<? extends Tensor[]>) i -> RefStream
-            .concat(RefArrays.stream(Tensor.addRefs(left[i])), RefStream.of(right[i].addRef()))
-            .toArray(j -> new Tensor[j]), Tensor.addRefs(right), Tensor.addRefs(left)))
+            .concat(RefArrays.stream(RefUtil.addRefs(left[i])), RefStream.of(right[i].addRef()))
+            .toArray(j -> new Tensor[j]), RefUtil.addRefs(right), RefUtil.addRefs(left)))
         .toArray(j -> new Tensor[j][]);
     ReferenceCounting.freeRefs(right);
     ReferenceCounting.freeRefs(left);
@@ -147,8 +137,8 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
 
   @Nonnull
   public static Tensor[][] copy(@Nonnull Tensor[][] input_gd) {
-    Tensor[][] temp_18_0022 = RefArrays.stream(Tensor.addRefs(input_gd)).map(t -> {
-      Tensor[] temp_18_0001 = RefArrays.stream(Tensor.addRefs(t)).map(v -> {
+    Tensor[][] temp_18_0022 = RefArrays.stream(RefUtil.addRefs(input_gd)).map(t -> {
+      Tensor[] temp_18_0001 = RefArrays.stream(RefUtil.addRefs(t)).map(v -> {
         Tensor temp_18_0002 = v.copy();
         v.freeRef();
         return temp_18_0002;
@@ -163,31 +153,13 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
 
   @Nonnull
   public static Tensor[][] pop(@Nonnull Tensor[][] data) {
-    Tensor[][] temp_18_0023 = RefArrays.stream(Tensor.addRefs(data)).map(t -> {
-      Tensor[] temp_18_0003 = RefArrays.stream(Tensor.addRefs(t)).limit(t.length - 1).toArray(i -> new Tensor[i]);
+    Tensor[][] temp_18_0023 = RefArrays.stream(RefUtil.addRefs(data)).map(t -> {
+      Tensor[] temp_18_0003 = RefArrays.stream(RefUtil.addRefs(t)).limit(t.length - 1).toArray(i -> new Tensor[i]);
       ReferenceCounting.freeRefs(t);
       return temp_18_0003;
     }).toArray(i -> new Tensor[i][]);
     ReferenceCounting.freeRefs(data);
     return temp_18_0023;
-  }
-
-  @Nullable
-  public static @SuppressWarnings("unused")
-  TrainingTester[] addRefs(@Nullable TrainingTester[] array) {
-    if (array == null)
-      return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(TrainingTester::addRef)
-        .toArray((x) -> new TrainingTester[x]);
-  }
-
-  @Nullable
-  public static @SuppressWarnings("unused")
-  TrainingTester[][] addRefs(@Nullable TrainingTester[][] array) {
-    if (array == null)
-      return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(TrainingTester::addRefs)
-        .toArray((x) -> new TrainingTester[x][]);
   }
 
   @Nonnull
@@ -253,10 +225,11 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     if (testModel && isZero(temp_18_0034.stream().flatMapToDouble(x1 -> RefArrays.stream(x1)))) {
       component.freeRef();
       ReferenceCounting.freeRefs(inputPrototype);
+      temp_18_0034.freeRef();
       throw new AssertionError("Weights are all zero?");
     }
     temp_18_0034.freeRef();
-    if (isZero(RefArrays.stream(Tensor.addRefs(inputPrototype)).flatMapToDouble(x -> {
+    if (isZero(RefArrays.stream(RefUtil.addRefs(inputPrototype)).flatMapToDouble(x -> {
       RefDoubleStream temp_18_0004 = RefArrays.stream(x.getData());
       x.freeRef();
       return temp_18_0004;
@@ -266,7 +239,7 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
       throw new AssertionError("Inputs are all zero?");
     }
     @Nonnull final Random random = new Random();
-    final boolean testInput = RefArrays.stream(Tensor.addRefs(inputPrototype)).anyMatch(x -> {
+    final boolean testInput = RefArrays.stream(RefUtil.addRefs(inputPrototype)).anyMatch(x -> {
       boolean temp_18_0005 = x.length() > 0;
       x.freeRef();
       return temp_18_0005;
@@ -276,7 +249,7 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     if (testInput) {
       log.h2("Input Learning");
       inputLearning = testInputLearning(log, component.addRef(), random,
-          Tensor.addRefs(inputPrototype));
+          RefUtil.addRefs(inputPrototype));
     } else {
       inputLearning = null;
     }
@@ -285,7 +258,7 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     if (testModel) {
       log.h2("Model Learning");
       modelLearning = testModelLearning(log, component.addRef(), random,
-          Tensor.addRefs(inputPrototype));
+          RefUtil.addRefs(inputPrototype));
     } else {
       modelLearning = null;
     }
@@ -294,7 +267,7 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     if (testInput && testModel) {
       log.h2("Composite Learning");
       completeLearning = testCompleteLearning(log, component.addRef(), random,
-          Tensor.addRefs(inputPrototype));
+          RefUtil.addRefs(inputPrototype));
     } else {
       completeLearning = null;
     }
@@ -321,9 +294,10 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
   public TestResult testCompleteLearning(@Nonnull final NotebookOutput log, @Nonnull final Layer component,
                                          final Random random, @Nonnull final Tensor[] inputPrototype) {
     Layer temp_18_0035 = shuffle(random, component.copy());
-    @Nonnull final Layer network_target = temp_18_0035.freeze();
+    temp_18_0035.freeze();
+    @Nonnull final Layer network_target = temp_18_0035.addRef();
     temp_18_0035.freeRef();
-    final Tensor[][] input_target = shuffleCopy(random, Tensor.addRefs(inputPrototype));
+    final Tensor[][] input_target = shuffleCopy(random, RefUtil.addRefs(inputPrototype));
     log.p(
         "In this apply, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
     log.eval(RefUtil.wrapInterface((UncheckedSupplier<String>) () -> {
@@ -335,8 +309,8 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     }, network_target.addRef()));
     log.p("We simultaneously regress this target input:");
     log.eval(RefUtil.wrapInterface((UncheckedSupplier<String>) () -> {
-      return RefArrays.stream(Tensor.addRefs(input_target)).flatMap(x -> {
-        RefStream<Tensor> temp_18_0006 = RefArrays.stream(Tensor.addRefs(x));
+      return RefArrays.stream(RefUtil.addRefs(input_target)).flatMap(x -> {
+        RefStream<Tensor> temp_18_0006 = RefArrays.stream(RefUtil.addRefs(x));
         if (null != x)
           ReferenceCounting.freeRefs(x);
         return temp_18_0006;
@@ -345,11 +319,11 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
         x.freeRef();
         return temp_18_0007;
       }).reduce((a, b) -> a + "\n" + b).orElse("");
-    }, Tensor.addRefs(input_target)));
+    }, RefUtil.addRefs(input_target)));
     log.p("Which produces the following output:");
-    Result[] inputs = ConstantResult.batchResultArray(Tensor.addRefs(input_target));
+    Result[] inputs = ConstantResult.batchResultArray(RefUtil.addRefs(input_target));
     ReferenceCounting.freeRefs(input_target);
-    Result temp_18_0038 = network_target.eval(Result.addRefs(inputs));
+    Result temp_18_0038 = network_target.eval(RefUtil.addRefs(inputs));
     assert temp_18_0038 != null;
     TensorList result = temp_18_0038.getData();
     temp_18_0038.freeRef();
@@ -358,17 +332,17 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     final Tensor[] output_target = result.stream().toArray(i -> new Tensor[i]);
     result.freeRef();
     log.eval(RefUtil.wrapInterface((UncheckedSupplier<String>) () -> {
-      return RefStream.of(Tensor.addRefs(output_target)).map(x -> {
+      return RefStream.of(RefUtil.addRefs(output_target)).map(x -> {
         String temp_18_0008 = x.prettyPrint();
         x.freeRef();
         return temp_18_0008;
       }).reduce((a, b) -> a + "\n" + b).orElse("");
-    }, Tensor.addRefs(output_target)));
+    }, RefUtil.addRefs(output_target)));
     //if (output_target.length != inputPrototype.length) return null;
-    Tensor[][] trainingInput = append(shuffleCopy(random, Tensor.addRefs(inputPrototype)),
-        Tensor.addRefs(output_target));
+    Tensor[][] trainingInput = append(shuffleCopy(random, RefUtil.addRefs(inputPrototype)),
+        RefUtil.addRefs(output_target));
     ReferenceCounting.freeRefs(output_target);
-    TrainingTester.TestResult temp_18_0009 = trainAll("Integrated Convergence", log, Tensor.addRefs(trainingInput),
+    TrainingTester.TestResult temp_18_0009 = trainAll("Integrated Convergence", log, RefUtil.addRefs(trainingInput),
         shuffle(random, component.copy()), buildMask(inputPrototype.length));
     ReferenceCounting.freeRefs(inputPrototype);
     component.freeRef();
@@ -380,14 +354,15 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
   public TestResult testInputLearning(@Nonnull final NotebookOutput log, @Nonnull final Layer component,
                                       final Random random, @Nonnull final Tensor[] inputPrototype) {
     Layer temp_18_0039 = shuffle(random, component.copy());
-    @Nonnull final Layer network = temp_18_0039.freeze();
+    temp_18_0039.freeze();
+    @Nonnull final Layer network = temp_18_0039.addRef();
     temp_18_0039.freeRef();
     component.freeRef();
-    final Tensor[][] input_target = shuffleCopy(random, Tensor.addRefs(inputPrototype));
+    final Tensor[][] input_target = shuffleCopy(random, RefUtil.addRefs(inputPrototype));
     log.p("In this apply, we use a network to learn this target input, given it's pre-evaluated output:");
     log.eval(RefUtil.wrapInterface((UncheckedSupplier<String>) () -> {
-      return RefArrays.stream(Tensor.addRefs(input_target)).flatMap(x -> {
-        RefStream<Tensor> temp_18_0011 = RefArrays.stream(Tensor.addRefs(x));
+      return RefArrays.stream(RefUtil.addRefs(input_target)).flatMap(x -> {
+        RefStream<Tensor> temp_18_0011 = RefArrays.stream(RefUtil.addRefs(x));
         if (null != x)
           ReferenceCounting.freeRefs(x);
         return temp_18_0011;
@@ -396,11 +371,11 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
         x.freeRef();
         return temp_18_0012;
       }).reduce((a, b) -> a + "\n" + b).orElse("");
-    }, Tensor.addRefs(input_target)));
-    Result[] array = ConstantResult.batchResultArray(Tensor.addRefs(input_target));
+    }, RefUtil.addRefs(input_target)));
+    Result[] array = ConstantResult.batchResultArray(RefUtil.addRefs(input_target));
     ReferenceCounting.freeRefs(input_target);
     @Nullable
-    Result eval = network.eval(Result.addRefs(array));
+    Result eval = network.eval(RefUtil.addRefs(array));
     assert eval != null;
     TensorList result = eval.getData();
     eval.freeRef();
@@ -421,10 +396,10 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     }
     ReferenceCounting.freeRefs(array);
     //if (output_target.length != inputPrototype.length) return null;
-    Tensor[][] trainingInput = append(shuffleCopy(random, Tensor.addRefs(inputPrototype)),
-        Tensor.addRefs(output_target));
+    Tensor[][] trainingInput = append(shuffleCopy(random, RefUtil.addRefs(inputPrototype)),
+        RefUtil.addRefs(output_target));
     ReferenceCounting.freeRefs(output_target);
-    TrainingTester.TestResult temp_18_0010 = trainAll("Input Convergence", log, Tensor.addRefs(trainingInput),
+    TrainingTester.TestResult temp_18_0010 = trainAll("Input Convergence", log, RefUtil.addRefs(trainingInput),
         network, buildMask(inputPrototype.length));
     ReferenceCounting.freeRefs(inputPrototype);
     ReferenceCounting.freeRefs(trainingInput);
@@ -435,9 +410,10 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
   public TestResult testModelLearning(@Nonnull final NotebookOutput log, @Nonnull final Layer component,
                                       final Random random, @Nullable final Tensor[] inputPrototype) {
     Layer temp_18_0040 = shuffle(random, component.copy());
-    @Nonnull final Layer network_target = temp_18_0040.freeze();
+    temp_18_0040.freeze();
+    @Nonnull final Layer network_target = temp_18_0040.addRef();
     temp_18_0040.freeRef();
-    final Tensor[][] input_target = shuffleCopy(random, Tensor.addRefs(inputPrototype));
+    final Tensor[][] input_target = shuffleCopy(random, RefUtil.addRefs(inputPrototype));
     if (null != inputPrototype)
       ReferenceCounting.freeRefs(inputPrototype);
     log.p(
@@ -449,8 +425,8 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
       temp_18_0042.freeRef();
       return temp_18_0041;
     }, network_target.addRef()));
-    Result[] array = ConstantResult.batchResultArray(Tensor.addRefs(input_target));
-    Result eval = network_target.eval(Result.addRefs(array));
+    Result[] array = ConstantResult.batchResultArray(RefUtil.addRefs(input_target));
+    Result eval = network_target.eval(RefUtil.addRefs(array));
     ReferenceCounting.freeRefs(array);
     network_target.freeRef();
     assert eval != null;
@@ -465,10 +441,10 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
       component.freeRef();
       return null;
     }
-    Tensor[][] trainingInput = append(Tensor.addRefs(input_target), Tensor.addRefs(output_target));
+    Tensor[][] trainingInput = append(RefUtil.addRefs(input_target), RefUtil.addRefs(output_target));
     ReferenceCounting.freeRefs(output_target);
     ReferenceCounting.freeRefs(input_target);
-    TrainingTester.TestResult temp_18_0013 = trainAll("Model Convergence", log, Tensor.addRefs(trainingInput),
+    TrainingTester.TestResult temp_18_0013 = trainAll("Model Convergence", log, RefUtil.addRefs(trainingInput),
         shuffle(random, component.copy()));
     component.freeRef();
     ReferenceCounting.freeRefs(trainingInput);
@@ -494,12 +470,12 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
   public TestResult trainAll(CharSequence title, @Nonnull NotebookOutput log, @Nonnull Tensor[][] trainingInput,
                              @Nonnull Layer layer, boolean... mask) {
     log.h3("Gradient Descent");
-    final RefList<StepRecord> gd = train(log, this::trainGD, layer.copy(), copy(Tensor.addRefs(trainingInput)), mask);
+    final RefList<StepRecord> gd = train(log, this::trainGD, layer.copy(), copy(RefUtil.addRefs(trainingInput)), mask);
     log.h3("Conjugate Gradient Descent");
-    final RefList<StepRecord> cjgd = train(log, this::trainCjGD, layer.copy(), copy(Tensor.addRefs(trainingInput)),
+    final RefList<StepRecord> cjgd = train(log, this::trainCjGD, layer.copy(), copy(RefUtil.addRefs(trainingInput)),
         mask);
     log.h3("Limited-Memory BFGS");
-    final RefList<StepRecord> lbfgs = train(log, this::trainLBFGS, layer.copy(), copy(Tensor.addRefs(trainingInput)),
+    final RefList<StepRecord> lbfgs = train(log, this::trainLBFGS, layer.copy(), copy(RefUtil.addRefs(trainingInput)),
         mask);
     @Nonnull final ProblemRun[] runs = {
         new ProblemRun("GD", gd.addRef(), Color.GRAY, ProblemRun.PlotType.Line),
@@ -544,12 +520,18 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     try {
       log.eval(RefUtil.wrapInterface((UncheckedSupplier<Double>) () -> {
         IterativeTrainer temp_18_0028 = new IterativeTrainer(trainable == null ? null : trainable.addRef());
-        IterativeTrainer temp_18_0043 = temp_18_0028.setLineSearchFactory(label -> new QuadraticSearch());
-        IterativeTrainer temp_18_0044 = temp_18_0043.setOrientation(new GradientDescent());
-        IterativeTrainer temp_18_0045 = temp_18_0044.setMonitor(monitor);
-        IterativeTrainer temp_18_0046 = temp_18_0045.setTimeout(30, TimeUnit.SECONDS);
-        IterativeTrainer temp_18_0047 = temp_18_0046.setMaxIterations(250);
-        IterativeTrainer temp_18_0048 = temp_18_0047.setTerminateThreshold(0);
+        temp_18_0028.setLineSearchFactory(label -> new QuadraticSearch());
+        IterativeTrainer temp_18_0043 = temp_18_0028.addRef();
+        temp_18_0043.setOrientation(new GradientDescent());
+        IterativeTrainer temp_18_0044 = temp_18_0043.addRef();
+        temp_18_0044.setMonitor(monitor);
+        IterativeTrainer temp_18_0045 = temp_18_0044.addRef();
+        temp_18_0045.setTimeout(30, TimeUnit.SECONDS);
+        IterativeTrainer temp_18_0046 = temp_18_0045.addRef();
+        temp_18_0046.setMaxIterations(250);
+        IterativeTrainer temp_18_0047 = temp_18_0046.addRef();
+        temp_18_0047.setTerminateThreshold(0);
+        IterativeTrainer temp_18_0048 = temp_18_0047.addRef();
         double temp_18_0027 = temp_18_0048.run();
         temp_18_0048.freeRef();
         temp_18_0047.freeRef();
@@ -577,12 +559,18 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     try {
       log.eval(RefUtil.wrapInterface((UncheckedSupplier<Double>) () -> {
         IterativeTrainer temp_18_0030 = new IterativeTrainer(trainable == null ? null : trainable.addRef());
-        IterativeTrainer temp_18_0049 = temp_18_0030.setLineSearchFactory(label -> new ArmijoWolfeSearch());
-        IterativeTrainer temp_18_0050 = temp_18_0049.setOrientation(new GradientDescent());
-        IterativeTrainer temp_18_0051 = temp_18_0050.setMonitor(monitor);
-        IterativeTrainer temp_18_0052 = temp_18_0051.setTimeout(30, TimeUnit.SECONDS);
-        IterativeTrainer temp_18_0053 = temp_18_0052.setMaxIterations(250);
-        IterativeTrainer temp_18_0054 = temp_18_0053.setTerminateThreshold(0);
+        temp_18_0030.setLineSearchFactory(label -> new ArmijoWolfeSearch());
+        IterativeTrainer temp_18_0049 = temp_18_0030.addRef();
+        temp_18_0049.setOrientation(new GradientDescent());
+        IterativeTrainer temp_18_0050 = temp_18_0049.addRef();
+        temp_18_0050.setMonitor(monitor);
+        IterativeTrainer temp_18_0051 = temp_18_0050.addRef();
+        temp_18_0051.setTimeout(30, TimeUnit.SECONDS);
+        IterativeTrainer temp_18_0052 = temp_18_0051.addRef();
+        temp_18_0052.setMaxIterations(250);
+        IterativeTrainer temp_18_0053 = temp_18_0052.addRef();
+        temp_18_0053.setTerminateThreshold(0);
+        IterativeTrainer temp_18_0054 = temp_18_0053.addRef();
         double temp_18_0029 = temp_18_0054.run();
         temp_18_0054.freeRef();
         temp_18_0053.freeRef();
@@ -611,13 +599,20 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     try {
       log.eval(RefUtil.wrapInterface((UncheckedSupplier<Double>) () -> {
         IterativeTrainer temp_18_0032 = new IterativeTrainer(trainable == null ? null : trainable.addRef());
-        IterativeTrainer temp_18_0055 = temp_18_0032.setLineSearchFactory(label -> new ArmijoWolfeSearch());
-        IterativeTrainer temp_18_0056 = temp_18_0055.setOrientation(new LBFGS());
-        IterativeTrainer temp_18_0057 = temp_18_0056.setMonitor(monitor);
-        IterativeTrainer temp_18_0058 = temp_18_0057.setTimeout(30, TimeUnit.SECONDS);
-        IterativeTrainer temp_18_0059 = temp_18_0058.setIterationsPerSample(100);
-        IterativeTrainer temp_18_0060 = temp_18_0059.setMaxIterations(250);
-        IterativeTrainer temp_18_0061 = temp_18_0060.setTerminateThreshold(0);
+        temp_18_0032.setLineSearchFactory(label -> new ArmijoWolfeSearch());
+        IterativeTrainer temp_18_0055 = temp_18_0032.addRef();
+        temp_18_0055.setOrientation(new LBFGS());
+        IterativeTrainer temp_18_0056 = temp_18_0055.addRef();
+        temp_18_0056.setMonitor(monitor);
+        IterativeTrainer temp_18_0057 = temp_18_0056.addRef();
+        temp_18_0057.setTimeout(30, TimeUnit.SECONDS);
+        IterativeTrainer temp_18_0058 = temp_18_0057.addRef();
+        temp_18_0058.setIterationsPerSample(100);
+        IterativeTrainer temp_18_0059 = temp_18_0058.addRef();
+        temp_18_0059.setMaxIterations(250);
+        IterativeTrainer temp_18_0060 = temp_18_0059.addRef();
+        temp_18_0060.setTerminateThreshold(0);
+        IterativeTrainer temp_18_0061 = temp_18_0060.addRef();
         double temp_18_0031 = temp_18_0061.run();
         temp_18_0061.freeRef();
         temp_18_0060.freeRef();
@@ -677,19 +672,20 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
   private Tensor[][] shuffleCopy(final Random random, @Nonnull final Tensor... copy) {
     Tensor[][] temp_18_0026 = RefIntStream.range(0, getBatches())
         .mapToObj(RefUtil.wrapInterface((IntFunction<? extends Tensor[]>) i -> {
-          return RefArrays.stream(Tensor.addRefs(copy)).map(tensor -> {
+          return RefArrays.stream(RefUtil.addRefs(copy)).map(tensor -> {
             @Nonnull final Tensor cpy = tensor.copy();
             tensor.freeRef();
             randomizationMode.shuffle(random, cpy.getData());
             return cpy;
           }).toArray(j -> new Tensor[j]);
-        }, Tensor.addRefs(copy))).toArray(i -> new Tensor[i][]);
+        }, RefUtil.addRefs(copy))).toArray(i -> new Tensor[i][]);
     ReferenceCounting.freeRefs(copy);
     return temp_18_0026;
   }
 
   private RefList<StepRecord> train(@Nonnull NotebookOutput log,
-                                    @Nonnull BiFunction<NotebookOutput, Trainable, RefList<StepRecord>> opt, @Nonnull Layer layer,
+                                    @Nonnull RefBiFunction<NotebookOutput, Trainable, RefList<StepRecord>> opt,
+                                    @Nonnull Layer layer,
                                     @Nonnull Tensor[][] data, @Nonnull boolean... mask) {
     int inputs = data[0].length;
     @Nonnull final PipelineNetwork network = new PipelineNetwork(inputs);
@@ -704,11 +700,10 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
         network.getInput(inputs - 1)));
     lossLayer.freeRef();
     @Nonnull
-    ArrayTrainable trainable = new ArrayTrainable(Tensor.addRefs(data), network.addRef());
+    ArrayTrainable trainable = new ArrayTrainable(RefUtil.addRefs(data), network.addRef());
     if (0 < mask.length)
-      trainable.setMask(mask).freeRef();
-    RefList<StepRecord> history;
-    history = opt.apply(log, trainable);
+      trainable.setMask(mask);
+    RefList<StepRecord> history = opt.apply(log, trainable.addRef());
     if (history.stream().mapToDouble(x -> x.fitness).min().orElse(1) > 1e-5) {
       if (!network.isFrozen()) {
         log.p("This training apply resulted in the following configuration:");
@@ -724,8 +719,8 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
       if (0 < mask.length) {
         log.p("And regressed input:");
         log.eval(RefUtil.wrapInterface((UncheckedSupplier<String>) () -> {
-          return RefArrays.stream(Tensor.addRefs(data)).flatMap(x -> {
-            RefStream<Tensor> temp_18_0014 = RefArrays.stream(Tensor.addRefs(x));
+          return RefArrays.stream(RefUtil.addRefs(data)).flatMap(x -> {
+            RefStream<Tensor> temp_18_0014 = RefArrays.stream(RefUtil.addRefs(x));
             if (null != x)
               ReferenceCounting.freeRefs(x);
             return temp_18_0014;
@@ -734,13 +729,13 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
             x.freeRef();
             return temp_18_0015;
           }).reduce((a, b) -> a + "\n" + b).orElse("");
-        }, Tensor.addRefs(data)));
+        }, RefUtil.addRefs(data)));
       }
       log.p("To produce the following output:");
       log.eval(RefUtil.wrapInterface((UncheckedSupplier<String>) () -> {
-        Result[] array = ConstantResult.batchResultArray(pop(Tensor.addRefs(data)));
+        Result[] array = ConstantResult.batchResultArray(pop(RefUtil.addRefs(data)));
         @Nullable
-        Result eval = layer.eval(Result.addRefs(array));
+        Result eval = layer.eval(RefUtil.addRefs(array));
         for (@Nonnull
             Result result : array) {
           RefUtil.freeRef(result.getData());
@@ -756,7 +751,7 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
         }).reduce((a, b) -> a + "\n" + b).orElse("");
         tensorList.freeRef();
         return temp_18_0016;
-      }, Tensor.addRefs(data), layer.addRef()));
+      }, RefUtil.addRefs(data), layer.addRef()));
     } else {
       log.p("Training Converged");
     }

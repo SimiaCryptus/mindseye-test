@@ -37,7 +37,6 @@ import smile.plot.ScatterPlot;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
 import java.util.Random;
 import java.util.function.DoubleFunction;
 import java.util.function.Function;
@@ -71,7 +70,8 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
         return ActivationLayerTestBase.this.lossLayer();
       }
     };
-    TrainingTester temp_03_0003 = temp_03_0004.setRandomizationMode(TrainingTester.RandomizationMode.Random);
+    temp_03_0004.setRandomizationMode(TrainingTester.RandomizationMode.Random);
+    TrainingTester temp_03_0003 = temp_03_0004.addRef();
     temp_03_0004.freeRef();
     return temp_03_0003;
   }
@@ -91,24 +91,6 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
     final double[][] data = plotData.stream().map(function).toArray(i -> new double[i][]);
     plotData.freeRef();
     return ActivationLayerTestBase.plot(title, data);
-  }
-
-  @Nullable
-  public static @SuppressWarnings("unused")
-  ActivationLayerTestBase[] addRefs(@Nullable ActivationLayerTestBase[] array) {
-    if (array == null)
-      return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(ActivationLayerTestBase::addRef)
-        .toArray((x) -> new ActivationLayerTestBase[x]);
-  }
-
-  @Nullable
-  public static @SuppressWarnings("unused")
-  ActivationLayerTestBase[][] addRefs(@Nullable ActivationLayerTestBase[][] array) {
-    if (array == null)
-      return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(ActivationLayerTestBase::addRefs)
-        .toArray((x) -> new ActivationLayerTestBase[x][]);
   }
 
   @Nonnull
@@ -168,7 +150,6 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
     }, plotData == null ? null : plotData.addRef()));
     if (null != plotData)
       plotData.freeRef();
-
   }
 
   public @SuppressWarnings("unused")

@@ -34,7 +34,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -62,58 +61,32 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     return testFeedback;
   }
 
-  @Nonnull
-  public BatchDerivativeTester setTestFeedback(final boolean testFeedback) {
+  public void setTestFeedback(boolean testFeedback) {
     this.testFeedback = testFeedback;
-    return this.addRef();
   }
 
   public boolean isTestLearning() {
     return testLearning;
   }
 
-  @Nonnull
-  public BatchDerivativeTester setTestLearning(final boolean testLearning) {
+  public void setTestLearning(boolean testLearning) {
     this.testLearning = testLearning;
-    return this.addRef();
   }
 
   public boolean isVerbose() {
     return verbose;
   }
 
-  @Nonnull
-  public BatchDerivativeTester setVerbose(final boolean verbose) {
+  public void setVerbose(boolean verbose) {
     this.verbose = verbose;
-    return this.addRef();
   }
 
   public boolean isVerify() {
     return verify;
   }
 
-  @Nonnull
-  public BatchDerivativeTester setVerify(final boolean verify) {
+  public void setVerify(boolean verify) {
     this.verify = verify;
-    return this.addRef();
-  }
-
-  @Nullable
-  public static @SuppressWarnings("unused")
-  BatchDerivativeTester[] addRefs(@Nullable BatchDerivativeTester[] array) {
-    if (array == null)
-      return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(BatchDerivativeTester::addRef)
-        .toArray((x) -> new BatchDerivativeTester[x]);
-  }
-
-  @Nullable
-  public static @SuppressWarnings("unused")
-  BatchDerivativeTester[][] addRefs(@Nullable BatchDerivativeTester[][] array) {
-    if (array == null)
-      return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(BatchDerivativeTester::addRefs)
-        .toArray((x) -> new BatchDerivativeTester[x][]);
   }
 
   public ToleranceStatistics testLearning(@Nonnull Layer component, @Nonnull IOPair IOPair,
@@ -199,7 +172,6 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
             }
             throw e;
           }
-
         }, component, IOPair)).reduce((a, b) -> a.combine(b))
         .map(x -> x.combine(prev)).orElse(prev);
     temp_02_0021.freeRef();
@@ -213,11 +185,11 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     statistics = statistics.combine(RefUtil.get(RefIntStream.range(0, inputPrototype.length)
         .mapToObj(RefUtil.wrapInterface((IntFunction<ToleranceStatistics>) i -> {
           Tensor temp_02_0029 = measureFeedbackGradient(component.addRef(), i,
-              IOPair.getOutputPrototype(), Tensor.addRefs(inputPrototype));
+              IOPair.getOutputPrototype(), RefUtil.addRefs(inputPrototype));
           @Nullable final Tensor measuredGradient = !verify ? null : temp_02_0029.addRef();
           temp_02_0029.freeRef();
           @Nonnull final Tensor implementedGradient = getFeedbackGradient(component.addRef(), i,
-              IOPair.getOutputPrototype(), Tensor.addRefs(inputPrototype));
+              IOPair.getOutputPrototype(), RefUtil.addRefs(inputPrototype));
           try {
             final ToleranceStatistics result = RefIntStream
                 .range(0, null == measuredGradient ? 0 : measuredGradient.length())
@@ -296,20 +268,21 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     log.h1("Differential Validation");
     BatchDerivativeTester.IOPair temp_02_0019 = new IOPair(component.addRef(),
         inputPrototype[0].addRef(), BatchDerivativeTester.this.addRef());
+    temp_02_0019.invoke();
     @Nonnull
-    IOPair ioPair = temp_02_0019.invoke();
+    IOPair ioPair = temp_02_0019.addRef();
 
     temp_02_0019.freeRef();
     if (verbose) {
       log.run(RefUtil.wrapInterface(() -> {
         BatchDerivativeTester.log
-            .info(RefString.format("Inputs: %s", RefUtil.get(RefArrays.stream(Tensor.addRefs(inputPrototype)).map(t -> {
+            .info(RefString.format("Inputs: %s", RefUtil.get(RefArrays.stream(RefUtil.addRefs(inputPrototype)).map(t -> {
               String temp_02_0007 = t.prettyPrint();
               t.freeRef();
               return temp_02_0007;
             }).reduce((a, b) -> a + ",\n" + b))));
         BatchDerivativeTester.log
-            .info(RefString.format("Inputs Statistics: %s", RefUtil.get(RefArrays.stream(Tensor.addRefs(inputPrototype)).map(x -> {
+            .info(RefString.format("Inputs Statistics: %s", RefUtil.get(RefArrays.stream(RefUtil.addRefs(inputPrototype)).map(x -> {
               String temp_02_0008 = new ScalarStatistics().add(x.getData()).toString();
               x.freeRef();
               return temp_02_0008;
@@ -322,7 +295,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
         BatchDerivativeTester.log
             .info(RefString.format("Outputs Statistics: %s", new ScalarStatistics().add(temp_02_0035.getData())));
         temp_02_0035.freeRef();
-      }, Tensor.addRefs(inputPrototype), ioPair.addRef()));
+      }, RefUtil.addRefs(inputPrototype), ioPair.addRef()));
     }
 
     ReferenceCounting.freeRefs(inputPrototype);
@@ -371,27 +344,34 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
   public void testFrozen(@Nonnull final Layer component, @Nonnull final Tensor[] inputPrototype) {
     @Nonnull final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
     Layer temp_02_0036 = component.copy();
-    @Nonnull final Layer frozen = temp_02_0036.freeze();
+    temp_02_0036.freeze();
+    @Nonnull final Layer frozen = temp_02_0036.addRef();
     temp_02_0036.freeRef();
+    Result.Accumulator accumulator = new Result.Accumulator() {
+      @Override
+      public void accept(@Nonnull DeltaSet<UUID> buffer, @Nonnull TensorList data) {
+        buffer.freeRef();
+        data.freeRef();
+        reachedInputFeedback.set(true);
+      }
+
+      @Override
+      public void _free() {
+        super._free();
+      }
+    };
     @Nullable final Result eval = frozen
-        .eval(new Result(new TensorArray(Tensor.addRefs(inputPrototype)), new Result.Accumulator() {
-          @Override
-          public void accept(@Nonnull DeltaSet<UUID> buffer, @Nonnull TensorList data) {
-            buffer.freeRef();
-            data.freeRef();
-            reachedInputFeedback.set(true);
-          }
-        }) {
+        .eval(new Result(new TensorArray(RefUtil.addRefs(inputPrototype)), accumulator) {
 
           @Override
           public boolean isAlive() {
             return true;
           }
 
-          public @SuppressWarnings("unused")
-          void _free() {
+          @Override
+          public void _free() {
+            super._free();
           }
-
         });
     frozen.freeRef();
     @Nonnull final DeltaSet<UUID> buffer = new DeltaSet<UUID>();
@@ -424,53 +404,58 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     temp_02_0038.freeRef();
     RefList<double[]> temp_02_0041 = component.state();
     assert temp_02_0041 != null;
-    if (!deltas.isEmpty() && !temp_02_0041.isEmpty()) {
-      AssertionError temp_02_0011 = new AssertionError("Frozen component listed in evalInputDelta. Deltas: " + deltas);
+    try {
+      if (!deltas.isEmpty() && !temp_02_0041.isEmpty()) {
+        throw new AssertionError("Frozen component listed in evalInputDelta. Deltas: " + deltas);
+      }
+      final int inElements = RefArrays.stream(RefUtil.addRefs(inputPrototype)).mapToInt(x -> {
+        int temp_02_0012 = x.length();
+        x.freeRef();
+        return temp_02_0012;
+      }).sum();
+      if (!reachedInputFeedback.get() && 0 < inElements) {
+        throw new RuntimeException("Frozen component did not pass input backwards");
+      }
+    } finally {
       deltas.freeRef();
       component.freeRef();
       ReferenceCounting.freeRefs(inputPrototype);
-      throw temp_02_0011;
-    }
-    temp_02_0041.freeRef();
-    component.freeRef();
-    deltas.freeRef();
-    final int inElements = RefArrays.stream(Tensor.addRefs(inputPrototype)).mapToInt(x -> {
-      int temp_02_0012 = x.length();
-      x.freeRef();
-      return temp_02_0012;
-    }).sum();
-    ReferenceCounting.freeRefs(inputPrototype);
-    if (!reachedInputFeedback.get() && 0 < inElements) {
-      throw new RuntimeException("Frozen component did not pass input backwards");
+      temp_02_0041.freeRef();
     }
   }
 
   public void testUnFrozen(@Nonnull final Layer component, @Nullable final Tensor[] inputPrototype) {
     @Nonnull final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
     Layer temp_02_0042 = component.copy();
-    @Nonnull final Layer frozen = temp_02_0042.setFrozen(false);
+    temp_02_0042.setFrozen(false);
+    @Nonnull final Layer frozen = temp_02_0042.addRef();
     temp_02_0042.freeRef();
     component.freeRef();
-    @Nullable final Result eval = frozen
-        .eval(new Result(new TensorArray(Tensor.addRefs(inputPrototype)), new Result.Accumulator() {
-          @Override
-          public void accept(@Nonnull DeltaSet<UUID> buffer, @Nonnull TensorList data) {
-            buffer.freeRef();
-            data.freeRef();
-            reachedInputFeedback.set(true);
-          }
-        }) {
+    Result.Accumulator accumulator = new Result.Accumulator() {
+      @Override
+      public void accept(@Nonnull DeltaSet<UUID> buffer, @Nonnull TensorList data) {
+        buffer.freeRef();
+        data.freeRef();
+        reachedInputFeedback.set(true);
+      }
 
-          @Override
-          public boolean isAlive() {
-            return true;
-          }
+      @Override
+      public void _free() {
+        super._free();
+      }
+    };
+    @Nullable final Result eval = frozen.eval(new Result(new TensorArray(RefUtil.addRefs(inputPrototype)), accumulator) {
 
-          public @SuppressWarnings("unused")
-          void _free() {
-          }
+      @Override
+      public boolean isAlive() {
+        return true;
+      }
 
-        });
+      @Override
+      public void _free() {
+        super._free();
+      }
+    });
     if (null != inputPrototype)
       ReferenceCounting.freeRefs(inputPrototype);
     @Nonnull final DeltaSet<UUID> buffer = new DeltaSet<UUID>();
@@ -541,7 +526,13 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     for (int j = 0; j < outputPrototype.length(); j++) {
       final int j_ = j;
       @Nonnull final PlaceholderLayer<Tensor> inputKey = new PlaceholderLayer<Tensor>(new Tensor());
-      @Nonnull final Result copyInput = new Result(new TensorArray(Tensor.addRefs(inputPrototype)), new Result.Accumulator() {
+      Result.Accumulator accumulator = new Result.Accumulator() {
+        {
+          inputTensor.addRef();
+          outputPrototype.addRef();
+          inputKey.addRef();
+        }
+
         @Override
         public void accept(@Nonnull DeltaSet<UUID> buffer, @Nonnull TensorList data) {
           @Nonnull final Tensor gradientBuffer = new Tensor(inputDims, outputPrototype.length());
@@ -550,6 +541,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
             buffer.freeRef();
             data.freeRef();
             tensor.freeRef();
+            gradientBuffer.freeRef();
             throw new AssertionError();
           }
           for (int i = 0; i < inputDims; i++) {
@@ -558,22 +550,32 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
           tensor.freeRef();
           Delta<UUID> delta = buffer.get(inputKey.getId(), new double[gradientBuffer.length()]);
           assert delta != null;
-          delta.addInPlace(gradientBuffer.getData()).freeRef();
+          delta.addInPlace(gradientBuffer.getData());
+          gradientBuffer.freeRef();
           delta.freeRef();
           buffer.freeRef();
           data.freeRef();
         }
-      }) {
+
+        @Override
+        public void _free() {
+          inputTensor.freeRef();
+          outputPrototype.freeRef();
+          inputKey.freeRef();
+          super._free();
+        }
+      };
+      @Nonnull final Result copyInput = new Result(new TensorArray(RefUtil.addRefs(inputPrototype)), accumulator) {
 
         @Override
         public boolean isAlive() {
           return true;
         }
 
-        public @SuppressWarnings("unused")
-        void _free() {
+        @Override
+        public void _free() {
+          super._free();
         }
-
       };
       @Nullable final Result eval = component.eval(copyInput);
       @Nonnull final DeltaSet<UUID> xxx = new DeltaSet<UUID>();
@@ -581,7 +583,8 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       TensorList temp_02_0045 = eval.getData();
       @Nonnull
       TensorArray tensorArray = new TensorArray(temp_02_0045.stream().map(x -> {
-        Tensor temp_02_0016 = x.set(j_, 1);
+        x.set(j_, 1);
+        Tensor temp_02_0016 = x.addRef();
         x.freeRef();
         return temp_02_0016;
       }).toArray(i -> new Tensor[i]));
@@ -608,7 +611,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
   @Nonnull
   private Tensor getLearningGradient(@Nonnull final Layer component, final int layerNum,
                                      @Nonnull final Tensor outputPrototype, @Nullable final Tensor... inputPrototype) {
-    RefUtil.freeRef(component.setFrozen(false));
+    component.setFrozen(false);
     RefList<double[]> temp_02_0047 = component.state();
     assert temp_02_0047 != null;
     final double[] stateArray = temp_02_0047.get(layerNum);
@@ -619,10 +622,11 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       final int j_ = j;
       @Nonnull final DeltaSet<UUID> buffer = new DeltaSet<UUID>();
       Tensor temp_02_0020 = new Tensor(outputPrototype.getDimensions());
-      @Nonnull final Tensor data = temp_02_0020.set((k) -> k == j_ ? 1 : 0);
+      temp_02_0020.set((k) -> k == j_ ? 1 : 0);
+      @Nonnull final Tensor data = temp_02_0020.addRef();
       temp_02_0020.freeRef();
       @Nullable final Result eval = component
-          .eval(ConstantResult.singleResultArray(new Tensor[][]{Tensor.addRefs(inputPrototype)}));
+          .eval(ConstantResult.singleResultArray(new Tensor[][]{RefUtil.addRefs(inputPrototype)}));
       assert eval != null;
       TensorList temp_02_0048 = eval.getData();
       RefUtil.freeRef(temp_02_0048.get(0));
@@ -663,7 +667,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
                                          @Nonnull final Tensor outputPrototype, @Nonnull final Tensor... inputPrototype) {
     @Nonnull final Tensor measuredGradient = new Tensor(inputPrototype[inputIndex].length(), outputPrototype.length());
     Result temp_02_0052 = component
-        .eval(ConstantResult.singleResultArray(new Tensor[][]{Tensor.addRefs(inputPrototype)}));
+        .eval(ConstantResult.singleResultArray(new Tensor[][]{RefUtil.addRefs(inputPrototype)}));
     assert temp_02_0052 != null;
     TensorList temp_02_0053 = temp_02_0052.getData();
     @Nullable final Tensor baseOutput = temp_02_0053.get(0);
@@ -674,23 +678,21 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     for (int i = 0; i < inputPrototype[inputIndex].length(); i++) {
       @Nonnull final Tensor inputProbe = inputPrototype[inputIndex].copy();
       inputProbe.add(i, probeSize * 1);
-      @Nonnull final Tensor[] copyInput = RefArrays.copyOf(Tensor.addRefs(inputPrototype), inputPrototype.length);
+      @Nonnull final Tensor[] copyInput = RefArrays.copyOf(RefUtil.addRefs(inputPrototype), inputPrototype.length);
       Tensor temp_02_0001 = inputProbe.addRef();
-      if (null != copyInput[inputIndex])
-        copyInput[inputIndex].freeRef();
-      copyInput[inputIndex] = temp_02_0001.addRef();
+      RefUtil.set(copyInput, inputIndex, temp_02_0001.addRef());
       temp_02_0001.freeRef();
       inputProbe.freeRef();
       Result temp_02_0054 = component
-          .eval(ConstantResult.singleResultArray(new Tensor[][]{Tensor.addRefs(copyInput)}));
+          .eval(ConstantResult.singleResultArray(new Tensor[][]{copyInput}));
       assert temp_02_0054 != null;
       TensorList temp_02_0055 = temp_02_0054.getData();
       @Nullable final Tensor evalProbe = temp_02_0055.get(0);
       temp_02_0055.freeRef();
       temp_02_0054.freeRef();
-      ReferenceCounting.freeRefs(copyInput);
       Tensor temp_02_0056 = evalProbe.minus(baseOutput.addRef());
-      @Nonnull final Tensor delta = temp_02_0056.scaleInPlace(1. / probeSize);
+      temp_02_0056.scaleInPlace(1. / probeSize);
+      @Nonnull final Tensor delta = temp_02_0056.addRef();
       temp_02_0056.freeRef();
       evalProbe.freeRef();
       for (int j = 0; j < delta.length(); j++) {
@@ -715,7 +717,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
 
     outputPrototype.freeRef();
     Result temp_02_0058 = component
-        .eval(ConstantResult.singleResultArray(new Tensor[][]{Tensor.addRefs(inputPrototype)}));
+        .eval(ConstantResult.singleResultArray(new Tensor[][]{RefUtil.addRefs(inputPrototype)}));
     assert temp_02_0058 != null;
     TensorList temp_02_0059 = temp_02_0058.getData();
     @Nullable final Tensor baseOutput = temp_02_0059.get(0);
@@ -730,7 +732,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
 
       temp_02_0060.freeRef();
       Result temp_02_0061 = copy
-          .eval(ConstantResult.singleResultArray(new Tensor[][]{Tensor.addRefs(inputPrototype)}));
+          .eval(ConstantResult.singleResultArray(new Tensor[][]{RefUtil.addRefs(inputPrototype)}));
       assert temp_02_0061 != null;
       TensorList temp_02_0062 = temp_02_0061.getData();
       @Nullable final Tensor evalProbe = temp_02_0062.get(0);
@@ -739,7 +741,8 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       temp_02_0061.freeRef();
       copy.freeRef();
       Tensor temp_02_0063 = evalProbe.minus(baseOutput.addRef());
-      @Nonnull final Tensor delta = temp_02_0063.scaleInPlace(1. / probeSize);
+      temp_02_0063.scaleInPlace(1. / probeSize);
+      @Nonnull final Tensor delta = temp_02_0063.addRef();
       temp_02_0063.freeRef();
       evalProbe.freeRef();
       for (int j = 0; j < delta.length(); j++) {
@@ -789,7 +792,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
 
     @Nullable
     public Tensor[] getInputPrototype() {
-      return Tensor.addRefs(inputPrototype);
+      return RefUtil.addRefs(inputPrototype);
     }
 
     @Nullable
@@ -797,22 +800,13 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       return outputPrototype == null ? null : outputPrototype.addRef();
     }
 
-    @Nullable
-    public static @SuppressWarnings("unused")
-    IOPair[] addRefs(@Nullable IOPair[] array) {
-      if (array == null)
-        return null;
-      return Arrays.stream(array).filter((x) -> x != null).map(IOPair::addRef).toArray((x) -> new IOPair[x]);
-    }
-
-    @Nonnull
-    public IOPair invoke() {
+    public void invoke() {
       assert parent != null;
       Tensor[] temp_02_0005 = RefIntStream.range(0, parent.batches).mapToObj(i -> tensor.copy())
           .toArray(j -> new Tensor[j]);
       if (null != inputPrototype)
         ReferenceCounting.freeRefs(inputPrototype);
-      inputPrototype = Tensor.addRefs(temp_02_0005);
+      inputPrototype = RefUtil.addRefs(temp_02_0005);
       ReferenceCounting.freeRefs(temp_02_0005);
       SimpleEval temp_02_0064 = SimpleEval.run(component == null ? null : component.addRef(),
           inputPrototype[0].addRef());
@@ -823,7 +817,6 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       outputPrototype = temp_02_0006 == null ? null : temp_02_0006.addRef();
       if (null != temp_02_0006)
         temp_02_0006.freeRef();
-      return this.addRef();
     }
 
     public @SuppressWarnings("unused")

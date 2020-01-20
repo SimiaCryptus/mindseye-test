@@ -38,24 +38,6 @@ public class CIFARDatasetDemo extends ImageCategoryDatasetDemo {
     return CIFAR10.class;
   }
 
-  @Nullable
-  public static @SuppressWarnings("unused")
-  CIFARDatasetDemo[] addRefs(@Nullable CIFARDatasetDemo[] array) {
-    if (array == null)
-      return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(CIFARDatasetDemo::addRef)
-        .toArray((x) -> new CIFARDatasetDemo[x]);
-  }
-
-  @Nullable
-  public static @SuppressWarnings("unused")
-  CIFARDatasetDemo[][] addRefs(@Nullable CIFARDatasetDemo[][] array) {
-    if (array == null)
-      return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(CIFARDatasetDemo::addRefs)
-        .toArray((x) -> new CIFARDatasetDemo[x][]);
-  }
-
   @Override
   public RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(@Nonnull NotebookOutput log) {
     return log.eval(() -> {

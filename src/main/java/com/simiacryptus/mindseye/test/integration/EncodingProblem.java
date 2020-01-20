@@ -45,6 +45,7 @@ import com.simiacryptus.util.data.ScalarStatistics;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 import guru.nidi.graphviz.model.Graph;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -101,6 +102,21 @@ public abstract class EncodingProblem implements Problem {
     return history;
   }
 
+  @NotNull
+  public Tensor[][] getTensors() {
+    try {
+      return data.trainingData().map(labeledObject -> {
+        Tensor temp_20_0003 = new Tensor(features);
+        temp_20_0003.set(this::random);
+        Tensor[] temp_20_0002 = new Tensor[]{temp_20_0003.addRef(), labeledObject.data};
+        temp_20_0003.freeRef();
+        return temp_20_0002;
+      }).toArray(i -> new Tensor[i][]);
+    } catch (@Nonnull final IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   public int getTimeoutMinutes() {
     return timeoutMinutes;
   }
@@ -129,18 +145,7 @@ public abstract class EncodingProblem implements Problem {
   @Override
   public EncodingProblem run(@Nonnull final NotebookOutput log) {
     @Nonnull final TrainingMonitor monitor = TestUtil.getMonitor(history);
-    Tensor[][] trainingData;
-    try {
-      trainingData = data.trainingData().map(labeledObject -> {
-        Tensor temp_20_0003 = new Tensor(features);
-        Tensor[] temp_20_0002 = new Tensor[]{temp_20_0003.set(this::random), labeledObject.data};
-        temp_20_0003.freeRef();
-        return temp_20_0002;
-      }).toArray(i -> new Tensor[i][]);
-    } catch (@Nonnull final IOException e) {
-      throw new RuntimeException(e);
-    }
-
+    Tensor[][] trainingData = getTensors();
     @Nonnull final DAGNetwork imageNetwork = revFactory.vectorToImage(log, features);
     log.h3("Network Diagram");
     log.eval(RefUtil.wrapInterface((UncheckedSupplier<BufferedImage>) () -> {
@@ -152,20 +157,21 @@ public abstract class EncodingProblem implements Problem {
     log.h3("Training");
     log.p("We start by training apply a very small population to improve initial convergence performance:");
     TestUtil.instrumentPerformance(trainingNetwork.addRef());
-    @Nonnull final Tensor[][] primingData = RefArrays.copyOfRange(Tensor.addRefs(trainingData), 0, 1000);
-    SampledArrayTrainable temp_20_0004 = new SampledArrayTrainable(Tensor.addRefs(primingData),
+    @Nonnull final Tensor[][] primingData = RefArrays.copyOfRange(RefUtil.addRefs(trainingData), 0, 1000);
+    SampledArrayTrainable temp_20_0004 = new SampledArrayTrainable(RefUtil.addRefs(primingData),
         trainingNetwork.addRef(), trainingSize, batchSize);
-    SampledArrayTrainable temp_20_0007 = temp_20_0004.setMinSamples(trainingSize);
-    @Nonnull final ValidatingTrainer preTrainer = optimizer.train(log, (SampledTrainable) temp_20_0007.setMask(true, false),
-        new ArrayTrainable(Tensor.addRefs(primingData), trainingNetwork.addRef(),
+    temp_20_0004.setMinSamples(trainingSize);
+    temp_20_0004.setMask(true, false);
+    @Nonnull final ValidatingTrainer preTrainer = optimizer.train(log, temp_20_0004,
+        new ArrayTrainable(RefUtil.addRefs(primingData), trainingNetwork.addRef(),
             batchSize),
         monitor);
-    temp_20_0007.freeRef();
-    temp_20_0004.freeRef();
     ReferenceCounting.freeRefs(primingData);
     log.run(RefUtil.wrapInterface(() -> {
-      ValidatingTrainer temp_20_0008 = preTrainer.setTimeout(timeoutMinutes / 2, TimeUnit.MINUTES);
-      ValidatingTrainer temp_20_0009 = temp_20_0008.setMaxIterations(batchSize);
+      preTrainer.setTimeout(timeoutMinutes / 2, TimeUnit.MINUTES);
+      ValidatingTrainer temp_20_0008 = preTrainer.addRef();
+      temp_20_0008.setMaxIterations(batchSize);
+      ValidatingTrainer temp_20_0009 = temp_20_0008.addRef();
       temp_20_0009.run();
       temp_20_0009.freeRef();
       temp_20_0008.freeRef();
@@ -174,18 +180,19 @@ public abstract class EncodingProblem implements Problem {
 
     log.p("Then our main training phase:");
     TestUtil.instrumentPerformance(trainingNetwork.addRef());
-    SampledArrayTrainable temp_20_0005 = new SampledArrayTrainable(Tensor.addRefs(trainingData),
+    SampledArrayTrainable temp_20_0005 = new SampledArrayTrainable(RefUtil.addRefs(trainingData),
         trainingNetwork.addRef(), trainingSize, batchSize);
-    SampledArrayTrainable temp_20_0010 = temp_20_0005.setMinSamples(trainingSize);
-    @Nonnull final ValidatingTrainer mainTrainer = optimizer.train(log, (SampledTrainable) temp_20_0010.setMask(true, false),
-        new ArrayTrainable(Tensor.addRefs(trainingData), trainingNetwork.addRef(),
+    temp_20_0005.setMinSamples(trainingSize);
+    temp_20_0005.setMask(true, false);
+    @Nonnull final ValidatingTrainer mainTrainer = optimizer.train(log, temp_20_0005,
+        new ArrayTrainable(RefUtil.addRefs(trainingData), trainingNetwork.addRef(),
             batchSize),
         monitor);
-    temp_20_0010.freeRef();
-    temp_20_0005.freeRef();
     log.run(RefUtil.wrapInterface(() -> {
-      ValidatingTrainer temp_20_0011 = mainTrainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES);
-      ValidatingTrainer temp_20_0012 = temp_20_0011.setMaxIterations(batchSize);
+      mainTrainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES);
+      ValidatingTrainer temp_20_0011 = mainTrainer.addRef();
+      temp_20_0011.setMaxIterations(batchSize);
+      ValidatingTrainer temp_20_0012 = temp_20_0011.addRef();
       temp_20_0012.run();
       temp_20_0012.freeRef();
       temp_20_0011.freeRef();
@@ -220,9 +227,9 @@ public abstract class EncodingProblem implements Problem {
     RefUtil.freeRef(testNetwork.add(imageNetwork.addRef(), testNetwork.getInput(0)));
     log.eval(RefUtil.wrapInterface((UncheckedSupplier<TableOutput>) () -> {
       @Nonnull final TableOutput table = new TableOutput();
-      RefArrays.stream(Tensor.addRefs(trainingData)).map(RefUtil
+      RefArrays.stream(RefUtil.addRefs(trainingData)).map(RefUtil
           .wrapInterface((Function<? super Tensor[], ? extends LinkedHashMap<CharSequence, Object>>) tensorArray -> {
-            Result temp_20_0013 = testNetwork.eval(Tensor.addRefs(tensorArray));
+            Result temp_20_0013 = testNetwork.eval(RefUtil.addRefs(tensorArray));
             assert temp_20_0013 != null;
             TensorList temp_20_0014 = temp_20_0013.getData();
             @Nullable final Tensor predictionSignal = temp_20_0014.get(0);
@@ -237,7 +244,7 @@ public abstract class EncodingProblem implements Problem {
           }, testNetwork.addRef())).filter(x -> null != x).limit(10)
           .forEach(table::putRow);
       return table;
-    }, testNetwork, Tensor.addRefs(trainingData)));
+    }, testNetwork, RefUtil.addRefs(trainingData)));
 
     log.p("Learned Model Statistics:");
     RefUtil.freeRef(log.eval(RefUtil.wrapInterface((UncheckedSupplier<Map<CharSequence, Object>>) () -> {
@@ -253,19 +260,20 @@ public abstract class EncodingProblem implements Problem {
     log.p("Learned Representation Statistics:");
     RefUtil.freeRef(log.eval(RefUtil.wrapInterface((UncheckedSupplier<Map<CharSequence, Object>>) () -> {
       @Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
-      RefArrays.stream(Tensor.addRefs(trainingData)).flatMapToDouble(row -> {
+      RefArrays.stream(RefUtil.addRefs(trainingData)).flatMapToDouble(row -> {
         RefDoubleStream temp_20_0001 = RefArrays.stream(row[0].getData());
         ReferenceCounting.freeRefs(row);
         return temp_20_0001;
       }).forEach(v -> scalarStatistics.add(v));
       return scalarStatistics.getMetrics();
-    }, Tensor.addRefs(trainingData))));
+    }, RefUtil.addRefs(trainingData))));
 
     ReferenceCounting.freeRefs(trainingData);
     log.p("Some rendered unit vectors:");
     for (int featureNumber = 0; featureNumber < features; featureNumber++) {
       Tensor temp_20_0006 = new Tensor(features);
-      @Nonnull final Tensor input = temp_20_0006.set(featureNumber, 1);
+      temp_20_0006.set(featureNumber, 1);
+      @Nonnull final Tensor input = temp_20_0006.addRef();
       temp_20_0006.freeRef();
       Result temp_20_0016 = imageNetwork.eval(input);
       assert temp_20_0016 != null;

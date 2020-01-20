@@ -60,32 +60,12 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
     return batchSize;
   }
 
-  @Nonnull
-  public BatchingTester setBatchSize(int batchSize) {
+  public void setBatchSize(int batchSize) {
     this.batchSize = batchSize;
-    return this.addRef();
   }
 
   public double getRandom() {
     return 5 * (Math.random() - 0.5);
-  }
-
-  @Nullable
-  public static @SuppressWarnings("unused")
-  BatchingTester[] addRefs(@Nullable BatchingTester[] array) {
-    if (array == null)
-      return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(BatchingTester::addRef)
-        .toArray((x) -> new BatchingTester[x]);
-  }
-
-  @Nullable
-  public static @SuppressWarnings("unused")
-  BatchingTester[][] addRefs(@Nullable BatchingTester[][] array) {
-    if (array == null)
-      return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(BatchingTester::addRefs)
-        .toArray((x) -> new BatchingTester[x][]);
   }
 
   @Nonnull
@@ -95,7 +75,7 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
       return new ToleranceStatistics();
     }
 
-    final TensorList[] inputTensorLists = RefArrays.stream(Tensor.addRefs(inputPrototype)).map(t -> {
+    final TensorList[] inputTensorLists = RefArrays.stream(RefUtil.addRefs(inputPrototype)).map(t -> {
       TensorArray temp_15_0001 = new TensorArray(RefIntStream.range(0, getBatchSize()).mapToObj(RefUtil
           .wrapInterface((IntFunction<? extends Tensor>) i -> t.map(v -> getRandom()), t == null ? null : t.addRef()))
           .toArray(i -> new Tensor[i]));
@@ -103,21 +83,19 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
         t.freeRef();
       return temp_15_0001;
     }).toArray(i -> new TensorList[i]);
-    @Nonnull final SimpleResult asABatch;
-    final RefList<SimpleEval> oneAtATime;
-    asABatch = SimpleListEval.run(reference.addRef(), validateDerivatives,
-        TensorList.addRefs(inputTensorLists));
-    oneAtATime = RefIntStream.range(0, getBatchSize())
+    @Nonnull final SimpleResult asABatch = SimpleListEval.run(reference.addRef(), validateDerivatives,
+        RefUtil.addRefs(inputTensorLists));
+    final RefList<SimpleEval> oneAtATime = RefIntStream.range(0, getBatchSize())
         .mapToObj(RefUtil.wrapInterface((IntFunction<? extends SimpleEval>) batch -> {
           Tensor[] inputTensors = RefIntStream.range(0, inputTensorLists.length)
               .mapToObj(RefUtil.wrapInterface((IntFunction<? extends Tensor>) i -> inputTensorLists[i].get(batch),
-                  TensorList.addRefs(inputTensorLists)))
+                  RefUtil.addRefs(inputTensorLists)))
               .toArray(i -> new Tensor[i]);
           SimpleEval temp_15_0002 = SimpleEval.run(reference.addRef(), validateDerivatives,
-              Tensor.addRefs(inputTensors));
+              RefUtil.addRefs(inputTensors));
           ReferenceCounting.freeRefs(inputTensors);
           return temp_15_0002;
-        }, TensorList.addRefs(inputTensorLists), reference.addRef()))
+        }, RefUtil.addRefs(inputTensorLists), reference.addRef()))
         .collect(RefCollectors.toList());
 
     reference.freeRef();
@@ -200,7 +178,7 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
                 }, oneAtATime.addRef(), asABatch.addRef(), asABatchInputDerivative, derivative);
                 return RefIntStream.range(0, Math.min(inputPrototype.length, batchLength)).mapToObj(statisticsFunction)
                     .reduce((a, b) -> a.combine(b)).orElse(null);
-              }, Tensor.addRefs(inputPrototype), oneAtATime == null ? null : oneAtATime.addRef(),
+              }, RefUtil.addRefs(inputPrototype), oneAtATime == null ? null : oneAtATime.addRef(),
               asABatch.addRef()))
           .filter(x -> x != null).reduce((a, b) -> a.combine(b)).orElse(null);
 
@@ -232,8 +210,8 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
     log.p(
         "Most layers, including this one, should behave the same no matter how the items are split between batches. We verify this:");
     ToleranceStatistics temp_15_0007 = log.eval(RefUtil.wrapInterface(() -> {
-      return test(reference == null ? null : reference.addRef(), Tensor.addRefs(inputPrototype));
-    }, Tensor.addRefs(inputPrototype), reference == null ? null : reference.addRef()));
+      return test(reference == null ? null : reference.addRef(), RefUtil.addRefs(inputPrototype));
+    }, RefUtil.addRefs(inputPrototype), reference == null ? null : reference.addRef()));
     ReferenceCounting.freeRefs(inputPrototype);
     if (null != reference)
       reference.freeRef();

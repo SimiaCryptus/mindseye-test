@@ -44,7 +44,7 @@ public class SupplementedProblemData implements ImageProblemData {
   }
 
   public static void printSample(@Nonnull final NotebookOutput log, @Nullable final Tensor[][] expanded, final int size) {
-    @Nonnull final RefArrayList<Tensor[]> list = new RefArrayList<>(RefArrays.asList(Tensor.addRefs(expanded)));
+    @Nonnull final RefArrayList<Tensor[]> list = new RefArrayList<>(RefArrays.asList(RefUtil.addRefs(expanded)));
     if (null != expanded)
       ReferenceCounting.freeRefs(expanded);
     RefCollections.shuffle(list.addRef());

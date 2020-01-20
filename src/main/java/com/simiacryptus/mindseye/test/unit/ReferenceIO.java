@@ -34,7 +34,6 @@ import com.simiacryptus.util.data.DoubleStatistics;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
 import java.util.function.BiConsumer;
 
 public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
@@ -50,21 +49,6 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
       referenceIO.freeRef();
   }
 
-  @Nullable
-  public static @SuppressWarnings("unused")
-  ReferenceIO[] addRefs(@Nullable ReferenceIO[] array) {
-    if (array == null)
-      return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(ReferenceIO::addRef).toArray((x) -> new ReferenceIO[x]);
-  }
-
-  @Nullable
-  public static @SuppressWarnings("unused")
-  ReferenceIO[][] addRefs(@Nullable ReferenceIO[][] array) {
-    if (array == null)
-      return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(ReferenceIO::addRefs).toArray((x) -> new ReferenceIO[x][]);
-  }
 
   @Nullable
   @Override
@@ -76,7 +60,7 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
       log.p("Display pre-setBytes input/output example pairs:");
       referenceIO.forEach(RefUtil.wrapInterface((BiConsumer<? super Tensor[], ? super Tensor>) (input, output) -> {
         log.eval(RefUtil.wrapInterface((UncheckedSupplier<String>) () -> {
-          @Nonnull final SimpleEval eval = SimpleEval.run(layer.addRef(), Tensor.addRefs(input));
+          @Nonnull final SimpleEval eval = SimpleEval.run(layer.addRef(), RefUtil.addRefs(input));
           Tensor evalOutput = eval.getOutput();
           Tensor temp_05_0008 = output.scale(-1);
           Tensor difference = temp_05_0008.addAndFree(evalOutput == null ? null : evalOutput.addRef());
@@ -86,7 +70,7 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
           assert evalOutput != null;
           String temp_05_0002 = RefString.format(
               "--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n%s\nError: %s\n--------------------\nDerivative: \n%s",
-              RefUtil.get(RefArrays.stream(Tensor.addRefs(input)).map(t -> {
+              RefUtil.get(RefArrays.stream(RefUtil.addRefs(input)).map(t -> {
                 String temp_05_0003 = RefArrays.toString(t.getDimensions()) + "\n" + t.prettyPrint();
                 t.freeRef();
                 return temp_05_0003;
@@ -99,7 +83,7 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
           evalOutput.freeRef();
           eval.freeRef();
           return temp_05_0002;
-        }, Tensor.addRefs(input), layer.addRef(), output == null ? null : output.addRef()));
+        }, RefUtil.addRefs(input), layer.addRef(), output == null ? null : output.addRef()));
         if (null != output)
           output.freeRef();
         if (null != input)
@@ -109,12 +93,12 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
       log.h1("Example Input/Output Pair");
       log.p("Display input/output pairs from random executions:");
       log.eval(RefUtil.wrapInterface((UncheckedSupplier<String>) () -> {
-        @Nonnull final SimpleEval eval = SimpleEval.run(layer.addRef(), Tensor.addRefs(inputPrototype));
+        @Nonnull final SimpleEval eval = SimpleEval.run(layer.addRef(), RefUtil.addRefs(inputPrototype));
         Tensor evalOutput = eval.getOutput();
         assert evalOutput != null;
         String temp_05_0005 = RefString.format(
             "--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n%s\n--------------------\nDerivative: \n%s",
-            RefArrays.stream(Tensor.addRefs(inputPrototype)).map(t -> {
+            RefArrays.stream(RefUtil.addRefs(inputPrototype)).map(t -> {
               String temp_05_0006 = t.prettyPrint();
               t.freeRef();
               return temp_05_0006;
@@ -127,7 +111,7 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
         evalOutput.freeRef();
         eval.freeRef();
         return temp_05_0005;
-      }, Tensor.addRefs(inputPrototype), layer.addRef()));
+      }, RefUtil.addRefs(inputPrototype), layer.addRef()));
     }
     ReferenceCounting.freeRefs(inputPrototype);
     layer.freeRef();

@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.layers;
 
 import com.simiacryptus.mindseye.test.unit.StandardLayerTests;
+import com.simiacryptus.ref.lang.RefUtil;
 import com.simiacryptus.ref.wrappers.RefSystem;
 import org.junit.After;
 import org.junit.Before;
@@ -34,24 +35,6 @@ public abstract class LayerTestBase extends StandardLayerTests {
   //  public void testMonteCarlo() throws Throwable {
   //    apply(this::monteCarlo);
   //  }
-
-  @Nullable
-  public static @SuppressWarnings("unused")
-  LayerTestBase[] addRefs(@Nullable LayerTestBase[] array) {
-    if (array == null)
-      return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(LayerTestBase::addRef)
-        .toArray((x) -> new LayerTestBase[x]);
-  }
-
-  @Nullable
-  public static @SuppressWarnings("unused")
-  LayerTestBase[][] addRefs(@Nullable LayerTestBase[][] array) {
-    if (array == null)
-      return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(LayerTestBase::addRefs)
-        .toArray((x) -> new LayerTestBase[x][]);
-  }
 
   @Test(timeout = 15 * 60 * 1000)
   public void test() {

@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.test.integration;
 
-import com.google.common.collect.Lists;
 import com.simiacryptus.lang.UncheckedSupplier;
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
@@ -34,7 +33,7 @@ import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.notebook.TableOutput;
 import com.simiacryptus.ref.lang.RefUtil;
 import com.simiacryptus.ref.lang.ReferenceCounting;
-import com.simiacryptus.ref.wrappers.RefString;
+import com.simiacryptus.ref.wrappers.*;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.test.LabeledObject;
 import guru.nidi.graphviz.engine.Format;
@@ -118,9 +117,9 @@ public abstract class ClassifyProblem implements Problem {
       return data.trainingData().map(labeledObject -> {
         @Nonnull final Tensor categoryTensor = new Tensor(categories);
         final int category = parse(labeledObject.label);
-        RefUtil.freeRef(categoryTensor.set(category, 1));
-        Tensor[] temp_12_0001 = new Tensor[]{labeledObject.data, categoryTensor};
-        return temp_12_0001;
+        categoryTensor.set(category, 1);
+
+        return new Tensor[]{labeledObject.data, categoryTensor};
       }).toArray(i -> new Tensor[i][]);
     } catch (@Nonnull final IOException e) {
       throw new RuntimeException(e);
@@ -164,15 +163,17 @@ public abstract class ClassifyProblem implements Problem {
     TestUtil.instrumentPerformance(supervisedNetwork.addRef());
     int initialSampleSize = Math.max(trainingData.length / 5, Math.min(10, trainingData.length / 2));
     @Nonnull final ValidatingTrainer trainer = optimizer.train(log,
-        new SampledArrayTrainable(Tensor.addRefs(trainingData),
+        new SampledArrayTrainable(RefUtil.addRefs(trainingData),
             supervisedNetwork.addRef(), initialSampleSize, getBatchSize()),
-        new ArrayTrainable(Tensor.addRefs(trainingData), supervisedNetwork.addRef(),
+        new ArrayTrainable(RefUtil.addRefs(trainingData), supervisedNetwork.addRef(),
             getBatchSize()),
         monitor);
     ReferenceCounting.freeRefs(trainingData);
     log.run(RefUtil.wrapInterface(() -> {
-      ValidatingTrainer temp_12_0006 = trainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES);
-      ValidatingTrainer temp_12_0007 = temp_12_0006.setMaxIterations(10000);
+      trainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES);
+      ValidatingTrainer temp_12_0006 = trainer.addRef();
+      temp_12_0006.setMaxIterations(10000);
+      ValidatingTrainer temp_12_0007 = temp_12_0006.addRef();
       temp_12_0007.run();
       temp_12_0007.freeRef();
       temp_12_0006.freeRef();
@@ -217,24 +218,24 @@ public abstract class ClassifyProblem implements Problem {
     log.eval(RefUtil.wrapInterface((UncheckedSupplier<TableOutput>) () -> {
       try {
         @Nonnull final TableOutput table = new TableOutput();
-        Lists.partition(data.validationData().collect(Collectors.toList()), 100).stream().flatMap(RefUtil.wrapInterface(
-            (Function<? super List<LabeledObject<Tensor>>, ? extends Stream<? extends LinkedHashMap<CharSequence, Object>>>) batch -> {
+        RefList<RefList<LabeledObject<Tensor>>> partitioned = RefLists.partition(data.validationData().collect(RefCollectors.toList()), 100);
+        partitioned.stream().flatMap(RefUtil.wrapInterface(
+            (Function<RefList<LabeledObject<Tensor>>, RefStream<LinkedHashMap<CharSequence, Object>>>) batch -> {
               @Nonnull
               TensorList batchIn = new TensorArray(batch.stream().map(x -> x.data).toArray(i1 -> new Tensor[i1]));
               Result temp_12_0008 = network.eval(new ConstantResult(batchIn));
               assert temp_12_0008 != null;
               TensorList batchOut = temp_12_0008.getData();
               temp_12_0008.freeRef();
-              Stream<LinkedHashMap<CharSequence, Object>> temp_12_0002 = IntStream.range(0, batchOut.length())
+              return RefIntStream.range(0, batchOut.length())
                   .mapToObj(RefUtil.wrapInterface((IntFunction<? extends LinkedHashMap<CharSequence, Object>>) i -> {
                     Tensor tensor = batchOut.get(i);
                     LinkedHashMap<CharSequence, Object> row = toRow(log, batch.get(i), tensor.getData());
                     tensor.freeRef();
                     return row;
-                  }, batchOut.addRef()));
-              batchOut.freeRef();
-              return temp_12_0002;
+                  }, batchOut, batch));
             }, network.addRef())).filter(x -> null != x).limit(10).forEach(table::putRow);
+        partitioned.freeRef();
         return table;
       } catch (@Nonnull final IOException e) {
         throw new RuntimeException(e);

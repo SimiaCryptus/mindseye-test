@@ -28,101 +28,19 @@ import com.simiacryptus.ref.wrappers.RefString;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
 
-public class TestError extends RuntimeException implements ReferenceCounting {
+public class TestError extends RuntimeException {
   @Nullable
-  public final ComponentTest<?> test;
+  public final String test;
   @Nonnull
-  public final Layer layer;
-  @RefIgnore
-  private final ReferenceCountingBase refCounter = new ReferenceCountingBase() {
-    {
-    }
-
-    public void _free() {
-      TestError.this._free();
-    }
-  };
+  public final String layer;
 
   public TestError(Throwable cause, @Nonnull ComponentTest<?> test, @Nonnull Layer layer) {
     super(RefString.format("Error in %s apply %s", test.addRef(), layer.addRef()), cause);
-    this.test = test.addRef();
+    this.test = test.toString();
     test.freeRef();
-    Layer temp_04_0002 = layer.addRef();
-    this.layer = temp_04_0002 == null ? null : temp_04_0002.addRef();
-    if (null != temp_04_0002)
-      temp_04_0002.freeRef();
-    RefUtil.freeRef(layer.detach());
+    this.layer = layer.toString();
     layer.freeRef();
   }
 
-  @RefIgnore
-  @Override
-  public boolean isFinalized() {
-    return refCounter.isFinalized();
-  }
-
-  @Nullable
-  public static @SuppressWarnings("unused")
-  TestError[] addRefs(@Nullable TestError[] array) {
-    if (array == null)
-      return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(TestError::addRef).toArray((x) -> new TestError[x]);
-  }
-
-  @Nullable
-  public static @SuppressWarnings("unused")
-  TestError[][] addRefs(@Nullable TestError[][] array) {
-    if (array == null)
-      return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(TestError::addRefs).toArray((x) -> new TestError[x][]);
-  }
-
-  public void _free() {
-    refCounter.freeRef();
-    layer.freeRef();
-    if (null != test)
-      test.freeRef();
-  }
-
-  @RefIgnore
-  @Override
-  public boolean assertAlive() {
-    return refCounter.assertAlive();
-  }
-
-  @RefIgnore
-  @Override
-  public int currentRefCount() {
-    return refCounter.currentRefCount();
-  }
-
-  @RefIgnore
-  @Override
-  public @Nonnull
-  ReferenceCounting detach() {
-    return refCounter.detach();
-  }
-
-  @RefIgnore
-  @Override
-  public void freeRefAsync() {
-    refCounter.freeRefAsync();
-  }
-
-  @RefIgnore
-  @Override
-  public boolean tryAddRef() {
-    return refCounter.tryAddRef();
-  }
-
-  @Nonnull
-  public @Override
-  @RefIgnore
-  @SuppressWarnings("unused")
-  TestError addRef() {
-    refCounter.addRef();
-    return this;
-  }
 }

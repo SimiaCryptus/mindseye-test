@@ -61,9 +61,8 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
   }
 
   @Nonnull
-  public SerializationTest setPersist(boolean persist) {
+  public void setPersist(boolean persist) {
     this.persist = persist;
-    return this.addRef();
   }
 
   @Nonnull
@@ -84,24 +83,6 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
       throw new RuntimeException(e);
     }
     return byteArrayOutputStream.toByteArray();
-  }
-
-  @Nullable
-  public static @SuppressWarnings("unused")
-  SerializationTest[] addRefs(@Nullable SerializationTest[] array) {
-    if (array == null)
-      return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(SerializationTest::addRef)
-        .toArray((x) -> new SerializationTest[x]);
-  }
-
-  @Nullable
-  public static @SuppressWarnings("unused")
-  SerializationTest[][] addRefs(@Nullable SerializationTest[][] array) {
-    if (array == null)
-      return null;
-    return Arrays.stream(array).filter((x) -> x != null).map(SerializationTest::addRefs)
-        .toArray((x) -> new SerializationTest[x][]);
   }
 
   @Nullable
@@ -127,6 +108,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
           echo.freeRef();
           throw new AssertionError("Serialization not equal");
         }
+        echo.freeRef();
         return new GsonBuilder().setPrettyPrinting().create().toJson(json);
       }, layer.addRef()));
       @Nonnull
@@ -169,6 +151,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
                 echo.freeRef();
                 throw new AssertionError("Serialization not equal");
               }
+              echo.freeRef();
             } catch (RuntimeException e) {
               e.printStackTrace();
             } catch (OutOfMemoryError e) {
