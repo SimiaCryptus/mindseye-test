@@ -30,6 +30,7 @@ public abstract class ComponentTestBase<T> extends ReferenceCountingBase impleme
 
   public @SuppressWarnings("unused")
   void _free() {
+    super._free();
   }
 
   @Nonnull

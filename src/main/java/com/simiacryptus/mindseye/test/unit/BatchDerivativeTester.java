@@ -25,7 +25,6 @@ import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.ref.lang.RefUtil;
-import com.simiacryptus.ref.lang.ReferenceCounting;
 import com.simiacryptus.ref.lang.ReferenceCountingBase;
 import com.simiacryptus.ref.wrappers.*;
 import com.simiacryptus.util.data.ScalarStatistics;
@@ -298,7 +297,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       }, RefUtil.addRefs(inputPrototype), ioPair.addRef()));
     }
 
-    ReferenceCounting.freeRefs(inputPrototype);
+    RefUtil.freeRefs(inputPrototype);
     ToleranceStatistics _statistics = new ToleranceStatistics();
 
     if (isTestFeedback()) {
@@ -419,7 +418,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     } finally {
       deltas.freeRef();
       component.freeRef();
-      ReferenceCounting.freeRefs(inputPrototype);
+      RefUtil.freeRefs(inputPrototype);
       temp_02_0041.freeRef();
     }
   }
@@ -457,7 +456,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       }
     });
     if (null != inputPrototype)
-      ReferenceCounting.freeRefs(inputPrototype);
+      RefUtil.freeRefs(inputPrototype);
     @Nonnull final DeltaSet<UUID> buffer = new DeltaSet<UUID>();
     assert eval != null;
     TensorList data = eval.getData();
@@ -507,6 +506,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
 
   public @SuppressWarnings("unused")
   void _free() {
+    super._free();
   }
 
   @Nonnull
@@ -601,7 +601,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       if (null != inputDelta)
         inputDelta.freeRef();
     }
-    ReferenceCounting.freeRefs(inputPrototype);
+    RefUtil.freeRefs(inputPrototype);
     outputPrototype.freeRef();
     component.freeRef();
     inputTensor.freeRef();
@@ -656,7 +656,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
         deltaFlushBuffer.freeRef();
     }
     if (null != inputPrototype)
-      ReferenceCounting.freeRefs(inputPrototype);
+      RefUtil.freeRefs(inputPrototype);
     outputPrototype.freeRef();
     component.freeRef();
     return gradient;
@@ -679,10 +679,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       @Nonnull final Tensor inputProbe = inputPrototype[inputIndex].copy();
       inputProbe.add(i, probeSize * 1);
       @Nonnull final Tensor[] copyInput = RefArrays.copyOf(RefUtil.addRefs(inputPrototype), inputPrototype.length);
-      Tensor temp_02_0001 = inputProbe.addRef();
-      RefUtil.set(copyInput, inputIndex, temp_02_0001.addRef());
-      temp_02_0001.freeRef();
-      inputProbe.freeRef();
+      RefUtil.set(copyInput, inputIndex, inputProbe);
       Result temp_02_0054 = component
           .eval(ConstantResult.singleResultArray(new Tensor[][]{copyInput}));
       assert temp_02_0054 != null;
@@ -700,7 +697,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       }
       delta.freeRef();
     }
-    ReferenceCounting.freeRefs(inputPrototype);
+    RefUtil.freeRefs(inputPrototype);
     component.freeRef();
     baseOutput.freeRef();
     return measuredGradient;
@@ -714,14 +711,12 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     final int stateLen = temp_02_0057.get(layerNum).length;
     temp_02_0057.freeRef();
     @Nonnull final Tensor gradient = new Tensor(stateLen, outputPrototype.length());
-
     outputPrototype.freeRef();
     Result temp_02_0058 = component
         .eval(ConstantResult.singleResultArray(new Tensor[][]{RefUtil.addRefs(inputPrototype)}));
     assert temp_02_0058 != null;
     TensorList temp_02_0059 = temp_02_0058.getData();
     @Nullable final Tensor baseOutput = temp_02_0059.get(0);
-
     temp_02_0059.freeRef();
     temp_02_0058.freeRef();
     for (int i = 0; i < stateLen; i++) {
@@ -729,21 +724,17 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       RefList<double[]> temp_02_0060 = copy.state();
       assert temp_02_0060 != null;
       temp_02_0060.get(layerNum)[i] += probeSize;
-
       temp_02_0060.freeRef();
       Result temp_02_0061 = copy
           .eval(ConstantResult.singleResultArray(new Tensor[][]{RefUtil.addRefs(inputPrototype)}));
       assert temp_02_0061 != null;
       TensorList temp_02_0062 = temp_02_0061.getData();
       @Nullable final Tensor evalProbe = temp_02_0062.get(0);
-
       temp_02_0062.freeRef();
       temp_02_0061.freeRef();
       copy.freeRef();
-      Tensor temp_02_0063 = evalProbe.minus(baseOutput.addRef());
-      temp_02_0063.scaleInPlace(1. / probeSize);
-      @Nonnull final Tensor delta = temp_02_0063.addRef();
-      temp_02_0063.freeRef();
+      Tensor delta = evalProbe.minus(baseOutput.addRef());
+      delta.scaleInPlace(1. / probeSize);
       evalProbe.freeRef();
       for (int j = 0; j < delta.length(); j++) {
         gradient.set(new int[]{i, j}, delta.getData()[j]);
@@ -751,7 +742,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       delta.freeRef();
     }
     if (null != inputPrototype)
-      ReferenceCounting.freeRefs(inputPrototype);
+      RefUtil.freeRefs(inputPrototype);
     component.freeRef();
     baseOutput.freeRef();
     return gradient;
@@ -770,24 +761,9 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     private Tensor outputPrototype;
 
     public IOPair(@Nullable Layer component, @Nullable Tensor tensor, @Nullable BatchDerivativeTester parent) {
-      Layer temp_02_0002 = component == null ? null : component.addRef();
-      this.component = temp_02_0002 == null ? null : temp_02_0002.addRef();
-      if (null != temp_02_0002)
-        temp_02_0002.freeRef();
-      if (null != component)
-        component.freeRef();
-      Tensor temp_02_0003 = tensor == null ? null : tensor.addRef();
-      this.tensor = temp_02_0003 == null ? null : temp_02_0003.addRef();
-      if (null != temp_02_0003)
-        temp_02_0003.freeRef();
-      if (null != tensor)
-        tensor.freeRef();
-      BatchDerivativeTester temp_02_0004 = parent == null ? null : parent.addRef();
-      this.parent = temp_02_0004 == null ? null : temp_02_0004.addRef();
-      if (null != temp_02_0004)
-        temp_02_0004.freeRef();
-      if (null != parent)
-        parent.freeRef();
+      this.component = component;
+      this.tensor = tensor;
+      this.parent = parent;
     }
 
     @Nullable
@@ -802,30 +778,27 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
 
     public void invoke() {
       assert parent != null;
-      Tensor[] temp_02_0005 = RefIntStream.range(0, parent.batches).mapToObj(i -> tensor.copy())
-          .toArray(j -> new Tensor[j]);
       if (null != inputPrototype)
-        ReferenceCounting.freeRefs(inputPrototype);
-      inputPrototype = RefUtil.addRefs(temp_02_0005);
-      ReferenceCounting.freeRefs(temp_02_0005);
-      SimpleEval temp_02_0064 = SimpleEval.run(component == null ? null : component.addRef(),
+        RefUtil.freeRefs(inputPrototype);
+      inputPrototype = RefIntStream.range(0, parent.batches)
+          .mapToObj(i -> tensor.copy())
+          .toArray(j -> new Tensor[j]);
+      SimpleEval simpleEval = SimpleEval.run(component == null ? null : component.addRef(),
           inputPrototype[0].addRef());
-      Tensor temp_02_0006 = temp_02_0064.getOutput();
-      temp_02_0064.freeRef();
       if (null != outputPrototype)
         outputPrototype.freeRef();
-      outputPrototype = temp_02_0006 == null ? null : temp_02_0006.addRef();
-      if (null != temp_02_0006)
-        temp_02_0006.freeRef();
+      outputPrototype = simpleEval.getOutput();
+      simpleEval.freeRef();
     }
 
     public @SuppressWarnings("unused")
     void _free() {
+      super._free();
       if (null != outputPrototype)
         outputPrototype.freeRef();
       outputPrototype = null;
       if (null != inputPrototype)
-        ReferenceCounting.freeRefs(inputPrototype);
+        RefUtil.freeRefs(inputPrototype);
       inputPrototype = null;
       if (null != parent)
         parent.freeRef();

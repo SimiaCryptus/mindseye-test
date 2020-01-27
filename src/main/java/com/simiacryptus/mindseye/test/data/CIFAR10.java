@@ -52,6 +52,7 @@ public class CIFAR10 {
 
     public @SuppressWarnings("unused")
     void _free() {
+      super._free();
     }
 
     @Override

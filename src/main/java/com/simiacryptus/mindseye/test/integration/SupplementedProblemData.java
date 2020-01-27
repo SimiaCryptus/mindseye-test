@@ -23,7 +23,6 @@ import com.simiacryptus.mindseye.lang.Coordinate;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.ref.lang.RefUtil;
-import com.simiacryptus.ref.lang.ReferenceCounting;
 import com.simiacryptus.ref.wrappers.*;
 import com.simiacryptus.util.test.LabeledObject;
 
@@ -46,11 +45,11 @@ public class SupplementedProblemData implements ImageProblemData {
   public static void printSample(@Nonnull final NotebookOutput log, @Nullable final Tensor[][] expanded, final int size) {
     @Nonnull final RefArrayList<Tensor[]> list = new RefArrayList<>(RefArrays.asList(RefUtil.addRefs(expanded)));
     if (null != expanded)
-      ReferenceCounting.freeRefs(expanded);
+      RefUtil.freeRefs(expanded);
     RefCollections.shuffle(list.addRef());
     log.p("Expanded Training Data Sample: " + RefUtil.get(list.stream().limit(size).map(x -> {
       String temp_16_0001 = log.png(x[0].toGrayImage(), "");
-      ReferenceCounting.freeRefs(x);
+      RefUtil.freeRefs(x);
       return temp_16_0001;
     }).reduce((a, b) -> a + b)));
     list.freeRef();

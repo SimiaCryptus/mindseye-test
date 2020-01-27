@@ -155,6 +155,7 @@ public abstract class NotebookReportBase extends ReferenceCountingBase {
 
   public @SuppressWarnings("unused")
   void _free() {
+    super._free();
   }
 
   public @Override

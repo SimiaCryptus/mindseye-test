@@ -27,7 +27,6 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.ref.lang.RefUtil;
-import com.simiacryptus.ref.lang.ReferenceCounting;
 import com.simiacryptus.ref.wrappers.RefArrays;
 import com.simiacryptus.ref.wrappers.RefHashMap;
 import com.simiacryptus.ref.wrappers.RefString;
@@ -40,7 +39,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipException;
@@ -90,7 +88,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
   public ToleranceStatistics test(@Nonnull final NotebookOutput log, @Nonnull final Layer layer,
                                   @Nullable final Tensor... inputPrototype) {
     if (null != inputPrototype)
-      ReferenceCounting.freeRefs(inputPrototype);
+      RefUtil.freeRefs(inputPrototype);
     log.h1("Serialization");
     log.p("This apply will demonstrate the key's JSON serialization, and verify deserialization integrity.");
 
@@ -175,6 +173,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
 
   public @SuppressWarnings("unused")
   void _free() {
+    super._free();
     models.freeRef();
   }
 

@@ -433,12 +433,13 @@ public class TestUtil {
         .collect(RefCollectors.groupingBy(x -> x[0], RefCollectors.mapping(x -> x[1], RefCollectors.toList())));
     nodes.forEach(RefUtil.wrapInterface((Consumer<? super DAGNode>) to -> {
       RefList<UUID> temp_13_0024 = idMap.getOrDefault(to.getId(), RefArrays.asList());
-      assert temp_13_0024 != null;
-      graphNodes.get(to.getId())
-          .addLink(temp_13_0024.stream().map(RefUtil.wrapInterface((Function<? super UUID, ? extends Link>) from -> {
-            return Link.to(graphNodes.get(from));
-          }, graphNodes.addRef())).<LinkTarget>toArray(i -> new LinkTarget[i]));
-      temp_13_0024.freeRef();
+      if (temp_13_0024 != null) {
+        graphNodes.get(to.getId()).addLink(
+            temp_13_0024.stream().map(RefUtil.wrapInterface(from -> {
+              return Link.to(graphNodes.get(from));
+            }, graphNodes.addRef())).<LinkTarget>toArray(i -> new LinkTarget[i]));
+        temp_13_0024.freeRef();
+      }
       to.freeRef();
     }, graphNodes == null ? null : graphNodes.addRef(), idMap == null ? null : idMap.addRef()));
     if (null != idMap)
@@ -545,11 +546,7 @@ public class TestUtil {
   @Nonnull
   public static Tensor sum(@Nonnull RefCollection<Tensor> tensorStream) {
     Tensor temp_13_0012 = RefUtil.get(tensorStream.stream().reduce((a, b) -> {
-      Tensor temp_13_0009 = a.addAndFree(b == null ? null : b.addRef());
-      if (null != b)
-        b.freeRef();
-      a.freeRef();
-      return temp_13_0009;
+      return Tensor.add(a,b);
     }));
     tensorStream.freeRef();
     return temp_13_0012;
@@ -558,11 +555,7 @@ public class TestUtil {
   @Nonnull
   public static Tensor sum(@Nonnull RefStream<Tensor> tensorStream) {
     return RefUtil.get(tensorStream.reduce((a, b) -> {
-      Tensor temp_13_0010 = a.addAndFree(b == null ? null : b.addRef());
-      if (null != b)
-        b.freeRef();
-      a.freeRef();
-      return temp_13_0010;
+      return Tensor.add(a,b);
     }));
   }
 

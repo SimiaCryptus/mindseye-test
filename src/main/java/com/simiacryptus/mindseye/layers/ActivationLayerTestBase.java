@@ -27,7 +27,6 @@ import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.TrainingTester;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.ref.lang.RefUtil;
-import com.simiacryptus.ref.lang.ReferenceCounting;
 import com.simiacryptus.ref.wrappers.RefCollectors;
 import com.simiacryptus.ref.wrappers.RefDoubleStream;
 import com.simiacryptus.ref.wrappers.RefIntStream;
@@ -47,12 +46,7 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
   private final Layer layer;
 
   public ActivationLayerTestBase(@Nullable final Layer layer) {
-    Layer temp_03_0001 = layer == null ? null : layer.addRef();
-    this.layer = temp_03_0001 == null ? null : temp_03_0001.addRef();
-    if (null != temp_03_0001)
-      temp_03_0001.freeRef();
-    if (null != layer)
-      layer.freeRef();
+    this.layer = layer;
   }
 
   @Nullable
@@ -62,6 +56,7 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
 
       public @SuppressWarnings("unused")
       void _free() {
+        super._free();
       }
 
       @Nonnull
@@ -131,7 +126,7 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
       assert derivative != null;
       assert temp_03_0005 != null;
       double[] temp_03_0002 = new double[]{x, temp_03_0005.get(0), derivative[0].get(0)};
-      ReferenceCounting.freeRefs(derivative);
+      RefUtil.freeRefs(derivative);
       temp_03_0005.freeRef();
       eval.freeRef();
       return temp_03_0002;
@@ -154,6 +149,7 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
 
   public @SuppressWarnings("unused")
   void _free() {
+    super._free();
     if (null != layer)
       layer.freeRef();
   }

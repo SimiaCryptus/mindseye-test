@@ -84,6 +84,7 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
 
   public @SuppressWarnings("unused")
   void _free() {
+    super._free();
   }
 
   @Nonnull

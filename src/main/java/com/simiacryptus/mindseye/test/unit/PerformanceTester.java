@@ -141,6 +141,7 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
 
   public @SuppressWarnings("unused")
   void _free() {
+    super._free();
   }
 
   @Nonnull

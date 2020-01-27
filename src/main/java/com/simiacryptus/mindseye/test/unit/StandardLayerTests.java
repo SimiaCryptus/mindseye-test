@@ -32,7 +32,6 @@ import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.notebook.TableOutput;
 import com.simiacryptus.ref.lang.LifecycleException;
 import com.simiacryptus.ref.lang.RefUtil;
-import com.simiacryptus.ref.lang.ReferenceCounting;
 import com.simiacryptus.ref.lang.ReferenceCountingBase;
 import com.simiacryptus.ref.wrappers.*;
 import com.simiacryptus.util.IOUtil;
@@ -87,6 +86,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
 
       public @SuppressWarnings("unused")
       void _free() {
+        super._free();
       }
     };
     temp_07_0011.setBatchSize(testingBatchSize);
@@ -179,15 +179,15 @@ public abstract class StandardLayerTests extends NotebookReportBase {
 
   @Override
   protected Class<?> getTargetClass() {
+    Layer layer = getLayer(getSmallDims(new Random()), new Random());
     try {
-      Layer layer = getLayer(getSmallDims(new Random()), new Random());
       assert layer != null;
-      Class<?> temp_07_0003 = layer.getClass();
-      layer.freeRef();
-      return temp_07_0003;
+      return layer.getClass();
     } catch (Throwable e) {
       logger.warn("ERROR", e);
       return getClass();
+    } finally {
+      layer.freeRef();
     }
   }
 
@@ -207,6 +207,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
 
       public @SuppressWarnings("unused")
       void _free() {
+        super._free();
       }
 
       @Nonnull
@@ -281,82 +282,85 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     final Layer smallLayer = getLayer(smallDims, new Random(seed));
     int[][] largeDims = getLargeDims(new Random(seed));
     final Layer largeLayer = getLayer(largeDims, new Random(seed));
-
-    log.h1("Test Modules");
     TableOutput results = new TableOutput();
-    if (smallLayer instanceof DAGNetwork) {
-      try {
-        log.h1("Network Diagram");
-        log.p("This is a network apply the following layout:");
-        log.eval(RefUtil.wrapInterface((UncheckedSupplier<BufferedImage>) () -> {
-          return Graphviz.fromGraph((Graph) TestUtil.toGraph(((DAGNetwork) smallLayer).addRef())).height(400).width(600)
-              .render(Format.PNG).toImage();
-        }, smallLayer.addRef()));
-      } catch (Throwable e) {
-        logger.info("Error plotting graph", e);
-      }
-    } else if (smallLayer instanceof Explodable) {
-      try {
-        Layer explode = ((Explodable) smallLayer).explode();
-        if (explode instanceof DAGNetwork) {
-          log.h1("Exploded Network Diagram");
-          log.p("This is a network apply the following layout:");
-          @Nonnull
-          DAGNetwork network = (DAGNetwork) explode.addRef();
-          log.eval(RefUtil.wrapInterface((UncheckedSupplier<String>) () -> {
-            @Nonnull
-            Graphviz graphviz = Graphviz.fromGraph((Graph) TestUtil.toGraph(network.addRef()))
-                .height(400).width(600);
-            @Nonnull
-            File file = new File(log.getResourceDir(), log.getName() + "_network.svg");
-            graphviz.render(Format.SVG_STANDALONE).toFile(file);
-            log.link(file, "Saved to File");
-            return graphviz.render(Format.SVG).toString();
-          }, network));
-        }
-        explode.freeRef();
-      } catch (Throwable e) {
-        logger.info("Error plotting graph", e);
-      }
-    }
-    @Nonnull
-    RefList<TestError> exceptions = standardTests(log, seed, results);
-    if (!exceptions.isEmpty()) {
+
+    try {
+      log.h1("Test Modules");
       if (smallLayer instanceof DAGNetwork) {
-        RefCollection<Invocation> invocations = getInvocations(smallLayer.addRef(), smallDims);
-        invocations.forEach(invocation -> {
-          Layer temp_07_0014 = invocation.getLayer();
-          assert temp_07_0014 != null;
-          log.h1("Small SubTests: " + temp_07_0014.getClass().getSimpleName());
-          temp_07_0014.freeRef();
-          log.p(RefArrays.deepToString(invocation.getDims()));
-          tests(log, getLittleTests(), invocation.addRef(),
-              exceptions.addRef(), results);
-        });
-        invocations.freeRef();
+        try {
+          log.h1("Network Diagram");
+          log.p("This is a network apply the following layout:");
+          log.eval(RefUtil.wrapInterface((UncheckedSupplier<BufferedImage>) () -> {
+            return Graphviz.fromGraph((Graph) TestUtil.toGraph(((DAGNetwork) smallLayer).addRef())).height(400).width(600)
+                .render(Format.PNG).toImage();
+          }, smallLayer.addRef()));
+        } catch (Throwable e) {
+          logger.info("Error plotting graph", e);
+        }
+      } else if (smallLayer instanceof Explodable) {
+        try {
+          Layer explode = ((Explodable) smallLayer).explode();
+          if (explode instanceof DAGNetwork) {
+            log.h1("Exploded Network Diagram");
+            log.p("This is a network apply the following layout:");
+            @Nonnull
+            DAGNetwork network = (DAGNetwork) explode.addRef();
+            log.eval(RefUtil.wrapInterface((UncheckedSupplier<String>) () -> {
+              @Nonnull
+              Graphviz graphviz = Graphviz.fromGraph((Graph) TestUtil.toGraph(network.addRef()))
+                  .height(400).width(600);
+              @Nonnull
+              File file = new File(log.getResourceDir(), log.getName() + "_network.svg");
+              graphviz.render(Format.SVG_STANDALONE).toFile(file);
+              log.link(file, "Saved to File");
+              return graphviz.render(Format.SVG).toString();
+            }, network));
+          }
+          explode.freeRef();
+        } catch (Throwable e) {
+          logger.info("Error plotting graph", e);
+        }
       }
-      if (largeLayer instanceof DAGNetwork) {
-        testEquivalency = false;
-        RefCollection<Invocation> invocations = getInvocations(largeLayer.addRef(), largeDims);
-        invocations.forEach(invocation -> {
-          Layer temp_07_0015 = invocation.getLayer();
-          assert temp_07_0015 != null;
-          log.h1("Large SubTests: " + temp_07_0015.getClass().getSimpleName());
-          temp_07_0015.freeRef();
-          log.p(RefArrays.deepToString(invocation.getDims()));
-          tests(log, getBigTests(), invocation.addRef(),
-              exceptions.addRef(), results);
-        });
-        invocations.freeRef();
+      @Nonnull
+      RefList<TestError> exceptions = standardTests(log, seed, results);
+      if (!exceptions.isEmpty()) {
+        if (smallLayer instanceof DAGNetwork) {
+          RefCollection<Invocation> invocations = getInvocations(smallLayer.addRef(), smallDims);
+          invocations.forEach(invocation -> {
+            Layer temp_07_0014 = invocation.getLayer();
+            assert temp_07_0014 != null;
+            log.h1("Small SubTests: " + temp_07_0014.getClass().getSimpleName());
+            temp_07_0014.freeRef();
+            log.p(RefArrays.deepToString(invocation.getDims()));
+            tests(log, getLittleTests(), invocation.addRef(),
+                exceptions.addRef(), results);
+          });
+          invocations.freeRef();
+        }
+        if (largeLayer instanceof DAGNetwork) {
+          testEquivalency = false;
+          RefCollection<Invocation> invocations = getInvocations(largeLayer.addRef(), largeDims);
+          invocations.forEach(invocation -> {
+            Layer temp_07_0015 = invocation.getLayer();
+            assert temp_07_0015 != null;
+            log.h1("Large SubTests: " + temp_07_0015.getClass().getSimpleName());
+            temp_07_0015.freeRef();
+            log.p(RefArrays.deepToString(invocation.getDims()));
+            tests(log, getBigTests(), invocation.addRef(),
+                exceptions.addRef(), results);
+          });
+          invocations.freeRef();
+        }
       }
+      log.run(RefUtil.wrapInterface(() -> {
+        throwException(exceptions.addRef());
+      }, exceptions));
+    } finally {
+      if (null != largeLayer)
+        largeLayer.freeRef();
+      if (null != smallLayer)
+        smallLayer.freeRef();
     }
-    log.run(RefUtil.wrapInterface(() -> {
-      throwException(exceptions.addRef());
-    }, exceptions));
-    if (null != largeLayer)
-      largeLayer.freeRef();
-    if (null != smallLayer)
-      smallLayer.freeRef();
     RefList<ComponentTest<?>> temp_07_0016 = getFinalTests();
     temp_07_0016.stream().filter(x -> {
       boolean temp_07_0005 = null != x;
@@ -393,7 +397,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       } finally {
         results.putRow(testResultProps);
       }
-      ReferenceCounting.freeRefs(randomize);
+      RefUtil.freeRefs(randomize);
       copy.freeRef();
       test.freeRef();
     });
@@ -415,13 +419,15 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       @Nullable
       Layer wrapper = new LayerBase() {
         {
+          inner.addRef();
+          invocations.addRef();
         }
 
         @Nullable
         @Override
         public Result eval(@Nonnull Result... array) {
           if (null == inner) {
-            ReferenceCounting.freeRefs(array);
+            RefUtil.freeRefs(array);
             return null;
           }
           @Nullable
@@ -434,7 +440,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
                 x.freeRef();
                 return temp_07_0006;
               }).toArray(i -> new int[i][])));
-          ReferenceCounting.freeRefs(array);
+          RefUtil.freeRefs(array);
           return result;
         }
 
@@ -452,6 +458,9 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         }
 
         public void _free() {
+          super._free();
+          inner.freeRef();
+          invocations.freeRef();
         }
       };
       if (null != inner)
@@ -462,7 +471,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     }, invocations.addRef()));
     Tensor[] input = RefArrays.stream(smallDims).map(i -> new Tensor(i)).toArray(i -> new Tensor[i]);
     Result eval = smallCopy.eval(RefUtil.addRefs(input));
-    ReferenceCounting.freeRefs(input);
+    RefUtil.freeRefs(input);
     smallCopy.freeRef();
     assert eval != null;
     RefUtil.freeRef(eval.getData());
@@ -543,7 +552,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         } finally {
           results.putRow(testResultProps);
         }
-        ReferenceCounting.freeRefs(input);
+        RefUtil.freeRefs(input);
       } catch (LifecycleException e) {
         throw e;
       } catch (Throwable e) {
@@ -562,6 +571,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
 
   public @SuppressWarnings("unused")
   void _free() {
+    super._free();
   }
 
   public @Override
@@ -621,7 +631,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       if (null != x)
         x.freeRef();
       return temp_07_0008;
-    }).forEach(RefUtil.wrapInterface((ComponentTest<?> test) -> {
+    }).forEach(RefUtil.wrapInterface(test -> {
       @Nonnull Layer layer = copy(invocation.getLayer());
       Tensor[] inputs = randomize(invocation.getDims());
       Map<CharSequence, Object> testResultProps = new LinkedHashMap<>();
@@ -629,8 +639,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         String testname = test.getClass().getCanonicalName();
         testResultProps.put("class", testname);
         Object result = log.subreport(RefUtil.wrapInterface(
-            (Function<NotebookOutput, ?>) sublog ->
-                test.test(sublog, layer.addRef(), RefUtil.addRefs(inputs)),
+            sublog -> test.test(sublog, layer.addRef(), RefUtil.addRefs(inputs)),
             inputs, layer.addRef(), test.addRef()),
             log.getName() + "_" + testname);
         testResultProps.put("details", null == result ? null : result.toString());

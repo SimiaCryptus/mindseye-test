@@ -47,6 +47,7 @@ public class Caltech101 {
   private static final DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>> training = new DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>>() {
     public @SuppressWarnings("unused")
     void _free() {
+      super._free();
     }
 
     @Override

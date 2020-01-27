@@ -26,7 +26,6 @@ import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.ref.lang.RefUtil;
-import com.simiacryptus.ref.lang.ReferenceCounting;
 import com.simiacryptus.ref.wrappers.RefArrays;
 import com.simiacryptus.ref.wrappers.RefHashMap;
 import com.simiacryptus.ref.wrappers.RefString;
@@ -62,9 +61,7 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
         log.eval(RefUtil.wrapInterface((UncheckedSupplier<String>) () -> {
           @Nonnull final SimpleEval eval = SimpleEval.run(layer.addRef(), RefUtil.addRefs(input));
           Tensor evalOutput = eval.getOutput();
-          Tensor temp_05_0008 = output.scale(-1);
-          Tensor difference = temp_05_0008.addAndFree(evalOutput == null ? null : evalOutput.addRef());
-          temp_05_0008.freeRef();
+          Tensor difference = evalOutput == null ? null : Tensor.add(output.scale(-1), evalOutput.addRef());
           @Nonnull final DoubleStatistics error = new DoubleStatistics().accept(difference.getData());
           difference.freeRef();
           assert evalOutput != null;
@@ -87,7 +84,7 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
         if (null != output)
           output.freeRef();
         if (null != input)
-          ReferenceCounting.freeRefs(input);
+          RefUtil.freeRefs(input);
       }, layer.addRef()));
     } else {
       log.h1("Example Input/Output Pair");
@@ -113,7 +110,7 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
         return temp_05_0005;
       }, RefUtil.addRefs(inputPrototype), layer.addRef()));
     }
-    ReferenceCounting.freeRefs(inputPrototype);
+    RefUtil.freeRefs(inputPrototype);
     layer.freeRef();
     return null;
   }

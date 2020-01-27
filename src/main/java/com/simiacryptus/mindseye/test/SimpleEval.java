@@ -21,10 +21,10 @@ package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.ref.lang.RefUtil;
-import com.simiacryptus.ref.lang.ReferenceCounting;
 import com.simiacryptus.ref.lang.ReferenceCountingBase;
 import com.simiacryptus.ref.wrappers.RefArrays;
 import com.simiacryptus.ref.wrappers.RefIntStream;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -87,6 +87,35 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
   @Nonnull
   @Override
   public SimpleEval call() {
+    eval();
+    return this.addRef();
+  }
+
+  public void eval() {
+    setResult(eval(input()));
+  }
+
+  public void setResult(Result eval) {
+    assert eval != null;
+    TensorList evalData = eval.getData();
+    Tensor outputTensor = evalData.get(0);
+    synchronized (this) {
+      if (null != output) {
+        output.freeRef();
+      }
+      output = outputTensor.copy();
+    }
+    outputTensor.freeRef();
+    if (isCalcDerivative()) {
+      eval.accumulate(new DeltaSet<>(), getFeedback(evalData));
+    } else {
+      evalData.freeRef();
+    }
+    eval.freeRef();
+  }
+
+  @NotNull
+  public Result[] input() {
     Tensor[] inputCopy = RefArrays.stream(RefUtil.addRefs(input)).map(x -> {
       try {
         return x.copy();
@@ -95,15 +124,15 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
       }
     }).toArray(i -> new Tensor[i]);
     if (null != derivative)
-      ReferenceCounting.freeRefs(derivative);
+      RefUtil.freeRefs(derivative);
     derivative = RefArrays.stream(RefUtil.addRefs(inputCopy)).map(input1 -> {
       try {
-        return new Tensor(input1.getDimensions());
+        return input1.getDimensions();
       } finally {
         input1.freeRef();
       }
-    }).toArray(i1 -> new Tensor[i1]);
-    Result[] input = RefIntStream.range(0, inputCopy.length).mapToObj(RefUtil.wrapInterface((IntFunction<Result>) i -> {
+    }).map(d -> new Tensor(d)).toArray(i1 -> new Tensor[i1]);
+    return RefIntStream.range(0, inputCopy.length).mapToObj(RefUtil.wrapInterface((IntFunction<Result>) i -> {
       Result.Accumulator accumulator = new Result.Accumulator() {
         {
           RefUtil.addRefs(derivative);
@@ -136,29 +165,6 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
         }
       };
     }, inputCopy)).toArray(i -> new Result[i]);
-    final Result eval = eval(input);
-    assert eval != null;
-    TensorList evalData = eval.getData();
-    Tensor outputTensor = evalData.get(0);
-    DeltaSet<UUID> deltaSet = new DeltaSet<>();
-    try {
-      synchronized (this) {
-        if (null != output) {
-          output.freeRef();
-        }
-        output = outputTensor.copy();
-      }
-      if (isCalcDerivative()) {
-        eval.accumulate(deltaSet.addRef(),
-            getFeedback(evalData.addRef()));
-      }
-      return this.addRef();
-    } finally {
-      evalData.freeRef();
-      outputTensor.freeRef();
-      deltaSet.freeRef();
-      eval.freeRef();
-    }
   }
 
   public Result eval(Result[] input) {
@@ -177,11 +183,12 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
   }
 
   public void _free() {
+    super._free();
     if (null != derivative)
-      ReferenceCounting.freeRefs(derivative);
+      RefUtil.freeRefs(derivative);
     derivative = null;
     layer.freeRef();
-    ReferenceCounting.freeRefs(input);
+    RefUtil.freeRefs(input);
     synchronized (this) {
       if (null != output) {
         output.freeRef();

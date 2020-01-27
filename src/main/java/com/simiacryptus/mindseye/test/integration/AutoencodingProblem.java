@@ -37,7 +37,6 @@ import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.notebook.TableOutput;
 import com.simiacryptus.ref.lang.RefUtil;
-import com.simiacryptus.ref.lang.ReferenceCounting;
 import com.simiacryptus.util.test.LabeledObject;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
@@ -172,7 +171,7 @@ public abstract class AutoencodingProblem implements Problem {
         new ArrayTrainable(RefUtil.addRefs(trainingData), supervisedNetwork.addRef(),
             batchSize),
         monitor);
-    ReferenceCounting.freeRefs(trainingData);
+    RefUtil.freeRefs(trainingData);
     log.run(RefUtil.wrapInterface(() -> {
       trainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES);
       ValidatingTrainer temp_21_0003 = trainer.addRef();

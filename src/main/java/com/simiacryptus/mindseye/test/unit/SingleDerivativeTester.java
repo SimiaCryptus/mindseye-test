@@ -20,13 +20,11 @@
 package com.simiacryptus.mindseye.test.unit;
 
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.PlaceholderLayer;
 import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.ref.lang.RefIgnore;
 import com.simiacryptus.ref.lang.RefUtil;
-import com.simiacryptus.ref.lang.ReferenceCounting;
 import com.simiacryptus.ref.wrappers.*;
 import com.simiacryptus.util.data.ScalarStatistics;
 import org.jetbrains.annotations.NotNull;
@@ -41,6 +39,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.IntFunction;
+import java.util.stream.IntStream;
 
 public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistics> {
   private static final Logger log = LoggerFactory.getLogger(SingleDerivativeTester.class);
@@ -189,54 +188,48 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     assert temp_00_0024 != null;
     int size = temp_00_0024.size();
     temp_00_0024.freeRef();
+    assert verify;
     return RefIntStream.range(0, size)
         .mapToObj(RefUtil.wrapInterface((IntFunction<ToleranceStatistics>) i -> {
-              Tensor temp_00_0025 = measureLearningGradient(component.addRef(), i,
+              Tensor measuredGradient = measureLearningGradient(component.addRef(), i,
                   outputPrototype.addRef(), RefUtil.addRefs(inputPrototype));
-              @Nullable final Tensor measuredGradient = !verify ? null : temp_00_0025.addRef();
-              temp_00_0025.freeRef();
               @Nonnull final Tensor implementedGradient = getLearningGradient(component.addRef(), i,
                   outputPrototype.addRef(), RefUtil.addRefs(inputPrototype));
-              assert measuredGradient != null;
               @Nonnull
               Tensor difference = measuredGradient.minus(implementedGradient.addRef());
               try {
                 final ToleranceStatistics result = RefIntStream
                     .range(0, measuredGradient.length())
-                    .mapToObj(RefUtil.wrapInterface((IntFunction<ToleranceStatistics>) i1 -> {
-                          return new ToleranceStatistics().accumulate(measuredGradient.getData()[i1],
-                              implementedGradient.getData()[i1]);
-                        }, implementedGradient.addRef(),
+                    .mapToObj(RefUtil.wrapInterface((IntFunction<ToleranceStatistics>) gradientIndex -> {
+                          return new ToleranceStatistics().accumulate(
+                              measuredGradient.get(gradientIndex),
+                              implementedGradient.get(gradientIndex));
+                        },
+                        implementedGradient.addRef(),
                         measuredGradient.addRef()))
-                    .reduce((a, b) -> a.combine(b)).orElse(new ToleranceStatistics());
-                if (!(result.absoluteTol.getMax() < tolerance)) {
-                  measuredGradient.freeRef();
-                  implementedGradient.freeRef();
-                  difference.freeRef();
-                  throw new AssertionError(result.toString());
-                } else {
-                  //log.info(String.format("Component: %s", component));
-                  if (verbose) {
+                    .reduce((a, b) -> a.combine(b))
+                    .orElse(new ToleranceStatistics());
 
-                    log.info(RefString.format("Learning Gradient for weight setByCoord %s", i));
-                    RefList<double[]> temp_00_0026 = component.state();
-                    assert temp_00_0026 != null;
-                    log.info(RefString.format("Weights: %s", Tensor.prettyPrint(temp_00_0026.get(i))));
-                    temp_00_0026.freeRef();
-                    log.info(RefString.format("Implemented Gradient: %s", implementedGradient.prettyPrint()));
-                    log.info(RefString.format("Implemented Statistics: %s",
-                        new ScalarStatistics().add(implementedGradient.getData())));
-                    log.info(RefString.format("Measured Gradient: %s", measuredGradient.prettyPrint()));
-                    log.info(RefString.format("Measured Statistics: %s",
-                        new ScalarStatistics().add(measuredGradient.getData())));
-                    log.info(RefString.format("Gradient Error: %s", difference.prettyPrint()));
-                    log.info(RefString.format("Error Statistics: %s", new ScalarStatistics().add(difference.getData())));
-                  }
-                  measuredGradient.freeRef();
-                  implementedGradient.freeRef();
-                  difference.freeRef();
-                  return result;
+                //log.info(String.format("Component: %s", component));
+                if (!(result.absoluteTol.getMax() < tolerance)) {
+                  throw new AssertionError(result.toString());
                 }
+                if (verbose) {
+                  log.info(RefString.format("Learning Gradient for weight setByCoord %s", i));
+                  RefList<double[]> temp_00_0026 = component.state();
+                  assert temp_00_0026 != null;
+                  log.info(RefString.format("Weights: %s", Tensor.prettyPrint(temp_00_0026.get(i))));
+                  temp_00_0026.freeRef();
+                  log.info(RefString.format("Implemented Gradient: %s", implementedGradient.prettyPrint()));
+                  log.info(RefString.format("Implemented Statistics: %s",
+                      new ScalarStatistics().add(implementedGradient.getData())));
+                  log.info(RefString.format("Measured Gradient: %s", measuredGradient.prettyPrint()));
+                  log.info(RefString.format("Measured Statistics: %s",
+                      new ScalarStatistics().add(measuredGradient.getData())));
+                  log.info(RefString.format("Gradient Error: %s", difference.prettyPrint()));
+                  log.info(RefString.format("Error Statistics: %s", new ScalarStatistics().add(difference.getData())));
+                }
+                return result;
               } catch (@Nonnull final Throwable e) {
                 //log.info(String.format("Component: %s", component));
                 log.info(RefString.format("Learning Gradient for weight setByCoord %s", i));
@@ -250,9 +243,15 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
                 log.info(RefString.format("Error Statistics: %s", new ScalarStatistics().add(difference.getData())));
                 throw e;
               } finally {
+                measuredGradient.freeRef();
+                implementedGradient.freeRef();
+                difference.freeRef();
               }
-            }, outputPrototype, component, inputPrototype))
-        .reduce((a, b) -> a.combine(b)).map(x -> x.combine(prev)).orElse(prev);
+            },
+            outputPrototype,
+            component,
+            inputPrototype)
+        ).reduce((a, b) -> a.combine(b)).map(x -> x.combine(prev)).orElse(prev);
   }
 
   @Nonnull
@@ -286,16 +285,13 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
                         maskedGradient.addRef(),
                         measuredGradient.addRef()
                     ))
-                    .reduce((a, b) -> a.combine(b)).orElse(new ToleranceStatistics());
+                    .reduce((a, b) -> a.combine(b))
+                    .orElse(new ToleranceStatistics());
 
+                //log.info(String.format("Component: %s", component));
                 if (!(result.absoluteTol.getMax() < tolerance)) {
-                  measuredGradient.freeRef();
-                  implementedGradient.freeRef();
-                  maskedGradient.freeRef();
-                  difference.freeRef();
                   throw new AssertionError(result.toString());
                 }
-                //log.info(String.format("Component: %s", component));
                 if (verbose) {
                   log.info(RefString.format("Feedback for input %s", i));
                   log.info(RefString.format("Inputs Values: %s", inputPrototype[i].prettyPrint()));
@@ -310,11 +306,6 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
                   log.info(RefString.format("Feedback Error: %s", difference.prettyPrint()));
                   log.info(RefString.format("Error Statistics: %s", new ScalarStatistics().add(difference.getData())));
                 }
-
-                measuredGradient.freeRef();
-                implementedGradient.freeRef();
-                maskedGradient.freeRef();
-                difference.freeRef();
                 return result;
               } catch (@Nonnull final Throwable e) {
                 //log.info(String.format("Component: %s", component));
@@ -326,16 +317,17 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
                   log.info(RefString.format("Implemented Statistics: %s",
                       new ScalarStatistics().add(implementedGradient.getData())));
                 }
-                if (!measuredGradient.isFinalized()) {
-                  log.info(RefString.format("Measured: %s", measuredGradient.prettyPrint()));
-                  log.info(RefString.format(
-                      "Measured Statistics: %s", new ScalarStatistics().add(measuredGradient.getData())));
-                }
-                if (!difference.isFinalized()) {
-                  log.info(RefString.format("Feedback Error: %s", difference.prettyPrint()));
-                  log.info(RefString.format("Error Statistics: %s", new ScalarStatistics().add(difference.getData())));
-                }
+                log.info(RefString.format("Measured: %s", measuredGradient.prettyPrint()));
+                log.info(RefString.format(
+                    "Measured Statistics: %s", new ScalarStatistics().add(measuredGradient.getData())));
+                log.info(RefString.format("Feedback Error: %s", difference.prettyPrint()));
+                log.info(RefString.format("Error Statistics: %s", new ScalarStatistics().add(difference.getData())));
                 throw e;
+              } finally {
+                measuredGradient.freeRef();
+                implementedGradient.freeRef();
+                maskedGradient.freeRef();
+                difference.freeRef();
               }
             },
             component,
@@ -359,60 +351,36 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
       return temp_00_0006;
     }).toArray(i -> new Tensor[i]);
     @Nonnull final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
-    Layer temp_00_0028 = component.copy();
-    temp_00_0028.freeze();
-    @Nonnull final Layer frozen = temp_00_0028.addRef();
-    temp_00_0028.freeRef();
-    RefList<TensorArray> inputCopies = RefArrays.stream(RefUtil.addRefs(inputPrototype)).map(data -> {
-      TensorArray temp_00_0007 = new TensorArray(data == null ? null : data.addRef());
-      if (null != data)
-        data.freeRef();
-      return temp_00_0007;
-    }).collect(RefCollectors.toList());
-    ReferenceCounting.freeRefs(inputPrototype);
-    Result[] input = inputCopies.stream().map((tensorArray) -> {
-      try {
-        Result.Accumulator accumulator = new Result.Accumulator() {
-          @Override
-          public void accept(@Nonnull DeltaSet<UUID> buffer, @Nonnull TensorList data) {
-            reachedInputFeedback.set(true);
-            buffer.freeRef();
-            data.freeRef();
-          }
+    Layer frozen = component.copy();
+    frozen.freeze();
+    RefList<TensorArray> inputCopies = RefArrays.stream(inputPrototype)
+        .map(data -> new TensorArray(data))
+        .collect(RefCollectors.toList());
+    Result[] input = inputCopies.stream().map(tensorArray -> {
+      Result.Accumulator accumulator = new Result.Accumulator() {
+        @Override
+        public void accept(@Nonnull DeltaSet<UUID> buffer, @Nonnull TensorList data) {
+          reachedInputFeedback.set(true);
+          buffer.freeRef();
+          data.freeRef();
+        }
 
-          @Override
-          public void _free() {
-            super._free();
-          }
-        };
-        return new Result(tensorArray, accumulator) {
-          @Override
-          public boolean isAlive() {
-            return true;
-          }
-
-          @Override
-          public void _free() {
-            super._free();
-          }
-        };
-      } finally {
-        if (null != tensorArray)
-          tensorArray.freeRef();
-      }
+        @Override
+        public void _free() {
+          super._free();
+        }
+      };
+      return new AliveResult(tensorArray, accumulator);
     }).toArray(i -> new Result[i]);
     inputCopies.freeRef();
     @Nullable final Result eval = frozen.eval(RefUtil.addRefs(input));
-    ReferenceCounting.freeRefs(input);
+    RefUtil.freeRefs(input);
     frozen.freeRef();
     assert eval != null;
-    TensorList evalData = eval.getData();
     @Nonnull final DeltaSet<UUID> buffer = new DeltaSet<UUID>();
-    TensorList tensorList = evalData.copy();
-    eval.accumulate(buffer.addRef(), tensorList == null ? null : tensorList.addRef());
+    TensorList evalData = eval.getData();
+    eval.accumulate(buffer.addRef(), evalData.copy());
     evalData.freeRef();
-    if (null != tensorList)
-      tensorList.freeRef();
     eval.freeRef();
     RefList<double[]> temp_00_0029 = component.state();
     assert temp_00_0029 != null;
@@ -457,56 +425,33 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
       return temp_00_0012;
     }).toArray(i -> new Tensor[i]);
     @Nonnull final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
-    Layer temp_00_0033 = component.copy();
-    temp_00_0033.setFrozen(false);
-    @Nonnull final Layer frozen = temp_00_0033.addRef();
-    temp_00_0033.freeRef();
+    Layer frozen = component.copy();
+    frozen.setFrozen(false);
     component.freeRef();
     RefList<TensorArray> inputCopies = RefArrays.stream(RefUtil.addRefs(inputPrototype)).map(data -> {
-      TensorArray temp_00_0013 = new TensorArray(data == null ? null : data.addRef());
-      if (null != data)
-        data.freeRef();
-      return temp_00_0013;
+      return new TensorArray(data);
     }).collect(RefCollectors.toList());
     Result[] inputs = inputCopies.stream().map(tensor -> {
-      try {
-        Result.Accumulator accumulator = new Result.Accumulator() {
-          @Override
-          public void accept(@Nonnull DeltaSet<UUID> buffer, @Nonnull TensorList data) {
-            buffer.freeRef();
-            data.freeRef();
-            reachedInputFeedback.set(true);
-          }
+      Result.Accumulator accumulator = new Result.Accumulator() {
+        @Override
+        public void accept(@Nonnull DeltaSet<UUID> buffer, @Nonnull TensorList data) {
+          buffer.freeRef();
+          data.freeRef();
+          reachedInputFeedback.set(true);
+        }
 
-          @Override
-          public void _free() {
-            super._free();
-          }
-        };
-        return new Result(tensor, accumulator) {
-          @Override
-          public boolean isAlive() {
-            return true;
-          }
-
-          @Override
-          public void _free() {
-            super._free();
-          }
-        };
-      } finally {
-        if (null != tensor)
-          tensor.freeRef();
-      }
+        @Override
+        public void _free() {
+          super._free();
+        }
+      };
+      return new AliveResult(tensor, accumulator);
     }).toArray(i -> new Result[i]);
     inputCopies.freeRef();
-    @Nullable final Result eval = frozen.eval(RefUtil.addRefs(inputs));
-    ReferenceCounting.freeRefs(inputs);
+    @Nullable final Result eval = frozen.eval(inputs);
     @Nonnull final DeltaSet<UUID> buffer = new DeltaSet<UUID>();
     assert eval != null;
-    TensorList tensorList = eval.getData();
-    eval.accumulate(buffer.addRef(), tensorList.addRef());
-    tensorList.freeRef();
+    eval.accumulate(buffer.addRef(), eval.getData());
     eval.freeRef();
     @Nullable final RefList<double[]> stateList = frozen.state();
     frozen.freeRef();
@@ -523,25 +468,22 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
           return temp_00_0034;
         }, buffer)).filter(x -> {
           boolean temp_00_0016 = x != null;
-          if (null != x)
-            x.freeRef();
+          if (null != x) x.freeRef();
           return temp_00_0016;
         }).collect(RefCollectors.toList());
-    if (deltas.isEmpty() && !stateList.isEmpty()) {
-      stateList.freeRef();
-      AssertionError temp_00_0017 = new AssertionError(
-          "Nonfrozen component not listed in evalInputDelta. Deltas: " + deltas);
+    try {
+      if (deltas.isEmpty() && !stateList.isEmpty()) {
+        throw new AssertionError(
+            "Nonfrozen component not listed in evalInputDelta. Deltas: " + deltas);
+      }
+      if (!reachedInputFeedback.get() && inputPrototype.length != 0) {
+        throw new RuntimeException("Nonfrozen component did not pass input backwards");
+      }
+    } finally {
       deltas.freeRef();
-      ReferenceCounting.freeRefs(inputPrototype);
-      throw temp_00_0017;
+      stateList.freeRef();
+      RefUtil.freeRefs(inputPrototype);
     }
-    deltas.freeRef();
-    stateList.freeRef();
-    if (!reachedInputFeedback.get() && inputPrototype.length != 0) {
-      ReferenceCounting.freeRefs(inputPrototype);
-      throw new RuntimeException("Nonfrozen component did not pass input backwards");
-    }
-    ReferenceCounting.freeRefs(inputPrototype);
   }
 
   @Nonnull
@@ -553,6 +495,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
 
   public @SuppressWarnings("unused")
   void _free() {
+    super._free();
   }
 
   @Nonnull
@@ -594,130 +537,91 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
   private Tensor getFeedbackGradient(@Nonnull final Layer component, final int inputIndex,
                                      @Nonnull final Tensor outputPrototype, @Nonnull final Tensor... inputPrototype) {
     final Tensor inputTensor = inputPrototype[inputIndex].addRef();
-    final int inputDims = inputTensor.length();
-    @Nonnull final Tensor result = new Tensor(inputDims, outputPrototype.length());
-    for (int j = 0; j < outputPrototype.length(); j++) {
-      final int j_ = j;
-      @Nonnull final PlaceholderLayer<Tensor> inputKey = new PlaceholderLayer<Tensor>(new Tensor(1));
-      final Result[] copyInput = RefArrays.stream(RefUtil.addRefs(inputPrototype)).map(x -> {
-        try {
-          TensorArray data = new TensorArray(x == null ? null : x.addRef());
-          Result.Accumulator accumulator = new Result.Accumulator() {
-            @Override
-            public void accept(@Nonnull DeltaSet<UUID> buffer, @Nonnull TensorList data) {
-              buffer.freeRef();
-              data.freeRef();
-            }
-
-            @Override
-            public void _free() {
-              super._free();
-            }
-          };
-          return new Result(data, accumulator);
-        } finally {
-          if (null != x)
-            x.freeRef();
-        }
-      }).toArray(i -> new Result[i]);
-      double[] target = new double[inputDims * outputPrototype.length()];
-      Result.Accumulator accumulator = new Result.Accumulator() {
-
-        {
-          outputPrototype.addRef();
-          inputKey.addRef();
-          inputTensor.addRef();
-        }
-
-        @Override
-        public void accept(@Nonnull DeltaSet<UUID> buffer, @Nonnull TensorList data) {
-          try {
-            if (1 != data.length())
-              throw new AssertionError();
-            if (data.length() != 1)
-              throw new AssertionError();
-            if (!RefArrays.equals(inputTensor.getDimensions(), data.getDimensions())) {
-              throw new AssertionError();
-            }
-            @Nonnull final Tensor gradientBuffer = new Tensor(inputDims, outputPrototype.length());
-            RefIntStream.range(0, data.length()).forEach(dataIndex -> {
-              for (int i = 0; i < inputDims; i++) {
-                @Nullable
-                Tensor tensor = data.get(dataIndex);
-                gradientBuffer.set(new int[]{i, j_}, tensor.getData()[i]);
-                tensor.freeRef();
-              }
-            });
-            Delta<UUID> delta = buffer.get(inputKey.getId(), target);
-            assert delta != null;
-            delta.addInPlace(gradientBuffer.getData());
-            gradientBuffer.freeRef();
-            delta.freeRef();
-          } finally {
-            data.freeRef();
-            buffer.freeRef();
-          }
-        }
-
-        @Override
-        public void _free() {
-          outputPrototype.freeRef();
-          inputKey.freeRef();
-          inputTensor.freeRef();
-          super._free();
-        }
-      };
-      Result result1 = new Result(new TensorArray(inputTensor.addRef()), accumulator) {
-
-        {
-          inputKey.addRef();
-        }
-
-        @Override
-        public boolean isAlive() {
-          return true;
-        }
-
-        public @SuppressWarnings("unused")
-        void _free() {
-          inputKey.freeRef();
-          super._free();
-        }
-      };
-      RefUtil.set(copyInput, inputIndex, result1);
-      @Nullable final Result eval = eval(component.addRef(), copyInput);
-      @Nonnull final DeltaSet<UUID> deltaSet = new DeltaSet<UUID>();
-      Tensor temp_00_0021 = new Tensor(outputPrototype.getDimensions());
-      temp_00_0021.set(j, 1);
-      @Nonnull
-      TensorArray tensorArray = new TensorArray(temp_00_0021);
-      try {
-        assert eval != null;
-        eval.accumulate(deltaSet.addRef(), tensorArray.addRef());
-        RefMap<UUID, Delta<UUID>> map = deltaSet.getMap();
-        final Delta<UUID> inputDelta = map.get(inputKey.getId());
-        map.freeRef();
-        if (null != inputDelta) {
-          @Nonnull
-          Tensor tensor = new Tensor(inputDelta.getDelta(), result.getDimensions());
-          result.addInPlace(tensor);
-        }
-        if (null != inputDelta)
-          inputDelta.freeRef();
-      } finally {
-        assert eval != null;
-        RefUtil.freeRef(eval.getData());
-        tensorArray.freeRef();
-        deltaSet.freeRef();
-        eval.freeRef();
-        inputKey.freeRef();
-      }
-    }
-    ReferenceCounting.freeRefs(inputPrototype);
+    final int inputLength = inputTensor.length();
+    int[] inputDimensions = inputTensor.getDimensions();
+    final int outputLength = outputPrototype.length();
+    int[] outputDimensions = outputPrototype.getDimensions();
     outputPrototype.freeRef();
-    component.freeRef();
-    inputTensor.freeRef();
+    @Nonnull final Tensor result = new Tensor(inputLength, outputLength);
+    try {
+      IntStream.range(0, outputLength).forEach(outputIndex -> {
+        final UUID inputKeyId = UUID.randomUUID();
+        final Result[] copyInput = RefArrays.stream(RefUtil.addRefs(inputPrototype))
+            .map(TensorArray::new)
+            .map(data -> new Result(data, new NullAccumulator()))
+            .toArray(Result[]::new);
+        double[] target = new double[inputLength * outputLength];
+        Result.Accumulator accumulator = new Result.Accumulator() {
+
+          @Override
+          public void accept(@Nonnull DeltaSet<UUID> buffer, @Nonnull TensorList data) {
+            try {
+              if (1 != data.length()) throw new AssertionError();
+              if (data.length() != 1) throw new AssertionError();
+              if (!RefArrays.equals(inputDimensions, data.getDimensions())) throw new AssertionError();
+              @Nonnull final Tensor gradientBuffer = new Tensor(inputLength, outputLength);
+              IntStream.range(0, data.length()).forEach(batchIndex -> {
+                IntStream.range(0, inputLength).forEach(inputIndex -> {
+                  Tensor tensor = data.get(batchIndex);
+                  double value = tensor.get(inputIndex);
+                  tensor.freeRef();
+                  gradientBuffer.set(new int[]{inputIndex, outputIndex}, value);
+                });
+              });
+              Delta<UUID> delta = buffer.get(inputKeyId, target);
+              assert delta != null;
+              delta.addInPlace(gradientBuffer.getData());
+              gradientBuffer.freeRef();
+              delta.freeRef();
+            } finally {
+              data.freeRef();
+              buffer.freeRef();
+            }
+          }
+
+          @Override
+          public void _free() {
+            super._free();
+          }
+        };
+        RefUtil.set(copyInput, inputIndex, new AliveResult(new TensorArray(inputTensor.addRef()), accumulator));
+        @Nullable final Result eval = eval(component.addRef(), copyInput);
+        assert eval != null;
+        @Nonnull final DeltaSet<UUID> deltaSet = new DeltaSet<>();
+        eval.accumulate(deltaSet.addRef(), oneHotTensorArray(outputDimensions, outputIndex));
+        eval.freeRef();
+        Tensor tensor = getDelta(deltaSet, inputKeyId, result.getDimensions());
+        if (null != tensor) result.addInPlace(tensor);
+      });
+    } finally {
+      RefUtil.freeRefs(inputPrototype);
+      component.freeRef();
+      inputTensor.freeRef();
+    }
     return result;
+  }
+
+  @org.jetbrains.annotations.Nullable
+  private Tensor getDelta(DeltaSet<UUID> deltaSet, UUID inputKeyId, int[] dimensions) {
+    RefMap<UUID, Delta<UUID>> map = deltaSet.getMap();
+    final Delta<UUID> inputDelta = map.get(inputKeyId);
+    Tensor tensor;
+    if (null != inputDelta) {
+      tensor = new Tensor(inputDelta.getDelta(), dimensions);
+      inputDelta.freeRef();
+    } else {
+      tensor = null;
+    }
+    map.freeRef();
+    deltaSet.freeRef();
+    return tensor;
+  }
+
+  @NotNull
+  private TensorArray oneHotTensorArray(int[] outputDimensions, int j) {
+    Tensor tensor1 = new Tensor(outputDimensions);
+    tensor1.set(j, 1);
+    return new TensorArray(tensor1);
   }
 
   private Result eval(@Nonnull Layer component, Result[] copyInput) {
@@ -774,7 +678,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
         deltaFlushBuffer.freeRef();
     }
     if (null != inputPrototype)
-      ReferenceCounting.freeRefs(inputPrototype);
+      RefUtil.freeRefs(inputPrototype);
     outputPrototype.freeRef();
     component.freeRef();
     return gradient;
@@ -799,7 +703,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
           baseOutput.addRef(), RefUtil.addRefs(inputPrototype),
           measuredGradient.addRef(), probeIndex);
     }
-    ReferenceCounting.freeRefs(inputPrototype);
+    RefUtil.freeRefs(inputPrototype);
     component.freeRef();
     baseOutput.freeRef();
     return measuredGradient;
@@ -817,7 +721,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     outputPrototype.freeRef();
     Result[] input2 = ConstantResult.batchResultArray(new Tensor[][]{RefUtil.addRefs(inputPrototype)});
     if (null != inputPrototype)
-      ReferenceCounting.freeRefs(inputPrototype);
+      RefUtil.freeRefs(inputPrototype);
     Result temp_00_0046 = component.eval(RefUtil.addRefs(input2));
     assert temp_00_0046 != null;
     TensorList temp_00_0047 = temp_00_0046.getData();
@@ -850,7 +754,36 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     }
     component.freeRef();
     baseOutput.freeRef();
-    ReferenceCounting.freeRefs(input2);
+    RefUtil.freeRefs(input2);
     return gradient;
+  }
+
+  private static class NullAccumulator extends Result.Accumulator {
+    @Override
+    public void accept(@Nonnull DeltaSet<UUID> buffer, @Nonnull TensorList data) {
+      buffer.freeRef();
+      data.freeRef();
+    }
+
+    @Override
+    public void _free() {
+      super._free();
+    }
+  }
+
+  private static final class AliveResult extends Result {
+    public AliveResult(TensorArray data, Accumulator accumulator) {
+      super(data, accumulator);
+    }
+
+    @Override
+    public boolean isAlive() {
+      return true;
+    }
+
+    public @SuppressWarnings("unused")
+    void _free() {
+      super._free();
+    }
   }
 }

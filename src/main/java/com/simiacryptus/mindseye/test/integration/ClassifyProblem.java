@@ -32,7 +32,6 @@ import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.notebook.TableOutput;
 import com.simiacryptus.ref.lang.RefUtil;
-import com.simiacryptus.ref.lang.ReferenceCounting;
 import com.simiacryptus.ref.wrappers.*;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.test.LabeledObject;
@@ -168,7 +167,7 @@ public abstract class ClassifyProblem implements Problem {
         new ArrayTrainable(RefUtil.addRefs(trainingData), supervisedNetwork.addRef(),
             getBatchSize()),
         monitor);
-    ReferenceCounting.freeRefs(trainingData);
+    RefUtil.freeRefs(trainingData);
     log.run(RefUtil.wrapInterface(() -> {
       trainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES);
       ValidatingTrainer temp_12_0006 = trainer.addRef();

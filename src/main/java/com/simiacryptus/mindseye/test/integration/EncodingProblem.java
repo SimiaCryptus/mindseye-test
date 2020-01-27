@@ -22,7 +22,6 @@ package com.simiacryptus.mindseye.test.integration;
 import com.simiacryptus.lang.UncheckedSupplier;
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
-import com.simiacryptus.mindseye.eval.SampledTrainable;
 import com.simiacryptus.mindseye.lang.Result;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
@@ -36,7 +35,6 @@ import com.simiacryptus.mindseye.util.ImageUtil;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.notebook.TableOutput;
 import com.simiacryptus.ref.lang.RefUtil;
-import com.simiacryptus.ref.lang.ReferenceCounting;
 import com.simiacryptus.ref.wrappers.RefArrays;
 import com.simiacryptus.ref.wrappers.RefDoubleStream;
 import com.simiacryptus.ref.wrappers.RefList;
@@ -166,7 +164,7 @@ public abstract class EncodingProblem implements Problem {
         new ArrayTrainable(RefUtil.addRefs(primingData), trainingNetwork.addRef(),
             batchSize),
         monitor);
-    ReferenceCounting.freeRefs(primingData);
+    RefUtil.freeRefs(primingData);
     log.run(RefUtil.wrapInterface(() -> {
       preTrainer.setTimeout(timeoutMinutes / 2, TimeUnit.MINUTES);
       ValidatingTrainer temp_20_0008 = preTrainer.addRef();
@@ -237,7 +235,7 @@ public abstract class EncodingProblem implements Problem {
             temp_20_0013.freeRef();
             @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();
             row.put("Source", log.png(tensorArray[1].toImage(), ""));
-            ReferenceCounting.freeRefs(tensorArray);
+            RefUtil.freeRefs(tensorArray);
             row.put("Echo", log.png(predictionSignal.toImage(), ""));
             predictionSignal.freeRef();
             return row;
@@ -262,13 +260,13 @@ public abstract class EncodingProblem implements Problem {
       @Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
       RefArrays.stream(RefUtil.addRefs(trainingData)).flatMapToDouble(row -> {
         RefDoubleStream temp_20_0001 = RefArrays.stream(row[0].getData());
-        ReferenceCounting.freeRefs(row);
+        RefUtil.freeRefs(row);
         return temp_20_0001;
       }).forEach(v -> scalarStatistics.add(v));
       return scalarStatistics.getMetrics();
     }, RefUtil.addRefs(trainingData))));
 
-    ReferenceCounting.freeRefs(trainingData);
+    RefUtil.freeRefs(trainingData);
     log.p("Some rendered unit vectors:");
     for (int featureNumber = 0; featureNumber < features; featureNumber++) {
       Tensor temp_20_0006 = new Tensor(features);

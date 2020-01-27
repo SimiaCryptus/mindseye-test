@@ -22,7 +22,6 @@ package com.simiacryptus.mindseye.test;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.ref.lang.RecycleBin;
 import com.simiacryptus.ref.lang.RefUtil;
-import com.simiacryptus.ref.lang.ReferenceCounting;
 import com.simiacryptus.ref.wrappers.*;
 import com.simiacryptus.util.data.DoubleStatistics;
 import org.apache.commons.math3.linear.BlockRealMatrix;
@@ -95,7 +94,7 @@ public class PCAUtil {
       final double v = featureSpaceVectors[outband].get(x, y, inband);
       return Double.isFinite(v) ? v : kernel.get(c);
     }, kernel.addRef(), RefUtil.addRefs(featureSpaceVectors)));
-    ReferenceCounting.freeRefs(featureSpaceVectors);
+    RefUtil.freeRefs(featureSpaceVectors);
     kernel.freeRef();
   }
 
@@ -113,7 +112,7 @@ public class PCAUtil {
       final double v = featureSpaceVectors[inband].get(x, y, outband);
       return Double.isFinite(v) ? v : kernel.get(c);
     }, kernel.addRef(), RefUtil.addRefs(featureSpaceVectors)));
-    ReferenceCounting.freeRefs(featureSpaceVectors);
+    RefUtil.freeRefs(featureSpaceVectors);
     kernel.freeRef();
   }
 }

@@ -26,7 +26,6 @@ import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.ref.lang.RefUtil;
-import com.simiacryptus.ref.lang.ReferenceCounting;
 import com.simiacryptus.ref.wrappers.RefArrays;
 import com.simiacryptus.ref.wrappers.RefIntStream;
 import com.simiacryptus.ref.wrappers.RefString;
@@ -35,7 +34,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
 import java.util.function.IntFunction;
 
 public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
@@ -60,7 +58,7 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
     if (null == reference || null == subject) {
       if (null != subject)
         subject.freeRef();
-      ReferenceCounting.freeRefs(inputPrototype);
+      RefUtil.freeRefs(inputPrototype);
       return new ToleranceStatistics();
     }
     reference.assertAlive();
@@ -97,13 +95,13 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
       subjectOutput.freeRef();
       referenceOutput.freeRef();
       error.freeRef();
-      ReferenceCounting.freeRefs(inputPrototype);
+      RefUtil.freeRefs(inputPrototype);
       throw new AssertionError(result.toString());
     }
     subjectOutput.freeRef();
     referenceOutput.freeRef();
     error.freeRef();
-    ReferenceCounting.freeRefs(inputPrototype);
+    RefUtil.freeRefs(inputPrototype);
     return result;
   }
 
@@ -123,7 +121,7 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
     ToleranceStatistics temp_08_0003 = output.eval(RefUtil.wrapInterface(() -> {
       return test(subject.addRef(), RefUtil.addRefs(inputPrototype));
     }, RefUtil.addRefs(inputPrototype), subject.addRef()));
-    ReferenceCounting.freeRefs(inputPrototype);
+    RefUtil.freeRefs(inputPrototype);
     subject.freeRef();
     return temp_08_0003;
   }

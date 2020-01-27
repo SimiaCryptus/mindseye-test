@@ -53,6 +53,7 @@ public class CIFARDatasetDemo extends ImageCategoryDatasetDemo {
 
   public @SuppressWarnings("unused")
   void _free() {
+    super._free();
   }
 
   @Nonnull

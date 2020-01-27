@@ -47,6 +47,7 @@ public class MNIST {
 
     public @SuppressWarnings("unused")
     void _free() {
+      super._free();
     }
 
     @Override
@@ -73,6 +74,7 @@ public class MNIST {
 
     public @SuppressWarnings("unused")
     void _free() {
+      super._free();
     }
 
     @Override
@@ -185,6 +187,7 @@ public class MNIST {
 
     public @SuppressWarnings("unused")
     void _free() {
+      super._free();
       labelItr.freeRef();
       imgItr.freeRef();
     }

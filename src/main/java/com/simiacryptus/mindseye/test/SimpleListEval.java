@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.ref.lang.RefUtil;
-import com.simiacryptus.ref.lang.ReferenceCounting;
 import com.simiacryptus.ref.lang.ReferenceCountingBase;
 import com.simiacryptus.ref.wrappers.RefArrays;
 import com.simiacryptus.ref.wrappers.RefIntStream;
@@ -53,8 +52,8 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
     layer.freeRef();
     TensorList[] temp_09_0002 = RefUtil.addRefs(input);
     this.input = RefUtil.addRefs(temp_09_0002);
-    ReferenceCounting.freeRefs(temp_09_0002);
-    ReferenceCounting.freeRefs(input);
+    RefUtil.freeRefs(temp_09_0002);
+    RefUtil.freeRefs(input);
     DeltaSet<UUID> temp_09_0003 = new DeltaSet<UUID>();
     layerDerivative = temp_09_0003.addRef();
     temp_09_0003.freeRef();
@@ -131,7 +130,7 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
       return temp_09_0008;
     }).toArray(i -> new TensorList[i]);
     if (null != inputDerivative)
-      ReferenceCounting.freeRefs(inputDerivative);
+      RefUtil.freeRefs(inputDerivative);
     inputDerivative = RefArrays.stream(RefUtil.addRefs(inputCopy)).map(tensorList -> {
       TensorArray temp_09_0009 = new TensorArray(tensorList.stream().map(i1 -> {
         Tensor temp_09_0010 = new Tensor(i1.getDimensions());
@@ -173,7 +172,7 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
           };
         }, inputCopy)).toArray(i -> new Result[i]);
     @Nullable final Result eval = layer.eval(RefUtil.addRefs(inputs));
-    ReferenceCounting.freeRefs(inputs);
+    RefUtil.freeRefs(inputs);
     assert eval != null;
     TensorList temp_09_0017 = eval.getData();
     TensorList outputData = temp_09_0017.copy();
@@ -211,6 +210,7 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
   }
 
   public void _free() {
+    super._free();
     if (null != layerDerivative)
       layerDerivative.freeRef();
     layerDerivative = null;
@@ -218,10 +218,10 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
       output.freeRef();
     output = null;
     if (null != inputDerivative)
-      ReferenceCounting.freeRefs(inputDerivative);
+      RefUtil.freeRefs(inputDerivative);
     inputDerivative = null;
     layer.freeRef();
-    ReferenceCounting.freeRefs(input);
+    RefUtil.freeRefs(input);
   }
 
   @Nonnull

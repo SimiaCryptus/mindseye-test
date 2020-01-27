@@ -157,6 +157,7 @@ public class ImageTiles {
 
     public @SuppressWarnings("unused")
     void _free() {
+      super._free();
     }
 
     @Nonnull
