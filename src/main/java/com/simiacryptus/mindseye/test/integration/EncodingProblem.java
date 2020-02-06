@@ -104,12 +104,12 @@ public abstract class EncodingProblem implements Problem {
   public Tensor[][] getTensors() {
     try {
       return data.trainingData().map(labeledObject -> {
-        Tensor temp_20_0003 = new Tensor(features);
-        temp_20_0003.set(this::random);
-        Tensor[] temp_20_0002 = new Tensor[]{temp_20_0003.addRef(), labeledObject.data};
-        temp_20_0003.freeRef();
-        return temp_20_0002;
-      }).toArray(i -> new Tensor[i][]);
+        Tensor tensor = new Tensor(features);
+        tensor.set(this::random);
+        Tensor data = labeledObject.data;
+        labeledObject.freeRef();
+        return new Tensor[]{tensor, data};
+      }).toArray(Tensor[][]::new);
     } catch (@Nonnull final IOException e) {
       throw new RuntimeException(e);
     }
@@ -164,7 +164,7 @@ public abstract class EncodingProblem implements Problem {
         new ArrayTrainable(RefUtil.addRefs(primingData), trainingNetwork.addRef(),
             batchSize),
         monitor);
-    RefUtil.freeRefs(primingData);
+    RefUtil.freeRef(primingData);
     log.run(RefUtil.wrapInterface(() -> {
       preTrainer.setTimeout(timeoutMinutes / 2, TimeUnit.MINUTES);
       ValidatingTrainer temp_20_0008 = preTrainer.addRef();
@@ -235,11 +235,11 @@ public abstract class EncodingProblem implements Problem {
             temp_20_0013.freeRef();
             @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();
             row.put("Source", log.png(tensorArray[1].toImage(), ""));
-            RefUtil.freeRefs(tensorArray);
+            RefUtil.freeRef(tensorArray);
             row.put("Echo", log.png(predictionSignal.toImage(), ""));
             predictionSignal.freeRef();
             return row;
-          }, testNetwork.addRef())).filter(x -> null != x).limit(10)
+          }, testNetwork.addRef())).filter(Objects::nonNull).limit(10)
           .forEach(table::putRow);
       return table;
     }, testNetwork, RefUtil.addRefs(trainingData)));
@@ -249,7 +249,7 @@ public abstract class EncodingProblem implements Problem {
       @Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
       RefList<double[]> temp_20_0015 = trainingNetwork.state();
       assert temp_20_0015 != null;
-      temp_20_0015.stream().flatMapToDouble(x -> Arrays.stream(x)).forEach(v -> scalarStatistics.add(v));
+      temp_20_0015.stream().flatMapToDouble(Arrays::stream).forEach(scalarStatistics::add);
       temp_20_0015.freeRef();
       return scalarStatistics.getMetrics();
     }, trainingNetwork.addRef())));
@@ -260,13 +260,13 @@ public abstract class EncodingProblem implements Problem {
       @Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
       RefArrays.stream(RefUtil.addRefs(trainingData)).flatMapToDouble(row -> {
         RefDoubleStream temp_20_0001 = RefArrays.stream(row[0].getData());
-        RefUtil.freeRefs(row);
+        RefUtil.freeRef(row);
         return temp_20_0001;
-      }).forEach(v -> scalarStatistics.add(v));
+      }).forEach(scalarStatistics::add);
       return scalarStatistics.getMetrics();
     }, RefUtil.addRefs(trainingData))));
 
-    RefUtil.freeRefs(trainingData);
+    RefUtil.freeRef(trainingData);
     log.p("Some rendered unit vectors:");
     for (int featureNumber = 0; featureNumber < features; featureNumber++) {
       Tensor temp_20_0006 = new Tensor(features);

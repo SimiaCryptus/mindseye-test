@@ -30,6 +30,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Random;
+import java.util.function.IntFunction;
 import java.util.function.ToDoubleFunction;
 
 public class SupplementedProblemData implements ImageProblemData {
@@ -43,13 +44,11 @@ public class SupplementedProblemData implements ImageProblemData {
   }
 
   public static void printSample(@Nonnull final NotebookOutput log, @Nullable final Tensor[][] expanded, final int size) {
-    @Nonnull final RefArrayList<Tensor[]> list = new RefArrayList<>(RefArrays.asList(RefUtil.addRefs(expanded)));
-    if (null != expanded)
-      RefUtil.freeRefs(expanded);
+    @Nonnull final RefArrayList<Tensor[]> list = new RefArrayList<>(RefArrays.asList(expanded));
     RefCollections.shuffle(list.addRef());
     log.p("Expanded Training Data Sample: " + RefUtil.get(list.stream().limit(size).map(x -> {
       String temp_16_0001 = log.png(x[0].toGrayImage(), "");
-      RefUtil.freeRefs(x);
+      RefUtil.freeRef(x);
       return temp_16_0001;
     }).reduce((a, b) -> a + b)));
     list.freeRef();
@@ -57,7 +56,7 @@ public class SupplementedProblemData implements ImageProblemData {
 
   @Nonnull
   protected static Tensor addNoise(@Nonnull final Tensor tensor) {
-    Tensor temp_16_0003 = tensor.mapParallel((v) -> Math.random() < 0.9 ? v : v + Math.random() * 100);
+    Tensor temp_16_0003 = tensor.mapParallel(v -> Math.random() < 0.9 ? v : v + Math.random() * 100);
     tensor.freeRef();
     return temp_16_0003;
   }
@@ -85,15 +84,17 @@ public class SupplementedProblemData implements ImageProblemData {
   @Override
   public RefStream<LabeledObject<Tensor>> trainingData() throws IOException {
     return inner.trainingData().flatMap(labeledObject -> {
-      return RefIntStream.range(0, expansion).mapToObj(i -> {
-        final int dx = random.nextInt(10) - 5;
-        final int dy = random.nextInt(10) - 5;
-        return SupplementedProblemData.addNoise(SupplementedProblemData.translate(dx, dy, labeledObject.data.addRef()));
-      }).map(t -> {
-        LabeledObject<Tensor> temp_16_0002 = new LabeledObject<>(t.addRef(), labeledObject.label);
-        t.freeRef();
-        return temp_16_0002;
-      });
+      return RefIntStream.range(0, expansion)
+          .mapToObj(RefUtil.wrapInterface((IntFunction<Tensor>) i -> {
+            final int dx = random.nextInt(10) - 5;
+            final int dy = random.nextInt(10) - 5;
+            return SupplementedProblemData.addNoise(SupplementedProblemData.translate(dx, dy, labeledObject.data.addRef()));
+          }, labeledObject.addRef()))
+          .map(RefUtil.wrapInterface(t -> {
+            LabeledObject<Tensor> temp_16_0002 = new LabeledObject<>(t.addRef(), labeledObject.label);
+            t.freeRef();
+            return temp_16_0002;
+          }, labeledObject));
     });
   }
 

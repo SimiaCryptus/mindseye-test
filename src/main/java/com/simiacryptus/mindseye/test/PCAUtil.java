@@ -29,23 +29,25 @@ import org.apache.commons.math3.linear.EigenDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 
 import javax.annotation.Nonnull;
-import java.util.function.Consumer;
+import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class PCAUtil {
   @Nonnull
   public static RealMatrix getCovariance(@Nonnull final Supplier<RefStream<double[]>> stream) {
     final int dimension = RefUtil.get(stream.get().findAny()).length;
-    final RefList<DoubleStatistics> statList = RefIntStream.range(0, dimension * dimension)
-        .mapToObj(i -> new DoubleStatistics()).collect(RefCollectors.toList());
-    stream.get().forEach(RefUtil.wrapInterface((Consumer<? super double[]>) array -> {
+    final List<DoubleStatistics> statList = IntStream.range(0, dimension * dimension)
+        .mapToObj(i -> new DoubleStatistics()).collect(Collectors.toList());
+    stream.get().forEach(array -> {
       for (int i = 0; i < dimension; i++) {
         for (int j = 0; j <= i; j++) {
           statList.get(i * dimension + j).accept(array[i] * array[j]);
         }
       }
       RecycleBin.DOUBLES.recycle(array, array.length);
-    }, statList == null ? null : statList.addRef()));
+    });
     @Nonnull final RealMatrix covariance = new BlockRealMatrix(dimension, dimension);
     for (int i = 0; i < dimension; i++) {
       for (int j = 0; j <= i; j++) {
@@ -55,8 +57,6 @@ public class PCAUtil {
         covariance.setEntry(j, i, v);
       }
     }
-    if (null != statList)
-      statList.freeRef();
     return covariance;
   }
 
@@ -65,19 +65,19 @@ public class PCAUtil {
                                      final double power) {
     @Nonnull final EigenDecomposition decomposition = new EigenDecomposition(covariance);
     final int[] orderedVectors = RefIntStream.range(0, components).mapToObj(x -> x)
-        .sorted(RefComparator.comparing(x -> -decomposition.getRealEigenvalue(x))).mapToInt(x -> x).toArray();
+        .sorted(RefComparator.comparingDouble(x -> -decomposition.getRealEigenvalue(x))).mapToInt(x -> x).toArray();
     return RefIntStream.range(0, orderedVectors.length).mapToObj(i -> {
       Tensor temp_19_0002 = new Tensor(decomposition.getEigenvector(orderedVectors[i]).toArray(), featureDimensions);
       @Nonnull final Tensor src = temp_19_0002.copy();
       temp_19_0002.freeRef();
       Tensor temp_19_0003 = src.scale(1.0 / src.rms());
-      Tensor temp_19_0001 = temp_19_0003.scale((Math.pow(
+      Tensor temp_19_0001 = temp_19_0003.scale(Math.pow(
           decomposition.getRealEigenvalue(orderedVectors[i]) / decomposition.getRealEigenvalue(orderedVectors[0]),
-          power)));
+          power));
       temp_19_0003.freeRef();
       src.freeRef();
       return temp_19_0001;
-    }).toArray(i -> new Tensor[i]);
+    }).toArray(Tensor[]::new);
   }
 
   public static void populatePCAKernel_1(@Nonnull final Tensor kernel, @Nonnull final Tensor[] featureSpaceVectors) {
@@ -94,7 +94,7 @@ public class PCAUtil {
       final double v = featureSpaceVectors[outband].get(x, y, inband);
       return Double.isFinite(v) ? v : kernel.get(c);
     }, kernel.addRef(), RefUtil.addRefs(featureSpaceVectors)));
-    RefUtil.freeRefs(featureSpaceVectors);
+    RefUtil.freeRef(featureSpaceVectors);
     kernel.freeRef();
   }
 
@@ -112,7 +112,7 @@ public class PCAUtil {
       final double v = featureSpaceVectors[inband].get(x, y, outband);
       return Double.isFinite(v) ? v : kernel.get(c);
     }, kernel.addRef(), RefUtil.addRefs(featureSpaceVectors)));
-    RefUtil.freeRefs(featureSpaceVectors);
+    RefUtil.freeRef(featureSpaceVectors);
     kernel.freeRef();
   }
 }

@@ -60,7 +60,7 @@ public class MNIST {
 
         @Nonnull final RefStream<LabeledObject<Tensor>> merged = MNIST
             .toStream(new LabeledObjectIterator(imgStream, labelStream), 100);
-        merged.forEach(RefUtil.wrapInterface((Consumer<? super LabeledObject<Tensor>>) x -> queue.add(x),
+        merged.forEach(RefUtil.wrapInterface((Consumer<? super LabeledObject<Tensor>>) queue::add,
             queue.addRef()));
       } catch (@Nonnull final IOException e) {
         throw new RuntimeException(e);
@@ -87,7 +87,7 @@ public class MNIST {
 
         @Nonnull final RefStream<LabeledObject<Tensor>> merged = MNIST
             .toStream(new LabeledObjectIterator(imgStream, labelStream), 100);
-        merged.forEach(RefUtil.wrapInterface((Consumer<? super LabeledObject<Tensor>>) x -> queue.add(x),
+        merged.forEach(RefUtil.wrapInterface((Consumer<? super LabeledObject<Tensor>>) queue::add,
             queue.addRef()));
       } catch (@Nonnull final IOException e) {
         throw new RuntimeException(e);
@@ -157,21 +157,8 @@ public class MNIST {
     private final RefIterator<byte[]> labelItr;
 
     public LabeledObjectIterator(@Nonnull RefStream<Tensor> imgStream, @Nonnull RefStream<byte[]> labelStream) {
-      RefIterator<Tensor> temp_06_0001 = imgStream.iterator();
-      imgItr = temp_06_0001.addRef();
-      temp_06_0001.freeRef();
-      RefIterator<byte[]> temp_06_0002 = labelStream.iterator();
-      labelItr = temp_06_0002.addRef();
-      temp_06_0002.freeRef();
-    }
-
-    @Nullable
-    public static @SuppressWarnings("unused")
-    LabeledObjectIterator[] addRefs(@Nullable LabeledObjectIterator[] array) {
-      if (array == null)
-        return null;
-      return Arrays.stream(array).filter((x) -> x != null).map(LabeledObjectIterator::addRef)
-          .toArray((x) -> new LabeledObjectIterator[x]);
+      imgItr = imgStream.iterator();
+      labelItr = labelStream.iterator();
     }
 
     @Override

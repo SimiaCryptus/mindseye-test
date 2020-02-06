@@ -26,11 +26,11 @@ import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.TrainingTester;
 import com.simiacryptus.notebook.NotebookOutput;
+import com.simiacryptus.ref.lang.MustCall;
+import com.simiacryptus.ref.lang.RefIgnore;
 import com.simiacryptus.ref.lang.RefUtil;
-import com.simiacryptus.ref.wrappers.RefCollectors;
-import com.simiacryptus.ref.wrappers.RefDoubleStream;
-import com.simiacryptus.ref.wrappers.RefIntStream;
-import com.simiacryptus.ref.wrappers.RefList;
+import com.simiacryptus.ref.wrappers.*;
+import org.junit.After;
 import smile.plot.PlotCanvas;
 import smile.plot.ScatterPlot;
 
@@ -42,7 +42,7 @@ import java.util.function.Function;
 
 public abstract class ActivationLayerTestBase extends LayerTestBase {
 
-  @Nullable
+  @Nullable @RefIgnore
   private final Layer layer;
 
   public ActivationLayerTestBase(@Nullable final Layer layer) {
@@ -83,7 +83,7 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
   @Nonnull
   public static PlotCanvas plot(final String title, @Nonnull final RefList<double[]> plotData,
                                 @Nonnull final Function<double[], double[]> function) {
-    final double[][] data = plotData.stream().map(function).toArray(i -> new double[i][]);
+    final double[][] data = plotData.stream().map(function).toArray(double[][]::new);
     plotData.freeRef();
     return ActivationLayerTestBase.plot(title, data);
   }
@@ -126,7 +126,7 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
       assert derivative != null;
       assert temp_03_0005 != null;
       double[] temp_03_0002 = new double[]{x, temp_03_0005.get(0), derivative[0].get(0)};
-      RefUtil.freeRefs(derivative);
+      RefUtil.freeRef(derivative);
       temp_03_0005.freeRef();
       eval.freeRef();
       return temp_03_0002;
@@ -147,17 +147,12 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
       plotData.freeRef();
   }
 
-  public @SuppressWarnings("unused")
-  void _free() {
-    super._free();
+  @After
+  @MustCall
+  public void cleanup() {
+    super.cleanup();
     if (null != layer)
       layer.freeRef();
   }
 
-  @Nonnull
-  public @Override
-  @SuppressWarnings("unused")
-  ActivationLayerTestBase addRef() {
-    return (ActivationLayerTestBase) super.addRef();
-  }
 }

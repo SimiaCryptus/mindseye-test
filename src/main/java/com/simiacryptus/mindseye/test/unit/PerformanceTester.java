@@ -26,7 +26,6 @@ import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.ref.lang.RefUtil;
-import com.simiacryptus.ref.lang.ReferenceCounting;
 import com.simiacryptus.ref.wrappers.*;
 import com.simiacryptus.util.data.DoubleStatistics;
 import org.slf4j.Logger;
@@ -35,9 +34,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.function.IntFunction;
-import java.util.stream.Stream;
 
 public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   static final Logger log = LoggerFactory.getLogger(PerformanceTester.class);
@@ -91,7 +88,7 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
       String temp_10_0001 = "\t" + RefArrays.toString(t.getDimensions());
       t.freeRef();
       return temp_10_0001;
-    }).forEach(RefSystem.out::println);
+    }).forEach(x1 -> RefSystem.out.println(x1));
     log.info("Performance:");
     RefList<Tuple2<Double, Double>> performance = RefIntStream.range(0, samples)
         .mapToObj(RefUtil.wrapInterface((IntFunction<? extends Tuple2<Double, Double>>) i -> {
@@ -157,7 +154,7 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
     for (int i = 0; i < batches; i++) {
       RefUtil.set(data, i, RefUtil.addRefs(inputPrototype));
     }
-    RefUtil.freeRefs(inputPrototype);
+    RefUtil.freeRef(inputPrototype);
     long startTime = System.nanoTime();
     final Result result = eval(component, ConstantResult.batchResultArray(data));
     long timeNanos = System.nanoTime() - startTime;
@@ -170,7 +167,7 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
         } finally {
           x.freeRef();
         }
-      }).toArray(i -> new Tensor[i])));
+      }).toArray(Tensor[]::new)));
     } finally {
       resultData.freeRef();
       result.freeRef();

@@ -122,16 +122,16 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
       } finally {
         x.freeRef();
       }
-    }).toArray(i -> new Tensor[i]);
+    }).toArray(Tensor[]::new);
     if (null != derivative)
-      RefUtil.freeRefs(derivative);
+      RefUtil.freeRef(derivative);
     derivative = RefArrays.stream(RefUtil.addRefs(inputCopy)).map(input1 -> {
       try {
         return input1.getDimensions();
       } finally {
         input1.freeRef();
       }
-    }).map(d -> new Tensor(d)).toArray(i1 -> new Tensor[i1]);
+    }).map(Tensor::new).toArray(Tensor[]::new);
     return RefIntStream.range(0, inputCopy.length).mapToObj(RefUtil.wrapInterface((IntFunction<Result>) i -> {
       Result.Accumulator accumulator = new Result.Accumulator() {
         {
@@ -164,7 +164,7 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
           super._free();
         }
       };
-    }, inputCopy)).toArray(i -> new Result[i]);
+    }, inputCopy)).toArray(Result[]::new);
   }
 
   public Result eval(Result[] input) {
@@ -177,7 +177,7 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
       Tensor temp_01_0011 = t.map(v -> 1.0);
       t.freeRef();
       return temp_01_0011;
-    }).toArray(i -> new Tensor[i]));
+    }).toArray(Tensor[]::new));
     data.freeRef();
     return temp_01_0014;
   }
@@ -185,10 +185,10 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
   public void _free() {
     super._free();
     if (null != derivative)
-      RefUtil.freeRefs(derivative);
+      RefUtil.freeRef(derivative);
     derivative = null;
     layer.freeRef();
-    RefUtil.freeRefs(input);
+    RefUtil.freeRef(input);
     synchronized (this) {
       if (null != output) {
         output.freeRef();

@@ -77,8 +77,11 @@ public abstract class ClassifyProblem implements Problem {
     this.data = data;
     this.categories = categories;
     try {
-      this.labels = Stream.concat(this.data.trainingData(), this.data.validationData()).map(x -> x.label).distinct()
-          .sorted().collect(Collectors.toList());
+      this.labels = Stream.concat(this.data.trainingData(), this.data.validationData()).map(x -> {
+        String label = x.label;
+        x.freeRef();
+        return label;
+      }).distinct().sorted().collect(Collectors.toList());
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -117,9 +120,10 @@ public abstract class ClassifyProblem implements Problem {
         @Nonnull final Tensor categoryTensor = new Tensor(categories);
         final int category = parse(labeledObject.label);
         categoryTensor.set(category, 1);
-
-        return new Tensor[]{labeledObject.data, categoryTensor};
-      }).toArray(i -> new Tensor[i][]);
+        Tensor data = labeledObject.data;
+        labeledObject.freeRef();
+        return new Tensor[]{data, categoryTensor};
+      }).toArray(Tensor[][]::new);
     } catch (@Nonnull final IOException e) {
       throw new RuntimeException(e);
     }
@@ -131,6 +135,7 @@ public abstract class ClassifyProblem implements Problem {
 
   public int[] predict(@Nonnull final Layer network, @Nonnull final LabeledObject<Tensor> labeledObject) {
     Result temp_12_0003 = network.eval(labeledObject.data.addRef());
+    labeledObject.freeRef();
     assert temp_12_0003 != null;
     TensorList temp_12_0004 = temp_12_0003.getData();
     Tensor temp_12_0005 = temp_12_0004.get(0);
@@ -139,7 +144,7 @@ public abstract class ClassifyProblem implements Problem {
     temp_12_0004.freeRef();
     temp_12_0003.freeRef();
     network.freeRef();
-    return IntStream.range(0, categories).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i]))
+    return IntStream.range(0, categories).mapToObj(x -> x).sorted(Comparator.comparingDouble(i -> -predictionSignal[i]))
         .mapToInt(x -> x).toArray();
   }
 
@@ -167,7 +172,7 @@ public abstract class ClassifyProblem implements Problem {
         new ArrayTrainable(RefUtil.addRefs(trainingData), supervisedNetwork.addRef(),
             getBatchSize()),
         monitor);
-    RefUtil.freeRefs(trainingData);
+    RefUtil.freeRef(trainingData);
     log.run(RefUtil.wrapInterface(() -> {
       trainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES);
       ValidatingTrainer temp_12_0006 = trainer.addRef();
@@ -221,7 +226,11 @@ public abstract class ClassifyProblem implements Problem {
         partitioned.stream().flatMap(RefUtil.wrapInterface(
             (Function<RefList<LabeledObject<Tensor>>, RefStream<LinkedHashMap<CharSequence, Object>>>) batch -> {
               @Nonnull
-              TensorList batchIn = new TensorArray(batch.stream().map(x -> x.data).toArray(i1 -> new Tensor[i1]));
+              TensorList batchIn = new TensorArray(batch.stream().map(x -> {
+                Tensor data = x.data;
+                x.freeRef();
+                return data;
+              }).toArray(Tensor[]::new));
               Result temp_12_0008 = network.eval(new ConstantResult(batchIn));
               assert temp_12_0008 != null;
               TensorList batchOut = temp_12_0008.getData();
@@ -233,7 +242,7 @@ public abstract class ClassifyProblem implements Problem {
                     tensor.freeRef();
                     return row;
                   }, batchOut, batch));
-            }, network.addRef())).filter(x -> null != x).limit(10).forEach(table::putRow);
+            }, network.addRef())).filter(Objects::nonNull).limit(10).forEach(table::putRow);
         partitioned.freeRef();
         return table;
       } catch (@Nonnull final IOException e) {
@@ -249,10 +258,13 @@ public abstract class ClassifyProblem implements Problem {
     final int actualCategory = parse(labeledObject.label);
     final int[] predictionList = IntStream.range(0, categories).mapToObj(x -> x)
         .sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
-    if (predictionList[0] == actualCategory)
+    if (predictionList[0] == actualCategory) {
+      labeledObject.freeRef();
       return null; // We will only examine mispredicted rows
+    }
     @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();
     row.put("Image", log.png(labeledObject.data.toImage(), labeledObject.label));
+    labeledObject.freeRef();
     row.put("Prediction",
         RefUtil.get(Arrays.stream(predictionList).limit(3)
             .mapToObj(i -> RefString.format("%d (%.1f%%)", i, 100.0 * predictionSignal[i]))

@@ -79,7 +79,9 @@ public class CIFAR10 {
           @Nonnull final BinaryChunkIterator iterator = new BinaryChunkIterator(
               new DataInputStream(new BoundedInputStream(tar, nextTarEntry.getSize())), recordSize);
           for (final byte[] chunk : (Iterable<byte[]>) () -> iterator) {
-            queue.add(CIFAR10.toImage(chunk).map(img -> Tensor.fromRGB(img)));
+            LabeledObject<BufferedImage> bufferedImageLabeledObject = CIFAR10.toImage(chunk);
+            queue.add(bufferedImageLabeledObject.map(Tensor::fromRGB));
+            bufferedImageLabeledObject.freeRef();
           }
           iterator.freeRef();
         }

@@ -88,7 +88,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
   public ToleranceStatistics test(@Nonnull final NotebookOutput log, @Nonnull final Layer layer,
                                   @Nullable final Tensor... inputPrototype) {
     if (null != inputPrototype)
-      RefUtil.freeRefs(inputPrototype);
+      RefUtil.freeRef(inputPrototype);
     log.h1("Serialization");
     log.p("This apply will demonstrate the key's JSON serialization, and verify deserialization integrity.");
 
@@ -137,7 +137,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
               synchronized (outSync) {
                 log.h2(RefString.format("Zipfile %s", precision.name()));
                 log.p(log.link(file, RefString.format("Wrote Model apply %s precision to %s; %.3fMiB bytes", precision,
-                    file.getName(), file.length() * 1.0 / (0x100000))));
+                    file.getName(), file.length() * 1.0 / 0x100000)));
               }
               if (!isPersist())
                 file.delete();

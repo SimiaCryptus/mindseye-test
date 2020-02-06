@@ -40,20 +40,7 @@ public class CaltechDatasetDemo extends ImageCategoryDatasetDemo {
 
   @Override
   public RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(@Nonnull NotebookOutput log) {
-    return log.eval(() -> {
-      return Caltech101.trainingDataStream();
-    });
+    return log.eval(Caltech101::trainingDataStream);
   }
 
-  public @SuppressWarnings("unused")
-  void _free() {
-    super._free();
-  }
-
-  @Nonnull
-  public @Override
-  @SuppressWarnings("unused")
-  CaltechDatasetDemo addRef() {
-    return (CaltechDatasetDemo) super.addRef();
-  }
 }

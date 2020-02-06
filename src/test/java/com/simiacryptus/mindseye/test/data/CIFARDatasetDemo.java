@@ -41,25 +41,18 @@ public class CIFARDatasetDemo extends ImageCategoryDatasetDemo {
   @Override
   public RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(@Nonnull NotebookOutput log) {
     return log.eval(() -> {
-      return CIFAR10.trainingDataStream().map(x -> x.map(y -> {
-        SupplierWeakCache<BufferedImage> temp_11_0001 = new SupplierWeakCache<>(
-            RefUtil.wrapInterface(() -> y.toImage(), y == null ? null : y.addRef()));
-        if (null != y)
-          y.freeRef();
-        return temp_11_0001;
-      }));
+      return CIFAR10.trainingDataStream().map(x -> {
+        LabeledObject<SupplierWeakCache<BufferedImage>> map = x.map(y -> {
+          SupplierWeakCache<BufferedImage> temp_11_0001 = new SupplierWeakCache<>(
+              RefUtil.wrapInterface(y::toImage, y == null ? null : y.addRef()));
+          if (null != y)
+            y.freeRef();
+          return temp_11_0001;
+        });
+        x.freeRef();
+        return map;
+      });
     });
   }
 
-  public @SuppressWarnings("unused")
-  void _free() {
-    super._free();
-  }
-
-  @Nonnull
-  public @Override
-  @SuppressWarnings("unused")
-  CIFARDatasetDemo addRef() {
-    return (CIFARDatasetDemo) super.addRef();
-  }
 }

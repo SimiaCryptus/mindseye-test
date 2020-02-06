@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -98,8 +99,10 @@ public abstract class AutoencodingProblem implements Problem {
   public Tensor[][] getTrainingData(final NotebookOutput log) {
     try {
       return data.trainingData().map(labeledObject -> {
-        return new Tensor[]{labeledObject.data};
-      }).toArray(i -> new Tensor[i][]);
+        Tensor[] tensors = {labeledObject.data};
+        labeledObject.freeRef();
+        return tensors;
+      }).toArray(Tensor[][]::new);
     } catch (@Nonnull final IOException e) {
       throw new RuntimeException(e);
     }
@@ -171,7 +174,7 @@ public abstract class AutoencodingProblem implements Problem {
         new ArrayTrainable(RefUtil.addRefs(trainingData), supervisedNetwork.addRef(),
             batchSize),
         monitor);
-    RefUtil.freeRefs(trainingData);
+    RefUtil.freeRef(trainingData);
     log.run(RefUtil.wrapInterface(() -> {
       trainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES);
       ValidatingTrainer temp_21_0003 = trainer.addRef();
@@ -221,7 +224,7 @@ public abstract class AutoencodingProblem implements Problem {
             data.freeRef();
             temp_21_0006.freeRef();
             return temp_21_0005;
-          }, echoNetwork.addRef())).filter(x -> null != x).limit(10)
+          }, echoNetwork.addRef())).filter(Objects::nonNull).limit(10)
           .forEach(table::putRow);
       return table;
     }, echoNetwork));
@@ -252,6 +255,7 @@ public abstract class AutoencodingProblem implements Problem {
     row.put("Image", log.png(labeledObject.data.toImage(), labeledObject.label));
     Tensor temp_21_0002 = new Tensor(predictionSignal, labeledObject.data.getDimensions());
     row.put("Echo", log.png(temp_21_0002.toImage(), labeledObject.label));
+    labeledObject.freeRef();
     temp_21_0002.freeRef();
     return row;
   }

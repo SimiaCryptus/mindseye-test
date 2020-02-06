@@ -41,25 +41,18 @@ public class MNistDatasetDemo extends ImageCategoryDatasetDemo {
   @Override
   public RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(@Nonnull NotebookOutput log) {
     return log.eval(() -> {
-      return MNIST.trainingDataStream().map(x -> x.map(y -> {
-        SupplierWeakCache<BufferedImage> temp_14_0001 = new SupplierWeakCache<>(
-            RefUtil.wrapInterface(() -> y.toImage(), y == null ? null : y.addRef()));
-        if (null != y)
-          y.freeRef();
-        return temp_14_0001;
-      }));
+      return MNIST.trainingDataStream().map(x -> {
+        LabeledObject<SupplierWeakCache<BufferedImage>> map = x.map(y -> {
+          SupplierWeakCache<BufferedImage> temp_14_0001 = new SupplierWeakCache<>(
+              RefUtil.wrapInterface(y::toImage, y == null ? null : y.addRef()));
+          if (null != y)
+            y.freeRef();
+          return temp_14_0001;
+        });
+        x.freeRef();
+        return map;
+      });
     });
   }
 
-  public @SuppressWarnings("unused")
-  void _free() {
-    super._free();
-  }
-
-  @Nonnull
-  public @Override
-  @SuppressWarnings("unused")
-  MNistDatasetDemo addRef() {
-    return (MNistDatasetDemo) super.addRef();
-  }
 }

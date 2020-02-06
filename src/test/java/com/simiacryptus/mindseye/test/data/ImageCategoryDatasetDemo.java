@@ -60,7 +60,11 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
     log.h3("Categories");
     log.run(RefUtil.wrapInterface(() -> {
       RefMap<String, Long> temp_22_0001 = testData.stream()
-          .collect(RefCollectors.groupingBy(x -> x.label, RefCollectors.counting()));
+          .collect(RefCollectors.groupingBy(x -> {
+            String label = x.label;
+            x.freeRef();
+            return label;
+          }, RefCollectors.counting()));
       temp_22_0001.forEach((k, v) -> ImageCategoryDatasetDemo.logger.info(RefString.format("%s -> %d", k, v)));
       temp_22_0001.freeRef();
     }, testData == null ? null : testData.addRef()));
@@ -71,9 +75,11 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
       return RefUtil.get(testData.stream().map(labeledObj -> {
         @Nullable
         BufferedImage img = labeledObj.data.get();
+        String label = labeledObj.label;
+        labeledObj.freeRef();
         assert img != null;
         img = ImageUtil.resize(img, 224, true);
-        return log.png(img, labeledObj.label);
+        return log.png(img, label);
       }).limit(20).reduce((a, b) -> a + b));
     }, testData == null ? null : testData.addRef())));
     if (null != testData)
@@ -82,15 +88,4 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
 
   public abstract RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(NotebookOutput log);
 
-  public @SuppressWarnings("unused")
-  void _free() {
-    super._free();
-  }
-
-  @Nonnull
-  public @Override
-  @SuppressWarnings("unused")
-  ImageCategoryDatasetDemo addRef() {
-    return (ImageCategoryDatasetDemo) super.addRef();
-  }
 }

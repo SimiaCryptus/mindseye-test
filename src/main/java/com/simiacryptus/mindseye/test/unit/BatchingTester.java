@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.IntFunction;
 
 public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
@@ -69,18 +70,18 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
   @Nonnull
   public ToleranceStatistics test(@Nullable final Layer reference, @Nonnull final Tensor[] inputPrototype) {
     if (null == reference) {
-      RefUtil.freeRefs(inputPrototype);
+      RefUtil.freeRef(inputPrototype);
       return new ToleranceStatistics();
     }
 
     final TensorList[] inputTensorLists = RefArrays.stream(RefUtil.addRefs(inputPrototype)).map(t -> {
       TensorArray temp_15_0001 = new TensorArray(RefIntStream.range(0, getBatchSize()).mapToObj(RefUtil
           .wrapInterface((IntFunction<? extends Tensor>) i -> t.map(v -> getRandom()), t == null ? null : t.addRef()))
-          .toArray(i -> new Tensor[i]));
+          .toArray(Tensor[]::new));
       if (null != t)
         t.freeRef();
       return temp_15_0001;
-    }).toArray(i -> new TensorList[i]);
+    }).toArray(TensorList[]::new);
     @Nonnull final SimpleResult asABatch = SimpleListEval.run(reference.addRef(), validateDerivatives,
         RefUtil.addRefs(inputTensorLists));
     final RefList<SimpleEval> oneAtATime = RefIntStream.range(0, getBatchSize())
@@ -88,16 +89,16 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
           Tensor[] inputTensors = RefIntStream.range(0, inputTensorLists.length)
               .mapToObj(RefUtil.wrapInterface((IntFunction<? extends Tensor>) i -> inputTensorLists[i].get(batch),
                   RefUtil.addRefs(inputTensorLists)))
-              .toArray(i -> new Tensor[i]);
+              .toArray(Tensor[]::new);
           SimpleEval temp_15_0002 = SimpleEval.run(reference.addRef(), validateDerivatives,
               RefUtil.addRefs(inputTensors));
-          RefUtil.freeRefs(inputTensors);
+          RefUtil.freeRef(inputTensors);
           return temp_15_0002;
         }, RefUtil.addRefs(inputTensorLists), reference.addRef()))
         .collect(RefCollectors.toList());
 
     reference.freeRef();
-    RefUtil.freeRefs(inputTensorLists);
+    RefUtil.freeRef(inputTensorLists);
     TensorList batchOutput = asABatch.getOutput();
     @Nonnull
     IntFunction<ToleranceStatistics> toleranceStatisticsIntFunction = RefUtil.wrapInterface(batch -> {
@@ -117,7 +118,7 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
     assert batchOutput != null;
     int batchLength = batchOutput.length();
     @Nonnull final ToleranceStatistics outputAgreement = RefUtil.get(RefIntStream.range(0, Math.min(getBatchSize(), batchLength))
-        .mapToObj(toleranceStatisticsIntFunction).reduce((a, b) -> a.combine(b)));
+        .mapToObj(toleranceStatisticsIntFunction).reduce(ToleranceStatistics::combine));
     if (!(outputAgreement.absoluteTol.getMax() < tolerance)) {
       RefList<String> temp_15_0010 = batchOutput.stream().map(x -> {
         String temp_15_0004 = x.prettyPrint();
@@ -142,7 +143,7 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
       asABatch.freeRef();
       oneAtATime.freeRef();
       batchOutput.freeRef();
-      RefUtil.freeRefs(inputPrototype);
+      RefUtil.freeRef(inputPrototype);
       throw new AssertionError("Output Corrupt: " + outputAgreement);
     }
 
@@ -167,7 +168,7 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
                   Map<CharSequence, Object> temp_15_0014 = new ScalarStatistics().add(diff.getData()).getMetrics();
                   logger.info("Scalar Statistics: " + temp_15_0014);
                   double[][] points = RefArrays.stream(diff.getData()).mapToObj(x -> new double[]{x})
-                      .toArray(i -> new double[i][]);
+                      .toArray(double[][]::new);
                   diff.freeRef();
                   ToleranceStatistics temp_15_0006 = new ToleranceStatistics().accumulate(a.getData(), b.getData());
                   b.freeRef();
@@ -175,28 +176,28 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
                   return temp_15_0006;
                 }, oneAtATime.addRef(), asABatch.addRef(), asABatchInputDerivative, derivative);
                 return RefIntStream.range(0, Math.min(inputPrototype.length, batchLength)).mapToObj(statisticsFunction)
-                    .reduce((a, b) -> a.combine(b)).orElse(null);
+                    .reduce(ToleranceStatistics::combine).orElse(null);
               }, RefUtil.addRefs(inputPrototype), oneAtATime == null ? null : oneAtATime.addRef(),
               asABatch.addRef()))
-          .filter(x -> x != null).reduce((a, b) -> a.combine(b)).orElse(null);
+          .filter(Objects::nonNull).reduce(ToleranceStatistics::combine).orElse(null);
 
       if (null != derivativeAgreement && !(derivativeAgreement.absoluteTol.getMax() < tolerance)) {
         asABatch.freeRef();
         if (null != oneAtATime)
           oneAtATime.freeRef();
-        RefUtil.freeRefs(inputPrototype);
+        RefUtil.freeRef(inputPrototype);
         throw new AssertionError("Derivatives Corrupt: " + derivativeAgreement);
       }
       asABatch.freeRef();
       if (null != oneAtATime)
         oneAtATime.freeRef();
-      RefUtil.freeRefs(inputPrototype);
+      RefUtil.freeRef(inputPrototype);
       return null != derivativeAgreement ? derivativeAgreement.combine(outputAgreement) : outputAgreement;
     } else {
       asABatch.freeRef();
       if (null != oneAtATime)
         oneAtATime.freeRef();
-      RefUtil.freeRefs(inputPrototype);
+      RefUtil.freeRef(inputPrototype);
       return outputAgreement;
     }
   }
@@ -210,7 +211,7 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
     ToleranceStatistics temp_15_0007 = log.eval(RefUtil.wrapInterface(() -> {
       return test(reference == null ? null : reference.addRef(), RefUtil.addRefs(inputPrototype));
     }, RefUtil.addRefs(inputPrototype), reference == null ? null : reference.addRef()));
-    RefUtil.freeRefs(inputPrototype);
+    RefUtil.freeRef(inputPrototype);
     if (null != reference)
       reference.freeRef();
     return temp_15_0007;

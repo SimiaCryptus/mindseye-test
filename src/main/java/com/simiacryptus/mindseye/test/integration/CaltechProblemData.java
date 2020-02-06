@@ -53,7 +53,11 @@ public class CaltechProblemData implements ImageProblemData {
     if (null == labels) {
       synchronized (this) {
         if (null == labels) {
-          labels = trainingData().map(x -> x.label).distinct().sorted().collect(Collectors.toList());
+          labels = trainingData().map(x -> {
+            String label = x.label;
+            x.freeRef();
+            return label;
+          }).distinct().sorted().collect(Collectors.toList());
         }
       }
     }
@@ -64,7 +68,11 @@ public class CaltechProblemData implements ImageProblemData {
   @Override
   public RefStream<LabeledObject<Tensor>> trainingData() {
     return Caltech101.trainingDataStream().parallel()
-        .map(x -> x.map(y -> Tensor.fromRGB(ImageUtil.resize(y.get(), getImageSize()))));
+        .map(x -> {
+          LabeledObject<Tensor> map = x.map(y -> Tensor.fromRGB(ImageUtil.resize(y.get(), getImageSize())));
+          x.freeRef();
+          return map;
+        });
   }
 
   @Nonnull

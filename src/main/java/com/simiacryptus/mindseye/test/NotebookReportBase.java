@@ -40,7 +40,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
 
-public abstract class NotebookReportBase extends ReferenceCountingBase {
+public abstract class NotebookReportBase {
 
   protected static final Logger logger = LoggerFactory.getLogger(NotebookReportBase.class);
 
@@ -151,17 +151,6 @@ public abstract class NotebookReportBase extends ReferenceCountingBase {
     } catch (FileNotFoundException e) {
       throw new RuntimeException(e);
     }
-  }
-
-  public @SuppressWarnings("unused")
-  void _free() {
-    super._free();
-  }
-
-  public @Override
-  @SuppressWarnings("unused")
-  NotebookReportBase addRef() {
-    return (NotebookReportBase) super.addRef();
   }
 
   public enum ReportType {

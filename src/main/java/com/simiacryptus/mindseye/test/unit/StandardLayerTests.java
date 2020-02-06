@@ -48,6 +48,7 @@ import java.io.File;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.function.DoubleSupplier;
 import java.util.function.Function;
 
 public abstract class StandardLayerTests extends NotebookReportBase {
@@ -262,9 +263,9 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   public Tensor[] randomize(@Nonnull final int[][] inputDims) {
     return RefArrays.stream(inputDims).map(dim -> {
       Tensor tensor = new Tensor(dim);
-      tensor.set(() -> random());
+      tensor.set((DoubleSupplier) this::random);
       return tensor;
-    }).toArray(i -> new Tensor[i]);
+    }).toArray(Tensor[]::new);
   }
 
   public void run(@Nonnull final NotebookOutput log) {
@@ -332,7 +333,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
             log.h1("Small SubTests: " + temp_07_0014.getClass().getSimpleName());
             temp_07_0014.freeRef();
             log.p(RefArrays.deepToString(invocation.getDims()));
-            tests(log, getLittleTests(), invocation.addRef(),
+            tests(log, getLittleTests(), invocation,
                 exceptions.addRef(), results);
           });
           invocations.freeRef();
@@ -346,7 +347,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
             log.h1("Large SubTests: " + temp_07_0015.getClass().getSimpleName());
             temp_07_0015.freeRef();
             log.p(RefArrays.deepToString(invocation.getDims()));
-            tests(log, getBigTests(), invocation.addRef(),
+            tests(log, getBigTests(), invocation,
                 exceptions.addRef(), results);
           });
           invocations.freeRef();
@@ -387,7 +388,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         Object result = log.subreport(RefUtil.wrapInterface(
             (Function<NotebookOutput, ?>) sublog -> test.test(sublog, copy.addRef(),
                 RefUtil.addRefs(randomize)),
-            copy.addRef(), RefUtil.addRefs(randomize), test.addRef()),
+            copy, randomize, test),
             log.getName() + "_" + name);
         testResultProps.put("details", null == result ? null : result.toString());
         testResultProps.put("result", "OK");
@@ -397,9 +398,6 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       } finally {
         results.putRow(testResultProps);
       }
-      RefUtil.freeRefs(randomize);
-      copy.freeRef();
-      test.freeRef();
     });
     temp_07_0016.freeRef();
     log.h1("Test Matrix");
@@ -427,7 +425,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         @Override
         public Result eval(@Nonnull Result... array) {
           if (null == inner) {
-            RefUtil.freeRefs(array);
+            RefUtil.freeRef(array);
             return null;
           }
           @Nullable
@@ -439,8 +437,8 @@ public abstract class StandardLayerTests extends NotebookReportBase {
                 temp_07_0017.freeRef();
                 x.freeRef();
                 return temp_07_0006;
-              }).toArray(i -> new int[i][])));
-          RefUtil.freeRefs(array);
+              }).toArray(int[][]::new)));
+          RefUtil.freeRef(array);
           return result;
         }
 
@@ -469,12 +467,10 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       wrapper.freeRef();
       node.freeRef();
     }, invocations.addRef()));
-    Tensor[] input = RefArrays.stream(smallDims).map(i -> new Tensor(i)).toArray(i -> new Tensor[i]);
-    Result eval = smallCopy.eval(RefUtil.addRefs(input));
-    RefUtil.freeRefs(input);
+    Tensor[] input = RefArrays.stream(smallDims).map(Tensor::new).toArray(Tensor[]::new);
+    Result eval = smallCopy.eval(input);
     smallCopy.freeRef();
     assert eval != null;
-    RefUtil.freeRef(eval.getData());
     eval.freeRef();
     return invocations;
   }
@@ -552,7 +548,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         } finally {
           results.putRow(testResultProps);
         }
-        RefUtil.freeRefs(input);
+        RefUtil.freeRef(input);
       } catch (LifecycleException e) {
         throw e;
       } catch (Throwable e) {
@@ -567,17 +563,6 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         test.freeRef();
     }, exceptions, perfLayer));
     temp_07_0018.freeRef();
-  }
-
-  public @SuppressWarnings("unused")
-  void _free() {
-    super._free();
-  }
-
-  public @Override
-  @SuppressWarnings("unused")
-  StandardLayerTests addRef() {
-    return (StandardLayerTests) super.addRef();
   }
 
   @Nullable

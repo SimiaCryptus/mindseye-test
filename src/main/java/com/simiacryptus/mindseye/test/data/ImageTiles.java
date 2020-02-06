@@ -146,15 +146,6 @@ public class ImageTiles {
       this.maxTileCols = maxTileCols;
     }
 
-    @Nullable
-    public static @SuppressWarnings("unused")
-    ImageTensorLoader[] addRefs(@Nullable ImageTensorLoader[] array) {
-      if (array == null)
-        return null;
-      return Arrays.stream(array).filter((x) -> x != null).map(ImageTensorLoader::addRef)
-          .toArray((x) -> new ImageTensorLoader[x]);
-    }
-
     public @SuppressWarnings("unused")
     void _free() {
       super._free();

@@ -52,8 +52,8 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
     layer.freeRef();
     TensorList[] temp_09_0002 = RefUtil.addRefs(input);
     this.input = RefUtil.addRefs(temp_09_0002);
-    RefUtil.freeRefs(temp_09_0002);
-    RefUtil.freeRefs(input);
+    RefUtil.freeRef(temp_09_0002);
+    RefUtil.freeRef(input);
     DeltaSet<UUID> temp_09_0003 = new DeltaSet<UUID>();
     layerDerivative = temp_09_0003.addRef();
     temp_09_0003.freeRef();
@@ -128,18 +128,18 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
       TensorList temp_09_0008 = x.copy();
       x.freeRef();
       return temp_09_0008;
-    }).toArray(i -> new TensorList[i]);
+    }).toArray(TensorList[]::new);
     if (null != inputDerivative)
-      RefUtil.freeRefs(inputDerivative);
+      RefUtil.freeRef(inputDerivative);
     inputDerivative = RefArrays.stream(RefUtil.addRefs(inputCopy)).map(tensorList -> {
       TensorArray temp_09_0009 = new TensorArray(tensorList.stream().map(i1 -> {
         Tensor temp_09_0010 = new Tensor(i1.getDimensions());
         i1.freeRef();
         return temp_09_0010;
-      }).toArray(i1 -> new Tensor[i1]));
+      }).toArray(Tensor[]::new));
       tensorList.freeRef();
       return temp_09_0009;
-    }).toArray(i1 -> new TensorList[i1]);
+    }).toArray(TensorList[]::new);
     Result[] inputs = RefIntStream.range(0, inputCopy.length)
         .mapToObj(RefUtil.wrapInterface((IntFunction<Result>) i -> {
           Result.Accumulator accumulator = new Result.Accumulator() {
@@ -155,7 +155,7 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
 
             @Override
             public void _free() {
-              RefUtil.freeRefs(inputDerivative);
+              RefUtil.freeRef(inputDerivative);
               super._free();
             }
           };
@@ -170,9 +170,9 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
               super._free();
             }
           };
-        }, inputCopy)).toArray(i -> new Result[i]);
+        }, inputCopy)).toArray(Result[]::new);
     @Nullable final Result eval = layer.eval(RefUtil.addRefs(inputs));
-    RefUtil.freeRefs(inputs);
+    RefUtil.freeRef(inputs);
     assert eval != null;
     TensorList temp_09_0017 = eval.getData();
     TensorList outputData = temp_09_0017.copy();
@@ -204,7 +204,7 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
       Tensor temp_09_0011 = t.map(v -> 1.0);
       t.freeRef();
       return temp_09_0011;
-    }).toArray(i -> new Tensor[i]));
+    }).toArray(Tensor[]::new));
     data.freeRef();
     return temp_09_0014;
   }
@@ -218,10 +218,10 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
       output.freeRef();
     output = null;
     if (null != inputDerivative)
-      RefUtil.freeRefs(inputDerivative);
+      RefUtil.freeRef(inputDerivative);
     inputDerivative = null;
     layer.freeRef();
-    RefUtil.freeRefs(input);
+    RefUtil.freeRef(input);
   }
 
   @Nonnull

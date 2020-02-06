@@ -50,19 +50,7 @@ public abstract class LayerTestBase extends StandardLayerTests {
   @After
   public void cleanup() {
     RefSystem.gc();
-    freeRef();
     //GpuController.remove();
-  }
-
-  public @SuppressWarnings("unused")
-  void _free() {
-    super._free();
-  }
-
-  public @Override
-  @SuppressWarnings("unused")
-  LayerTestBase addRef() {
-    return (LayerTestBase) super.addRef();
   }
 
 }

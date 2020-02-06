@@ -84,7 +84,7 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
         if (null != output)
           output.freeRef();
         if (null != input)
-          RefUtil.freeRefs(input);
+          RefUtil.freeRef(input);
       }, layer.addRef()));
     } else {
       log.h1("Example Input/Output Pair");
@@ -110,7 +110,7 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
         return temp_05_0005;
       }, RefUtil.addRefs(inputPrototype), layer.addRef()));
     }
-    RefUtil.freeRefs(inputPrototype);
+    RefUtil.freeRef(inputPrototype);
     layer.freeRef();
     return null;
   }

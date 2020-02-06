@@ -58,7 +58,7 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
     if (null == reference || null == subject) {
       if (null != subject)
         subject.freeRef();
-      RefUtil.freeRefs(inputPrototype);
+      RefUtil.freeRef(inputPrototype);
       return new ToleranceStatistics();
     }
     reference.assertAlive();
@@ -87,7 +87,7 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
               return new ToleranceStatistics().accumulate(subjectOutput.getData()[i1], referenceOutput.getData()[i1]);
             }, subjectOutput.addRef(),
             referenceOutput.addRef()))
-        .reduce((a, b) -> a.combine(b)));
+        .reduce(ToleranceStatistics::combine));
     log.info(RefString.format("Accuracy:"));
     log.info(RefString.format("absoluteTol: %s", result.absoluteTol.toString()));
     log.info(RefString.format("relativeTol: %s", result.relativeTol.toString()));
@@ -95,13 +95,13 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
       subjectOutput.freeRef();
       referenceOutput.freeRef();
       error.freeRef();
-      RefUtil.freeRefs(inputPrototype);
+      RefUtil.freeRef(inputPrototype);
       throw new AssertionError(result.toString());
     }
     subjectOutput.freeRef();
     referenceOutput.freeRef();
     error.freeRef();
-    RefUtil.freeRefs(inputPrototype);
+    RefUtil.freeRef(inputPrototype);
     return result;
   }
 
@@ -121,7 +121,7 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
     ToleranceStatistics temp_08_0003 = output.eval(RefUtil.wrapInterface(() -> {
       return test(subject.addRef(), RefUtil.addRefs(inputPrototype));
     }, RefUtil.addRefs(inputPrototype), subject.addRef()));
-    RefUtil.freeRefs(inputPrototype);
+    RefUtil.freeRef(inputPrototype);
     subject.freeRef();
     return temp_08_0003;
   }
