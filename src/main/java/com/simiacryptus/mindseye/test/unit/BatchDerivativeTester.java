@@ -360,18 +360,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       }
     };
     @Nullable final Result eval = frozen
-        .eval(new Result(new TensorArray(RefUtil.addRefs(inputPrototype)), accumulator) {
-
-          @Override
-          public boolean isAlive() {
-            return true;
-          }
-
-          @Override
-          public void _free() {
-            super._free();
-          }
-        });
+        .eval(new Result(new TensorArray(RefUtil.addRefs(inputPrototype)), accumulator, true));
     frozen.freeRef();
     @Nonnull final DeltaSet<UUID> buffer = new DeltaSet<UUID>();
     assert eval != null;
@@ -443,18 +432,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
         super._free();
       }
     };
-    @Nullable final Result eval = frozen.eval(new Result(new TensorArray(RefUtil.addRefs(inputPrototype)), accumulator) {
-
-      @Override
-      public boolean isAlive() {
-        return true;
-      }
-
-      @Override
-      public void _free() {
-        super._free();
-      }
-    });
+    @Nullable final Result eval = frozen.eval(new Result(new TensorArray(RefUtil.addRefs(inputPrototype)), accumulator, true));
     if (null != inputPrototype)
       RefUtil.freeRef(inputPrototype);
     @Nonnull final DeltaSet<UUID> buffer = new DeltaSet<UUID>();
@@ -565,18 +543,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
           super._free();
         }
       };
-      @Nonnull final Result copyInput = new Result(new TensorArray(RefUtil.addRefs(inputPrototype)), accumulator) {
-
-        @Override
-        public boolean isAlive() {
-          return true;
-        }
-
-        @Override
-        public void _free() {
-          super._free();
-        }
-      };
+      @Nonnull final Result copyInput = new Result(new TensorArray(RefUtil.addRefs(inputPrototype)), accumulator, true);
       @Nullable final Result eval = component.eval(copyInput);
       @Nonnull final DeltaSet<UUID> xxx = new DeltaSet<UUID>();
       assert eval != null;

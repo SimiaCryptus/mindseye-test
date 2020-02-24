@@ -29,7 +29,10 @@ import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.ref.lang.MustCall;
 import com.simiacryptus.ref.lang.RefIgnore;
 import com.simiacryptus.ref.lang.RefUtil;
-import com.simiacryptus.ref.wrappers.*;
+import com.simiacryptus.ref.wrappers.RefCollectors;
+import com.simiacryptus.ref.wrappers.RefDoubleStream;
+import com.simiacryptus.ref.wrappers.RefIntStream;
+import com.simiacryptus.ref.wrappers.RefList;
 import org.junit.After;
 import smile.plot.PlotCanvas;
 import smile.plot.ScatterPlot;
@@ -42,7 +45,8 @@ import java.util.function.Function;
 
 public abstract class ActivationLayerTestBase extends LayerTestBase {
 
-  @Nullable @RefIgnore
+  @Nullable
+  @RefIgnore
   private final Layer layer;
 
   public ActivationLayerTestBase(@Nullable final Layer layer) {
@@ -52,7 +56,7 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
   @Nullable
   @Override
   public ComponentTest<TrainingTester.ComponentResult> getTrainingTester() {
-    TrainingTester temp_03_0004 = new TrainingTester() {
+    TrainingTester trainingTester = new TrainingTester() {
 
       public @SuppressWarnings("unused")
       void _free() {
@@ -65,10 +69,8 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
         return ActivationLayerTestBase.this.lossLayer();
       }
     };
-    temp_03_0004.setRandomizationMode(TrainingTester.RandomizationMode.Random);
-    TrainingTester temp_03_0003 = temp_03_0004.addRef();
-    temp_03_0004.freeRef();
-    return temp_03_0003;
+    trainingTester.setRandomizationMode(TrainingTester.RandomizationMode.Random);
+    return trainingTester;
   }
 
   @Nonnull
@@ -130,10 +132,8 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
       temp_03_0005.freeRef();
       eval.freeRef();
       return temp_03_0002;
-    }, layer == null ? null : layer.addRef())).collect(RefCollectors.toList());
+    }, layer)).collect(RefCollectors.toList());
 
-    if (null != layer)
-      layer.freeRef();
     log.eval(RefUtil.wrapInterface((UncheckedSupplier<PlotCanvas>) () -> {
       return ActivationLayerTestBase.plot("Value Plot", plotData == null ? null : plotData.addRef(),
           x -> new double[]{x[0], x[1]});
@@ -142,9 +142,7 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
     log.eval(RefUtil.wrapInterface((UncheckedSupplier<PlotCanvas>) () -> {
       return ActivationLayerTestBase.plot("Derivative Plot", plotData == null ? null : plotData.addRef(),
           x -> new double[]{x[0], x[2]});
-    }, plotData == null ? null : plotData.addRef()));
-    if (null != plotData)
-      plotData.freeRef();
+    }, plotData));
   }
 
   @After

@@ -355,8 +355,6 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
       return temp_00_0006;
     }).toArray(Tensor[]::new);
     @Nonnull final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
-    Layer frozen = component.copy();
-    frozen.freeze();
     RefList<TensorArray> inputCopies = RefArrays.stream(inputPrototype)
         .map(TensorArray::new)
         .collect(RefCollectors.toList());
@@ -374,11 +372,12 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
           super._free();
         }
       };
-      return new AliveResult(tensorArray, accumulator);
+      return new Result(tensorArray, accumulator, true);
     }).toArray(Result[]::new);
     inputCopies.freeRef();
-    @Nullable final Result eval = frozen.eval(RefUtil.addRefs(input));
-    RefUtil.freeRef(input);
+    Layer frozen = component.copy();
+    frozen.freeze();
+    @Nullable final Result eval = frozen.eval(input);
     frozen.freeRef();
     assert eval != null;
     @Nonnull final DeltaSet<UUID> buffer = new DeltaSet<UUID>();
@@ -447,7 +446,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
           super._free();
         }
       };
-      return new AliveResult(tensor, accumulator);
+      return new Result(tensor, accumulator, true);
     }).toArray(Result[]::new);
     inputCopies.freeRef();
     @Nullable final Result eval = frozen.eval(inputs);
@@ -586,7 +585,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
             super._free();
           }
         };
-        RefUtil.set(copyInput, inputIndex, new AliveResult(new TensorArray(inputTensor.addRef()), accumulator));
+        RefUtil.set(copyInput, inputIndex, new Result(new TensorArray(inputTensor.addRef()), accumulator, true));
         @Nullable final Result eval = eval(component.addRef(), copyInput);
         assert eval != null;
         @Nonnull final DeltaSet<UUID> deltaSet = new DeltaSet<>();
@@ -628,10 +627,9 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
 
   private Result eval(@Nonnull Layer component, Result[] copyInput) {
     try {
-      return component.eval(RefUtil.addRefs(copyInput));
+      return component.eval(copyInput);
     } finally {
       component.freeRef();
-      RefUtil.freeRef(copyInput);
     }
   }
 
@@ -694,8 +692,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     Result[] input0 = ConstantResult.batchResultArray(new Tensor[][]{RefUtil.addRefs(inputPrototype)});
     Result temp_00_0043 = component.eval(input0);
     assert temp_00_0043 != null;
-    TensorList temp_00_0044 = temp_00_0043.getData();
-    temp_00_0043.freeRef();
+    TensorList temp_00_0044 = Result.getData(temp_00_0043);
     @Nullable final Tensor baseOutput = temp_00_0044.get(0);
     temp_00_0044.freeRef();
     outputPrototype.set(baseOutput.addRef());
@@ -773,19 +770,4 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     }
   }
 
-  private static final class AliveResult extends Result {
-    public AliveResult(TensorArray data, Accumulator accumulator) {
-      super(data, accumulator);
-    }
-
-    @Override
-    public boolean isAlive() {
-      return true;
-    }
-
-    public @SuppressWarnings("unused")
-    void _free() {
-      super._free();
-    }
-  }
 }

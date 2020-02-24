@@ -26,9 +26,7 @@ import com.simiacryptus.ref.wrappers.RefStream;
 import com.simiacryptus.util.test.LabeledObject;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.awt.image.BufferedImage;
-import java.util.Arrays;
 
 public class MNistDatasetDemo extends ImageCategoryDatasetDemo {
 

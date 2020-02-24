@@ -34,7 +34,6 @@ import javax.annotation.Nullable;
 import java.io.*;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.zip.GZIPInputStream;
@@ -133,21 +132,18 @@ public class MNIST {
   }
 
   private static <T> RefStream<T> toIterator(@Nonnull final RefIteratorBase<T> iterator) {
-    RefStream<T> temp_06_0003 = RefStreamSupport
+    return RefStreamSupport
         .stream(RefSpliterators.spliterator(iterator, 1, Spliterator.ORDERED), false);
-    return temp_06_0003;
   }
 
   private static <T> RefStream<T> toStream(@Nonnull final RefIteratorBase<T> iterator, final int size) {
-    RefStream<T> temp_06_0004 = MNIST.toStream(iterator, size, false);
-    return temp_06_0004;
+    return MNIST.toStream(iterator, size, false);
   }
 
   private static <T> RefStream<T> toStream(@Nonnull final RefIteratorBase<T> iterator, final int size,
                                            final boolean parallel) {
-    RefStream<T> temp_06_0005 = RefStreamSupport
+    return RefStreamSupport
         .stream(RefSpliterators.spliterator(iterator, size, Spliterator.ORDERED), parallel);
-    return temp_06_0005;
   }
 
   private static class LabeledObjectIterator extends RefIteratorBase<LabeledObject<Tensor>> {

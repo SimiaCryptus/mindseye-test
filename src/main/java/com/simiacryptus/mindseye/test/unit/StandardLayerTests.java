@@ -31,6 +31,7 @@ import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.notebook.TableOutput;
 import com.simiacryptus.ref.lang.LifecycleException;
+import com.simiacryptus.ref.lang.RefIgnore;
 import com.simiacryptus.ref.lang.RefUtil;
 import com.simiacryptus.ref.lang.ReferenceCountingBase;
 import com.simiacryptus.ref.wrappers.*;
@@ -228,11 +229,38 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     this.testTraining = testTraining;
   }
 
+  public static int[] getDimensions(TensorList tensorList) {
+    try {
+      return tensorList.getDimensions();
+    } finally {
+      tensorList.freeRef();
+    }
+  }
+
+  @NotNull
+  public static TensorList getData(Result result) {
+    try {
+      return result.getData();
+    } finally {
+      result.freeRef();
+    }
+  }
+
+  @NotNull
+  public static Layer copy(Layer layer) {
+    assert layer != null;
+    try {
+      return layer.copy();
+    } finally {
+      layer.freeRef();
+    }
+  }
+
   @Nonnull
   private static Map<String, ? extends NavigableMap<String, String>> loadJavadoc() {
     try {
       HashMap<String, TreeMap<String, String>> javadocData = Javadoc.loadModelSummary();
-      IOUtil.writeJson(new RefTreeMap<>(javadocData), new File("./javadoc.json"));
+      IOUtil.writeJson(new TreeMap<>(javadocData), new File("./javadoc.json"));
       return javadocData;
     } catch (Throwable e) {
       logger.warn("Error loading javadocs", e);
@@ -431,14 +459,9 @@ public abstract class StandardLayerTests extends NotebookReportBase {
           @Nullable
           Result result = inner.eval(RefUtil.addRefs(array));
           invocations.add(
-              new Invocation(inner.addRef(), RefArrays.stream(RefUtil.addRefs(array)).map(x -> {
-                TensorList temp_07_0017 = x.getData();
-                int[] temp_07_0006 = temp_07_0017.getDimensions();
-                temp_07_0017.freeRef();
-                x.freeRef();
-                return temp_07_0006;
+              new Invocation(inner.addRef(), RefArrays.stream(array).map(x -> {
+                return getDimensions(getData(x));
               }).toArray(int[][]::new)));
-          RefUtil.freeRef(array);
           return result;
         }
 
@@ -463,8 +486,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       };
       if (null != inner)
         inner.freeRef();
-      node.setLayer(wrapper.addRef());
-      wrapper.freeRef();
+      node.setLayer(wrapper);
       node.freeRef();
     }, invocations.addRef()));
     Tensor[] input = RefArrays.stream(smallDims).map(Tensor::new).toArray(Tensor[]::new);
@@ -645,28 +667,13 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     tests.freeRef();
   }
 
-  @NotNull
-  public static Layer copy(Layer layer) {
-    assert layer != null;
-    try {
-      return layer.copy();
-    } finally {
-      layer.freeRef();
-    }
-  }
-
   private static class Invocation extends ReferenceCountingBase {
     @Nullable
     private final Layer layer;
     private final int[][] smallDims;
 
     private Invocation(@Nullable Layer layer, int[][] smallDims) {
-      Layer temp_07_0001 = layer == null ? null : layer.addRef();
-      this.layer = temp_07_0001 == null ? null : temp_07_0001.addRef();
-      if (null != temp_07_0001)
-        temp_07_0001.freeRef();
-      if (null != layer)
-        layer.freeRef();
+      this.layer = layer;
       this.smallDims = smallDims;
     }
 
@@ -680,6 +687,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     }
 
     @Override
+    @RefIgnore
     public boolean equals(Object o) {
       if (this == o)
         return true;
@@ -691,12 +699,9 @@ public abstract class StandardLayerTests extends NotebookReportBase {
 
       assert that.layer != null;
       if (layer != null ? !layer.getClass().equals(that.layer.getClass()) : true) {
-        that.freeRef();
         return false;
       }
-      boolean temp_07_0009 = RefArrays.deepEquals(smallDims, that.smallDims);
-      that.freeRef();
-      return temp_07_0009;
+      return RefArrays.deepEquals(smallDims, that.smallDims);
     }
 
     @Override

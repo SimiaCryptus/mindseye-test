@@ -32,7 +32,6 @@ import org.junit.Test;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.awt.image.BufferedImage;
-import java.util.Arrays;
 
 public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
   @Nonnull

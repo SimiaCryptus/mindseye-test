@@ -208,6 +208,7 @@ public class TestUtil {
               MonitoringWrapperLayer temp_13_0019 = x.getValue();
               double temp_13_0002 = -temp_13_0019.getForwardPerformance().getMean();
               temp_13_0019.freeRef();
+              RefUtil.freeRef(x);
               return temp_13_0002;
             }
           })).map(e -> {
@@ -377,8 +378,7 @@ public class TestUtil {
 
   @Nonnull
   public static Object toGraph(@Nonnull final DAGNetwork network) {
-    Object temp_13_0011 = toGraph(network, TestUtil::getName);
-    return temp_13_0011;
+    return toGraph(network, TestUtil::getName);
   }
 
   public static void graph(@Nonnull final NotebookOutput log, @Nonnull final DAGNetwork network) {
@@ -576,10 +576,9 @@ public class TestUtil {
   @Nonnull
   public static CharSequence render(@Nonnull final NotebookOutput log, @Nonnull final Tensor tensor,
                                     final boolean normalize) {
-    String temp_13_0014 = RefUtil.get(ImageUtil.renderToImages(tensor, normalize).map(image -> {
+    return RefUtil.get(ImageUtil.renderToImages(tensor, normalize).map(image -> {
       return log.png(image, "");
     }).reduce((a, b) -> a + b));
-    return temp_13_0014;
   }
 
   @Nonnull

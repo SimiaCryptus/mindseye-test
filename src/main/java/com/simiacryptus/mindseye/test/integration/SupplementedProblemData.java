@@ -65,7 +65,7 @@ public class SupplementedProblemData implements ImageProblemData {
   protected static Tensor translate(final int dx, final int dy, @Nonnull final Tensor tensor) {
     final int sx = tensor.getDimensions()[0];
     final int sy = tensor.getDimensions()[1];
-    Tensor temp_16_0004 = new Tensor(
+    return new Tensor(
         tensor.coordStream(true).mapToDouble(RefUtil.wrapInterface((ToDoubleFunction<? super Coordinate>) c -> {
           final int x = c.getCoords()[0] + dx;
           final int y = c.getCoords()[1] + dy;
@@ -77,7 +77,6 @@ public class SupplementedProblemData implements ImageProblemData {
             return tensor.get(x, y);
           }
         }, tensor)).toArray(), tensor.getDimensions());
-    return temp_16_0004;
   }
 
   @Nonnull

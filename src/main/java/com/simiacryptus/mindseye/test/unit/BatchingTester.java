@@ -39,7 +39,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.IntFunction;
 
@@ -75,12 +74,9 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
     }
 
     final TensorList[] inputTensorLists = RefArrays.stream(RefUtil.addRefs(inputPrototype)).map(t -> {
-      TensorArray temp_15_0001 = new TensorArray(RefIntStream.range(0, getBatchSize()).mapToObj(RefUtil
-          .wrapInterface((IntFunction<? extends Tensor>) i -> t.map(v -> getRandom()), t == null ? null : t.addRef()))
+      return new TensorArray(RefIntStream.range(0, getBatchSize()).mapToObj(RefUtil
+          .wrapInterface((IntFunction<? extends Tensor>) i -> t.map(v -> getRandom()), t))
           .toArray(Tensor[]::new));
-      if (null != t)
-        t.freeRef();
-      return temp_15_0001;
     }).toArray(TensorList[]::new);
     @Nonnull final SimpleResult asABatch = SimpleListEval.run(reference.addRef(), validateDerivatives,
         RefUtil.addRefs(inputTensorLists));
@@ -90,16 +86,13 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
               .mapToObj(RefUtil.wrapInterface((IntFunction<? extends Tensor>) i -> inputTensorLists[i].get(batch),
                   RefUtil.addRefs(inputTensorLists)))
               .toArray(Tensor[]::new);
-          SimpleEval temp_15_0002 = SimpleEval.run(reference.addRef(), validateDerivatives,
-              RefUtil.addRefs(inputTensors));
-          RefUtil.freeRef(inputTensors);
-          return temp_15_0002;
+          return SimpleEval.run(reference.addRef(), validateDerivatives, inputTensors);
         }, RefUtil.addRefs(inputTensorLists), reference.addRef()))
         .collect(RefCollectors.toList());
-
     reference.freeRef();
     RefUtil.freeRef(inputTensorLists);
     TensorList batchOutput = asABatch.getOutput();
+    logger.info("Output");
     @Nonnull
     IntFunction<ToleranceStatistics> toleranceStatisticsIntFunction = RefUtil.wrapInterface(batch -> {
       assert batchOutput != null;
@@ -149,6 +142,7 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
 
     batchOutput.freeRef();
     if (validateDerivatives) {
+      logger.info("Derivatives");
       ToleranceStatistics derivativeAgreement = RefIntStream.range(0, Math.min(getBatchSize(), batchLength))
           .mapToObj(RefUtil.wrapInterface((IntFunction<ToleranceStatistics>) batch -> {
                 TensorList[] asABatchInputDerivative = asABatch.getInputDerivative();
@@ -165,10 +159,7 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
                   @Nonnull
                   Tensor diff = a.minus(b.addRef());
                   logger.info("Error: " + diff.prettyPrint());
-                  Map<CharSequence, Object> temp_15_0014 = new ScalarStatistics().add(diff.getData()).getMetrics();
-                  logger.info("Scalar Statistics: " + temp_15_0014);
-                  double[][] points = RefArrays.stream(diff.getData()).mapToObj(x -> new double[]{x})
-                      .toArray(double[][]::new);
+                  logger.info("Scalar Statistics: " + new ScalarStatistics().add(diff.getData()).getMetrics());
                   diff.freeRef();
                   ToleranceStatistics temp_15_0006 = new ToleranceStatistics().accumulate(a.getData(), b.getData());
                   b.freeRef();
@@ -181,7 +172,7 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
               asABatch.addRef()))
           .filter(Objects::nonNull).reduce(ToleranceStatistics::combine).orElse(null);
 
-      if (null != derivativeAgreement && !(derivativeAgreement.absoluteTol.getMax() < tolerance)) {
+      if (null != derivativeAgreement && derivativeAgreement.absoluteTol.getMax() >= tolerance) {
         asABatch.freeRef();
         if (null != oneAtATime)
           oneAtATime.freeRef();

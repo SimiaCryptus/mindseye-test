@@ -233,8 +233,7 @@ public abstract class ClassifyProblem implements Problem {
               }).toArray(Tensor[]::new));
               Result temp_12_0008 = network.eval(new ConstantResult(batchIn));
               assert temp_12_0008 != null;
-              TensorList batchOut = temp_12_0008.getData();
-              temp_12_0008.freeRef();
+              TensorList batchOut = Result.getData(temp_12_0008);
               return RefIntStream.range(0, batchOut.length())
                   .mapToObj(RefUtil.wrapInterface((IntFunction<? extends LinkedHashMap<CharSequence, Object>>) i -> {
                     Tensor tensor = batchOut.get(i);

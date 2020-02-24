@@ -63,6 +63,29 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
     return calcDerivative;
   }
 
+  public void setResult(Result eval) {
+    assert eval != null;
+    try {
+      TensorList evalData = eval.getData();
+      Tensor outputTensor = evalData.get(0);
+      Tensor copy = outputTensor.copy();
+      outputTensor.freeRef();
+      synchronized (this) {
+        if (null != output) {
+          output.freeRef();
+        }
+        output = copy;
+      }
+      if (isCalcDerivative()) {
+        eval.accumulate(new DeltaSet<>(), getFeedback(evalData));
+      } else {
+        evalData.freeRef();
+      }
+    } finally {
+      eval.freeRef();
+    }
+  }
+
   public void setValidateDerivative(boolean calcDerivative) {
     this.calcDerivative = calcDerivative;
   }
@@ -83,7 +106,6 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
     }
   }
 
-
   @Nonnull
   @Override
   public SimpleEval call() {
@@ -93,25 +115,6 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
 
   public void eval() {
     setResult(eval(input()));
-  }
-
-  public void setResult(Result eval) {
-    assert eval != null;
-    TensorList evalData = eval.getData();
-    Tensor outputTensor = evalData.get(0);
-    synchronized (this) {
-      if (null != output) {
-        output.freeRef();
-      }
-      output = outputTensor.copy();
-    }
-    outputTensor.freeRef();
-    if (isCalcDerivative()) {
-      eval.accumulate(new DeltaSet<>(), getFeedback(evalData));
-    } else {
-      evalData.freeRef();
-    }
-    eval.freeRef();
   }
 
   @NotNull
@@ -153,17 +156,7 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
           super._free();
         }
       };
-      return new Result(new TensorArray(inputCopy[i].addRef()), accumulator) {
-        @Override
-        public boolean isAlive() {
-          return true;
-        }
-
-        @Override
-        public void _free() {
-          super._free();
-        }
-      };
+      return new Result(new TensorArray(inputCopy[i].addRef()), accumulator, true);
     }, inputCopy)).toArray(Result[]::new);
   }
 

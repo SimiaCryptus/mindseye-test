@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.notebook.MarkdownNotebookOutput;
 import com.simiacryptus.notebook.NotebookOutput;
-import com.simiacryptus.ref.lang.RefUtil;
 import com.simiacryptus.ref.lang.ReferenceCountingBase;
 import com.simiacryptus.ref.wrappers.RefConsumer;
 import com.simiacryptus.ref.wrappers.RefString;
@@ -36,7 +35,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
 
@@ -99,6 +97,7 @@ public abstract class NotebookReportBase {
         CodeUtil.LogInterception refLeakLog = CodeUtil.intercept(log, ReferenceCountingBase.class.getCanonicalName())) {
       fn.accept(log);
       RefSystem.gc();
+      Thread.sleep(1000);
       if (refLeakLog.counter.get() != 0)
         throw new AssertionError(RefString.format("RefLeak logged %d bytes", refLeakLog.counter.get()));
     } catch (RuntimeException e) {
