@@ -92,22 +92,24 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
       log.eval(RefUtil.wrapInterface((UncheckedSupplier<String>) () -> {
         @Nonnull final SimpleEval eval = SimpleEval.run(layer.addRef(), RefUtil.addRefs(inputPrototype));
         Tensor evalOutput = eval.getOutput();
-        assert evalOutput != null;
-        String temp_05_0005 = RefString.format(
-            "--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n%s\n--------------------\nDerivative: \n%s",
-            RefArrays.stream(RefUtil.addRefs(inputPrototype)).map(t -> {
-              String temp_05_0006 = t.prettyPrint();
-              t.freeRef();
-              return temp_05_0006;
-            }).reduce((a, b) -> a + ",\n" + b).orElse(""), RefArrays.toString(evalOutput.getDimensions()),
-            evalOutput.prettyPrint(), RefArrays.stream(eval.getDerivative()).map(t -> {
-              String temp_05_0007 = t.prettyPrint();
-              t.freeRef();
-              return temp_05_0007;
-            }).reduce((a, b) -> a + ",\n" + b).orElse(""));
-        evalOutput.freeRef();
-        eval.freeRef();
-        return temp_05_0005;
+        try {
+          assert evalOutput != null;
+          return RefString.format(
+              "--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n%s\n--------------------\nDerivative: \n%s",
+              RefArrays.stream(RefUtil.addRefs(inputPrototype)).map(t -> {
+                String temp_05_0006 = t.prettyPrint();
+                t.freeRef();
+                return temp_05_0006;
+              }).reduce((a, b) -> a + ",\n" + b).orElse(""), RefArrays.toString(evalOutput.getDimensions()),
+              evalOutput.prettyPrint(), RefArrays.stream(eval.getDerivative()).map(t -> {
+                String temp_05_0007 = t.prettyPrint();
+                t.freeRef();
+                return temp_05_0007;
+              }).reduce((a, b) -> a + ",\n" + b).orElse(""));
+        } finally {
+          if(null != evalOutput) evalOutput.freeRef();
+          eval.freeRef();
+        }
       }, RefUtil.addRefs(inputPrototype), layer.addRef()));
     }
     RefUtil.freeRef(inputPrototype);

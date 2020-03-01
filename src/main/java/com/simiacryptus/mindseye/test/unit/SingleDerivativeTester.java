@@ -316,7 +316,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
                 log.info(RefString.format("Feedback for input %s", i));
                 log.info(RefString.format("Inputs Values: %s", inputPrototype[i].prettyPrint()));
                 log.info(RefString.format("Value Statistics: %s", new ScalarStatistics().add(inputPrototype[i].getData())));
-                if (!implementedGradient.isFinalized()) {
+                if (!implementedGradient.isFreed()) {
                   log.info(RefString.format("Implemented Feedback: %s", implementedGradient.prettyPrint()));
                   log.info(RefString.format("Implemented Statistics: %s",
                       new ScalarStatistics().add(implementedGradient.getData())));

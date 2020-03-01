@@ -92,9 +92,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       }
     };
     temp_07_0011.setBatchSize(testingBatchSize);
-    BatchingTester temp_07_0010 = temp_07_0011.addRef();
-    temp_07_0011.freeRef();
-    return temp_07_0010;
+    return temp_07_0011;
   }
 
   @Nonnull

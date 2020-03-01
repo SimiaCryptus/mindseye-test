@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.ref.lang.RefIgnore;
 import com.simiacryptus.ref.lang.RefUtil;
 import com.simiacryptus.ref.lang.ReferenceCountingBase;
 import com.simiacryptus.ref.wrappers.RefArrays;
@@ -30,7 +31,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.UUID;
 import java.util.concurrent.Callable;
-import java.util.function.IntFunction;
 
 public class SimpleEval extends ReferenceCountingBase implements Callable<SimpleEval> {
   @Nonnull
@@ -39,7 +39,7 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
   private final Layer layer;
   private boolean calcDerivative = false;
   @Nullable
-  private Tensor[] derivative;
+  private final Tensor[] derivative;
   @Nullable
   private Tensor output;
 
@@ -47,6 +47,13 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
     this.layer = layer;
     this.input = input;
     this.output = null;
+    this.derivative = RefArrays.stream(RefUtil.addRefs(this.input)).map(tensor -> {
+      try {
+        return tensor.getDimensions();
+      } finally {
+        tensor.freeRef();
+      }
+    }).map(dims -> new Tensor(dims)).toArray(value -> new Tensor[value]);
   }
 
   @Nullable
@@ -77,12 +84,21 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
         output = copy;
       }
       if (isCalcDerivative()) {
-        eval.accumulate(new DeltaSet<>(), getFeedback(evalData));
+        checkedFeedback(eval, evalData);
       } else {
         evalData.freeRef();
       }
     } finally {
       eval.freeRef();
+    }
+  }
+
+  @RefIgnore
+  private void checkedFeedback(@RefIgnore Result eval, TensorList evalData) {
+    TensorList feedback = getFeedback(evalData);
+    eval.accumulate(new DeltaSet<>(), feedback);
+    if(!feedback.isFreed()) {
+      throw new IllegalStateException();
     }
   }
 
@@ -98,12 +114,9 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
   @Nonnull
   public static SimpleEval run(@Nonnull final Layer layer, boolean validateDerivative, @Nullable final Tensor... tensor) {
     SimpleEval simpleEval = new SimpleEval(layer, tensor);
-    try {
-      simpleEval.setValidateDerivative(validateDerivative);
-      return simpleEval.call();
-    } finally {
-      simpleEval.freeRef();
-    }
+    simpleEval.setValidateDerivative(validateDerivative);
+    simpleEval.eval();
+    return simpleEval;
   }
 
   @Nonnull
@@ -114,72 +127,36 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
   }
 
   public void eval() {
-    setResult(eval(input()));
+    setResult(layer.eval(input()));
   }
 
   @NotNull
   public Result[] input() {
-    Tensor[] inputCopy = RefArrays.stream(RefUtil.addRefs(input)).map(x -> {
-      try {
-        return x.copy();
-      } finally {
-        x.freeRef();
-      }
-    }).toArray(Tensor[]::new);
-    if (null != derivative)
-      RefUtil.freeRef(derivative);
-    derivative = RefArrays.stream(RefUtil.addRefs(inputCopy)).map(input1 -> {
-      try {
-        return input1.getDimensions();
-      } finally {
-        input1.freeRef();
-      }
-    }).map(Tensor::new).toArray(Tensor[]::new);
-    return RefIntStream.range(0, inputCopy.length).mapToObj(RefUtil.wrapInterface((IntFunction<Result>) i -> {
-      Result.Accumulator accumulator = new Result.Accumulator() {
-        {
-          RefUtil.addRefs(derivative);
-        }
-
-        @Override
-        public void accept(@Nonnull DeltaSet<UUID> buffer, @Nonnull TensorList data) {
-          buffer.freeRef();
-          data.stream().forEach(t -> {
-            derivative[i].addInPlace(t);
-          });
-          data.freeRef();
-        }
-
-        @Override
-        public void _free() {
-          RefUtil.freeRef(derivative);
-          super._free();
-        }
-      };
-      return new Result(new TensorArray(inputCopy[i].addRef()), accumulator, true);
-    }, inputCopy)).toArray(Result[]::new);
-  }
-
-  public Result eval(Result[] input) {
-    return layer.eval(input);
+    return RefIntStream.range(0, input.length).mapToObj(i -> {
+      Result.Accumulator accumulator = new Accumulator(derivative[i].addRef());
+      TensorArray data = new TensorArray(input[i].copy());
+      return new Result(data, accumulator, true);
+    }).toArray(Result[]::new);
   }
 
   @Nonnull
   public TensorList getFeedback(@Nonnull final TensorList data) {
-    TensorArray temp_01_0014 = new TensorArray(data.stream().map(t -> {
-      Tensor temp_01_0011 = t.map(v -> 1.0);
-      t.freeRef();
-      return temp_01_0011;
-    }).toArray(Tensor[]::new));
-    data.freeRef();
-    return temp_01_0014;
+    try {
+      return new TensorArray(data.stream().map(t -> {
+        try {
+          return t.map(v -> 1.0);
+        } finally {
+          t.freeRef();
+        }
+      }).toArray(Tensor[]::new));
+    } finally {
+      data.freeRef();
+    }
   }
 
   public void _free() {
     super._free();
-    if (null != derivative)
-      RefUtil.freeRef(derivative);
-    derivative = null;
+    RefUtil.freeRef(derivative);
     layer.freeRef();
     RefUtil.freeRef(input);
     synchronized (this) {
@@ -195,5 +172,32 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
   @SuppressWarnings("unused")
   SimpleEval addRef() {
     return (SimpleEval) super.addRef();
+  }
+
+  private static class Accumulator extends Result.Accumulator {
+
+    private Tensor tensor;
+
+    public Accumulator(Tensor tensor) {
+      this.tensor = tensor;
+    }
+
+    @Override
+    public void accept(@Nonnull DeltaSet<UUID> buffer, @Nonnull TensorList data) {
+      try {
+        data.stream().forEach(t -> {
+          tensor.addInPlace(t);
+        });
+      } finally {
+        buffer.freeRef();
+        data.freeRef();
+      }
+    }
+
+    @Override
+    public void _free() {
+      RefUtil.freeRef(tensor);
+      super._free();
+    }
   }
 }
