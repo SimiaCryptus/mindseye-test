@@ -37,9 +37,9 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
   private final Tensor[] input;
   @Nonnull
   private final Layer layer;
-  private boolean calcDerivative = false;
   @Nullable
   private final Tensor[] derivative;
+  private boolean calcDerivative = false;
   @Nullable
   private Tensor output;
 
@@ -47,7 +47,7 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
     this.layer = layer;
     this.input = input;
     this.output = null;
-    this.derivative = RefArrays.stream(RefUtil.addRefs(this.input)).map(tensor -> {
+    this.derivative = RefArrays.stream(RefUtil.addRef(this.input)).map(tensor -> {
       try {
         return tensor.getDimensions();
       } finally {
@@ -58,7 +58,7 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
 
   @Nullable
   public Tensor[] getDerivative() {
-    return RefUtil.addRefs(derivative);
+    return RefUtil.addRef(derivative);
   }
 
   @Nullable
@@ -90,15 +90,6 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
       }
     } finally {
       eval.freeRef();
-    }
-  }
-
-  @RefIgnore
-  private void checkedFeedback(@RefIgnore Result eval, TensorList evalData) {
-    TensorList feedback = getFeedback(evalData);
-    eval.accumulate(new DeltaSet<>(), feedback);
-    if(!feedback.isFreed()) {
-      throw new IllegalStateException();
     }
   }
 
@@ -172,6 +163,15 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
   @SuppressWarnings("unused")
   SimpleEval addRef() {
     return (SimpleEval) super.addRef();
+  }
+
+  @RefIgnore
+  private void checkedFeedback(@RefIgnore Result eval, TensorList evalData) {
+    TensorList feedback = getFeedback(evalData);
+    eval.accumulate(new DeltaSet<>(), feedback);
+    if (!feedback.isFreed()) {
+      throw new IllegalStateException();
+    }
   }
 
   private static class Accumulator extends Result.Accumulator {

@@ -19,13 +19,13 @@
 
 package com.simiacryptus.mindseye.test.data;
 
-import com.simiacryptus.lang.SupplierWeakCache;
 import com.simiacryptus.lang.UncheckedSupplier;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.util.ImageUtil;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.ref.lang.RefUtil;
 import com.simiacryptus.ref.wrappers.*;
+import com.simiacryptus.util.function.WeakCachedSupplier;
 import com.simiacryptus.util.test.LabeledObject;
 import org.junit.Test;
 
@@ -53,7 +53,7 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
 
   public void run(@Nonnull NotebookOutput log) {
     log.h3("Loading Data");
-    RefList<LabeledObject<SupplierWeakCache<BufferedImage>>> testData = getTrainingStream(log)
+    RefList<LabeledObject<WeakCachedSupplier<BufferedImage>>> testData = getTrainingStream(log)
         .sorted(getShuffleComparator()).collect(RefCollectors.toList());
 
     log.h3("Categories");
@@ -85,6 +85,6 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
       testData.freeRef();
   }
 
-  public abstract RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(NotebookOutput log);
+  public abstract RefStream<LabeledObject<WeakCachedSupplier<BufferedImage>>> getTrainingStream(NotebookOutput log);
 
 }

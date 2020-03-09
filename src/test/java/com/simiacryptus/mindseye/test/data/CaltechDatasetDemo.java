@@ -19,9 +19,9 @@
 
 package com.simiacryptus.mindseye.test.data;
 
-import com.simiacryptus.lang.SupplierWeakCache;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.ref.wrappers.RefStream;
+import com.simiacryptus.util.function.WeakCachedSupplier;
 import com.simiacryptus.util.test.LabeledObject;
 
 import javax.annotation.Nonnull;
@@ -36,7 +36,7 @@ public class CaltechDatasetDemo extends ImageCategoryDatasetDemo {
   }
 
   @Override
-  public RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(@Nonnull NotebookOutput log) {
+  public RefStream<LabeledObject<WeakCachedSupplier<BufferedImage>>> getTrainingStream(@Nonnull NotebookOutput log) {
     return log.eval(Caltech101::trainingDataStream);
   }
 

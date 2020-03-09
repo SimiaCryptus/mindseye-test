@@ -24,6 +24,7 @@ import com.simiacryptus.lang.Settings;
 public class TestSettings implements Settings {
   public static final TestSettings INSTANCE = new TestSettings();
   public final String tag;
+  public boolean isInteractive = false;
 
   private TestSettings() {
     if (TestSettings.INSTANCE != null)

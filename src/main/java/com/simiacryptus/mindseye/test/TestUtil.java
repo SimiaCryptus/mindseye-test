@@ -36,7 +36,7 @@ import com.simiacryptus.util.JsonUtil;
 import com.simiacryptus.util.data.PercentileStatistics;
 import com.simiacryptus.util.io.GifSequenceWriter;
 import guru.nidi.graphviz.attribute.Label;
-import guru.nidi.graphviz.attribute.RankDir;
+import guru.nidi.graphviz.attribute.Rank;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 import guru.nidi.graphviz.model.*;
@@ -200,7 +200,7 @@ public class TestUtil {
         node.freeRef();
       }, metrics.addRef()));
       RefSet<Map.Entry<CharSequence, MonitoringWrapperLayer>> temp_13_0018 = metrics.entrySet();
-      TestUtil.logger.info("Performance: \n\t" + RefUtil.get(temp_13_0018.stream()
+      TestUtil.logger.info("Performance: \n\t" + RefUtil.orElse(temp_13_0018.stream()
           .sorted(RefComparator.comparingDouble(new ToDoubleFunction<Map.Entry<CharSequence, MonitoringWrapperLayer>>() {
             @Override
             @RefIgnore
@@ -225,7 +225,7 @@ public class TestUtil {
                 performanceB.getCount()));
             RefUtil.freeRef(e);
             return temp_13_0003;
-          }).reduce((a, b) -> a + "\n\t" + b)));
+          }).reduce((a, b) -> a + "\n\t" + b), "-"));
       temp_13_0018.freeRef();
       metrics.freeRef();
     }, network.addRef()));
@@ -455,7 +455,7 @@ public class TestUtil {
     final LinkSource[] nodeArray = temp_13_0025.stream().map(x -> (LinkSource) x).toArray(LinkSource[]::new);
     temp_13_0025.freeRef();
     graphNodes.freeRef();
-    return Factory.graph().with(nodeArray).graphAttr().with(RankDir.TOP_TO_BOTTOM).directed();
+    return Factory.graph().with(nodeArray).graphAttr().with(Rank.dir(Rank.RankDir.TOP_TO_BOTTOM)).directed();
   }
 
   @Nonnull

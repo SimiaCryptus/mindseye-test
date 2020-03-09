@@ -19,12 +19,12 @@
 
 package com.simiacryptus.mindseye.test.data;
 
-import com.simiacryptus.lang.SupplierWeakCache;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.ref.wrappers.RefList;
 import com.simiacryptus.ref.wrappers.RefStream;
 import com.simiacryptus.ref.wrappers.RefSystem;
 import com.simiacryptus.util.Util;
+import com.simiacryptus.util.function.WeakCachedSupplier;
 import com.simiacryptus.util.io.DataLoader;
 import com.simiacryptus.util.test.LabeledObject;
 import org.apache.commons.io.IOUtils;
@@ -44,14 +44,14 @@ import java.util.zip.ZipInputStream;
 public class Caltech101 {
 
   @Nullable
-  private static final DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>> training = new DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>>() {
+  private static final DataLoader<LabeledObject<WeakCachedSupplier<BufferedImage>>> training = new DataLoader<LabeledObject<WeakCachedSupplier<BufferedImage>>>() {
     public @SuppressWarnings("unused")
     void _free() {
       super._free();
     }
 
     @Override
-    protected void read(@Nonnull final RefList<LabeledObject<SupplierWeakCache<BufferedImage>>> queue) {
+    protected void read(@Nonnull final RefList<LabeledObject<WeakCachedSupplier<BufferedImage>>> queue) {
       try {
         @Nullable
         InputStream stream = null;
@@ -81,7 +81,7 @@ public class Caltech101 {
           if (!entry.getName().toLowerCase().endsWith(".jpg")) {
             continue;
           }
-          queue.add(new LabeledObject<>(new SupplierWeakCache<>(() -> {
+          queue.add(new LabeledObject<>(new WeakCachedSupplier<>(() -> {
             try {
               return ImageIO.read(new ByteArrayInputStream(data));
             } catch (@Nonnull final IOException e) {
@@ -103,7 +103,7 @@ public class Caltech101 {
   }
 
   @Nonnull
-  public static RefStream<LabeledObject<SupplierWeakCache<BufferedImage>>> trainingDataStream() {
+  public static RefStream<LabeledObject<WeakCachedSupplier<BufferedImage>>> trainingDataStream() {
     assert Caltech101.training != null;
     return Caltech101.training.stream();
   }

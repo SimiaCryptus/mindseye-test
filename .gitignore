@@ -2,4 +2,7 @@
 mindseye-test.iml
 target/
 *.hprof
-
+logs/
+reports/
+*.gz
+*.zip

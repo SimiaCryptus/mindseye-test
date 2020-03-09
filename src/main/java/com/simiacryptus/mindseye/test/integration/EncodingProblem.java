@@ -155,13 +155,13 @@ public abstract class EncodingProblem implements Problem {
     log.h3("Training");
     log.p("We start by training apply a very small population to improve initial convergence performance:");
     TestUtil.instrumentPerformance(trainingNetwork.addRef());
-    @Nonnull final Tensor[][] primingData = RefArrays.copyOfRange(RefUtil.addRefs(trainingData), 0, 1000);
-    SampledArrayTrainable temp_20_0004 = new SampledArrayTrainable(RefUtil.addRefs(primingData),
+    @Nonnull final Tensor[][] primingData = RefArrays.copyOfRange(RefUtil.addRef(trainingData), 0, 1000);
+    SampledArrayTrainable temp_20_0004 = new SampledArrayTrainable(RefUtil.addRef(primingData),
         trainingNetwork.addRef(), trainingSize, batchSize);
     temp_20_0004.setMinSamples(trainingSize);
     temp_20_0004.setMask(true, false);
     @Nonnull final ValidatingTrainer preTrainer = optimizer.train(log, temp_20_0004,
-        new ArrayTrainable(RefUtil.addRefs(primingData), trainingNetwork.addRef(),
+        new ArrayTrainable(RefUtil.addRef(primingData), trainingNetwork.addRef(),
             batchSize),
         monitor);
     RefUtil.freeRef(primingData);
@@ -178,12 +178,12 @@ public abstract class EncodingProblem implements Problem {
 
     log.p("Then our main training phase:");
     TestUtil.instrumentPerformance(trainingNetwork.addRef());
-    SampledArrayTrainable temp_20_0005 = new SampledArrayTrainable(RefUtil.addRefs(trainingData),
+    SampledArrayTrainable temp_20_0005 = new SampledArrayTrainable(RefUtil.addRef(trainingData),
         trainingNetwork.addRef(), trainingSize, batchSize);
     temp_20_0005.setMinSamples(trainingSize);
     temp_20_0005.setMask(true, false);
     @Nonnull final ValidatingTrainer mainTrainer = optimizer.train(log, temp_20_0005,
-        new ArrayTrainable(RefUtil.addRefs(trainingData), trainingNetwork.addRef(),
+        new ArrayTrainable(RefUtil.addRef(trainingData), trainingNetwork.addRef(),
             batchSize),
         monitor);
     log.run(RefUtil.wrapInterface(() -> {
@@ -225,9 +225,9 @@ public abstract class EncodingProblem implements Problem {
     RefUtil.freeRef(testNetwork.add(imageNetwork.addRef(), testNetwork.getInput(0)));
     log.eval(RefUtil.wrapInterface((UncheckedSupplier<TableOutput>) () -> {
       @Nonnull final TableOutput table = new TableOutput();
-      RefArrays.stream(RefUtil.addRefs(trainingData)).map(RefUtil
+      RefArrays.stream(RefUtil.addRef(trainingData)).map(RefUtil
           .wrapInterface((Function<? super Tensor[], ? extends LinkedHashMap<CharSequence, Object>>) tensorArray -> {
-            Result temp_20_0013 = testNetwork.eval(RefUtil.addRefs(tensorArray));
+            Result temp_20_0013 = testNetwork.eval(RefUtil.addRef(tensorArray));
             assert temp_20_0013 != null;
             TensorList temp_20_0014 = temp_20_0013.getData();
             @Nullable final Tensor predictionSignal = temp_20_0014.get(0);
@@ -242,7 +242,7 @@ public abstract class EncodingProblem implements Problem {
           }, testNetwork.addRef())).filter(Objects::nonNull).limit(10)
           .forEach(table::putRow);
       return table;
-    }, testNetwork, RefUtil.addRefs(trainingData)));
+    }, testNetwork, RefUtil.addRef(trainingData)));
 
     log.p("Learned Model Statistics:");
     RefUtil.freeRef(log.eval(RefUtil.wrapInterface((UncheckedSupplier<Map<CharSequence, Object>>) () -> {
@@ -258,13 +258,13 @@ public abstract class EncodingProblem implements Problem {
     log.p("Learned Representation Statistics:");
     RefUtil.freeRef(log.eval(RefUtil.wrapInterface((UncheckedSupplier<Map<CharSequence, Object>>) () -> {
       @Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
-      RefArrays.stream(RefUtil.addRefs(trainingData)).flatMapToDouble(row -> {
-        RefDoubleStream temp_20_0001 = RefArrays.stream(row[0].getData());
+      RefArrays.stream(RefUtil.addRef(trainingData)).flatMapToDouble(row -> {
+        RefDoubleStream temp_20_0001 = row[0].doubleStream();
         RefUtil.freeRef(row);
         return temp_20_0001;
       }).forEach(scalarStatistics::add);
       return scalarStatistics.getMetrics();
-    }, RefUtil.addRefs(trainingData))));
+    }, RefUtil.addRef(trainingData))));
 
     RefUtil.freeRef(trainingData);
     log.p("Some rendered unit vectors:");

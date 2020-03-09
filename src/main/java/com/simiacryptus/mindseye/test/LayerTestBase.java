@@ -28,7 +28,6 @@ import org.junit.Test;
 
 import javax.annotation.Nonnull;
 import java.lang.management.ManagementFactory;
-import java.lang.reflect.InvocationTargetException;
 
 public abstract class LayerTestBase extends StandardLayerTests {
 

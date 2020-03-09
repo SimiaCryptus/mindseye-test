@@ -169,9 +169,9 @@ public abstract class AutoencodingProblem implements Problem {
     log.h3("Training");
     TestUtil.instrumentPerformance(supervisedNetwork.addRef());
     @Nonnull final ValidatingTrainer trainer = optimizer.train(log,
-        new SampledArrayTrainable(RefUtil.addRefs(trainingData),
+        new SampledArrayTrainable(RefUtil.addRef(trainingData),
             supervisedNetwork.addRef(), trainingData.length / 2, batchSize),
-        new ArrayTrainable(RefUtil.addRefs(trainingData), supervisedNetwork.addRef(),
+        new ArrayTrainable(RefUtil.addRef(trainingData), supervisedNetwork.addRef(),
             batchSize),
         monitor);
     RefUtil.freeRef(trainingData);
@@ -219,11 +219,11 @@ public abstract class AutoencodingProblem implements Problem {
             assert temp_21_0006 != null;
             TensorList data = temp_21_0006.getData();
             Tensor tensor = data.get(0);
-            LinkedHashMap<CharSequence, Object> temp_21_0005 = toRow(log, labeledObject, tensor.getData());
+            LinkedHashMap<CharSequence, Object> row = toRow(log, labeledObject, tensor.getData());
             tensor.freeRef();
             data.freeRef();
             temp_21_0006.freeRef();
-            return temp_21_0005;
+            return row;
           }, echoNetwork.addRef())).filter(Objects::nonNull).limit(10)
           .forEach(table::putRow);
       return table;

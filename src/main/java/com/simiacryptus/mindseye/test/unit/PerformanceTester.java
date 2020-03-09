@@ -84,7 +84,7 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   public void test(@Nonnull final Layer component, @Nonnull final Tensor[] inputPrototype) {
     log.info(RefString.format("%s batch length, %s trials", batches, samples));
     log.info("Input Dimensions:");
-    RefArrays.stream(RefUtil.addRefs(inputPrototype)).map(t -> {
+    RefArrays.stream(RefUtil.addRef(inputPrototype)).map(t -> {
       String temp_10_0001 = "\t" + RefArrays.toString(t.getDimensions());
       t.freeRef();
       return temp_10_0001;
@@ -92,7 +92,7 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
     log.info("Performance:");
     RefList<Tuple2<Double, Double>> performance = RefIntStream.range(0, samples)
         .mapToObj(RefUtil.wrapInterface((IntFunction<? extends Tuple2<Double, Double>>) i -> {
-          return testPerformance(component.addRef(), RefUtil.addRefs(inputPrototype));
+          return testPerformance(component.addRef(), RefUtil.addRef(inputPrototype));
         }, component, inputPrototype)).collect(RefCollectors.toList());
     if (isTestEvaluation()) {
       @Nonnull final DoubleStatistics statistics = new DoubleStatistics()
@@ -120,7 +120,7 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
     }
     log.p("Now we execute larger-scale runs to benchmark performance:");
     log.run(RefUtil.wrapInterface(() -> {
-      test(component == null ? null : component.addRef(), RefUtil.addRefs(inputPrototype));
+      test(component == null ? null : component.addRef(), RefUtil.addRef(inputPrototype));
     }, inputPrototype, component == null ? null : component.addRef()));
     if (component instanceof DAGNetwork) {
       TestUtil.extractPerformance(log, (DAGNetwork) component);
@@ -152,7 +152,7 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   protected Tuple2<Double, Double> testPerformance(@Nonnull final Layer component, @Nullable final Tensor... inputPrototype) {
     final Tensor[][] data = new Tensor[batches][];
     for (int i = 0; i < batches; i++) {
-      RefUtil.set(data, i, RefUtil.addRefs(inputPrototype));
+      RefUtil.set(data, i, RefUtil.addRef(inputPrototype));
     }
     RefUtil.freeRef(inputPrototype);
     long startTime = System.nanoTime();

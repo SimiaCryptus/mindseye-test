@@ -95,7 +95,7 @@ public class PCAUtil {
       y = filterDimensions[1] - (y + 1);
       final double v = featureSpaceVectors[outband].get(x, y, inband);
       return Double.isFinite(v) ? v : kernel.get(c);
-    }, kernel.addRef(), RefUtil.addRefs(featureSpaceVectors)));
+    }, kernel.addRef(), RefUtil.addRef(featureSpaceVectors)));
     RefUtil.freeRef(featureSpaceVectors);
     kernel.freeRef();
   }
@@ -113,7 +113,7 @@ public class PCAUtil {
       y = filterDimensions[1] - (y + 1);
       final double v = featureSpaceVectors[inband].get(x, y, outband);
       return Double.isFinite(v) ? v : kernel.get(c);
-    }, kernel.addRef(), RefUtil.addRefs(featureSpaceVectors)));
+    }, kernel.addRef(), RefUtil.addRef(featureSpaceVectors)));
     RefUtil.freeRef(featureSpaceVectors);
     kernel.freeRef();
   }

@@ -134,18 +134,18 @@ public abstract class ClassifyProblem implements Problem {
   }
 
   public int[] predict(@Nonnull final Layer network, @Nonnull final LabeledObject<Tensor> labeledObject) {
-    Result temp_12_0003 = network.eval(labeledObject.data.addRef());
+    Result result = network.eval(labeledObject.data.addRef());
     labeledObject.freeRef();
-    assert temp_12_0003 != null;
-    TensorList temp_12_0004 = temp_12_0003.getData();
-    Tensor temp_12_0005 = temp_12_0004.get(0);
-    @Nullable final double[] predictionSignal = temp_12_0005.getData();
-    temp_12_0005.freeRef();
-    temp_12_0004.freeRef();
-    temp_12_0003.freeRef();
+    assert result != null;
+    TensorList tensorList = result.getData();
+    Tensor tensor = tensorList.get(0);
+    tensorList.freeRef();
+    result.freeRef();
     network.freeRef();
-    return IntStream.range(0, categories).mapToObj(x -> x).sorted(Comparator.comparingDouble(i -> -predictionSignal[i]))
+    int[] prediction = IntStream.range(0, categories).mapToObj(x -> x).sorted(Comparator.comparingDouble(i -> -tensor.get(i)))
         .mapToInt(x -> x).toArray();
+    tensor.freeRef();
+    return prediction;
   }
 
   @Nonnull
@@ -167,9 +167,9 @@ public abstract class ClassifyProblem implements Problem {
     TestUtil.instrumentPerformance(supervisedNetwork.addRef());
     int initialSampleSize = Math.max(trainingData.length / 5, Math.min(10, trainingData.length / 2));
     @Nonnull final ValidatingTrainer trainer = optimizer.train(log,
-        new SampledArrayTrainable(RefUtil.addRefs(trainingData),
+        new SampledArrayTrainable(RefUtil.addRef(trainingData),
             supervisedNetwork.addRef(), initialSampleSize, getBatchSize()),
-        new ArrayTrainable(RefUtil.addRefs(trainingData), supervisedNetwork.addRef(),
+        new ArrayTrainable(RefUtil.addRef(trainingData), supervisedNetwork.addRef(),
             getBatchSize()),
         monitor);
     RefUtil.freeRef(trainingData);

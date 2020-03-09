@@ -21,10 +21,8 @@ package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.notebook.MarkdownNotebookOutput;
 import com.simiacryptus.notebook.NotebookOutput;
-import com.simiacryptus.ref.lang.ReferenceCountingBase;
 import com.simiacryptus.ref.wrappers.RefConsumer;
 import com.simiacryptus.ref.wrappers.RefString;
-import com.simiacryptus.ref.wrappers.RefSystem;
 import com.simiacryptus.util.CodeUtil;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.test.SysOutInterceptor;
@@ -92,21 +90,6 @@ public abstract class NotebookReportBase {
     return path;
   }
 
-  public static void withRefLeakMonitor(@Nonnull NotebookOutput log, @Nonnull RefConsumer<NotebookOutput> fn) {
-    try (
-        CodeUtil.LogInterception refLeakLog = CodeUtil.intercept(log, ReferenceCountingBase.class.getCanonicalName())) {
-      fn.accept(log);
-      RefSystem.gc();
-      Thread.sleep(1000);
-      if (refLeakLog.counter.get() != 0)
-        throw new AssertionError(RefString.format("RefLeak logged %d bytes", refLeakLog.counter.get()));
-    } catch (RuntimeException e) {
-      throw e;
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   public void printHeader(@Nonnull NotebookOutput log) {
     log.setFrontMatterProperty("created_on", new Date().toString());
     log.setFrontMatterProperty("report_type", getReportType().name());
@@ -123,7 +106,7 @@ public abstract class NotebookReportBase {
   public void run(@Nonnull RefConsumer<NotebookOutput> fn, @Nonnull CharSequence... logPath) {
     try (@Nonnull
          NotebookOutput log = getLog(logPath)) {
-      withRefLeakMonitor(log, NotebookOutput.concat(this::printHeader, MarkdownNotebookOutput.wrapFrontmatter(fn)));
+      CodeUtil.withRefLeakMonitor(log, NotebookOutput.concat(this::printHeader, MarkdownNotebookOutput.wrapFrontmatter(fn)));
     } catch (RuntimeException e) {
       throw e;
     } catch (Throwable e) {

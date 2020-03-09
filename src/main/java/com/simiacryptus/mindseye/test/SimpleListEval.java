@@ -50,8 +50,8 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
     if (null != temp_09_0001)
       temp_09_0001.freeRef();
     layer.freeRef();
-    TensorList[] temp_09_0002 = RefUtil.addRefs(input);
-    this.input = RefUtil.addRefs(temp_09_0002);
+    TensorList[] temp_09_0002 = RefUtil.addRef(input);
+    this.input = RefUtil.addRef(temp_09_0002);
     RefUtil.freeRef(temp_09_0002);
     RefUtil.freeRef(input);
     DeltaSet<UUID> temp_09_0003 = new DeltaSet<UUID>();
@@ -63,7 +63,7 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
   @Override
   public TensorList[] getInputDerivative() {
     assertAlive();
-    return RefUtil.addRefs(inputDerivative);
+    return RefUtil.addRef(inputDerivative);
   }
 
   @Nullable
@@ -125,14 +125,14 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
   @Nonnull
   @Override
   public SimpleResult call() {
-    TensorList[] inputCopy = RefArrays.stream(RefUtil.addRefs(input)).map(tensorList -> {
+    TensorList[] inputCopy = RefArrays.stream(RefUtil.addRef(input)).map(tensorList -> {
       TensorList copy = tensorList.copy();
       tensorList.freeRef();
       return copy;
     }).toArray(TensorList[]::new);
     if (null != inputDerivative)
       RefUtil.freeRef(inputDerivative);
-    inputDerivative = RefArrays.stream(RefUtil.addRefs(inputCopy)).map(tensorList -> {
+    inputDerivative = RefArrays.stream(RefUtil.addRef(inputCopy)).map(tensorList -> {
       TensorArray tensorArray = new TensorArray(tensorList.stream().map(tensor -> {
         int[] dimensions = tensor.getDimensions();
         tensor.freeRef();
@@ -145,7 +145,7 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
         .mapToObj(RefUtil.wrapInterface((IntFunction<Result>) i -> {
           Result.Accumulator accumulator = new Result.Accumulator() {
             {
-              RefUtil.addRefs(inputDerivative);
+              RefUtil.addRef(inputDerivative);
             }
 
             @Override

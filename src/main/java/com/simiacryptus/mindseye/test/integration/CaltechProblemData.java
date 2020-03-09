@@ -27,6 +27,7 @@ import com.simiacryptus.util.test.LabeledObject;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -69,7 +70,12 @@ public class CaltechProblemData implements ImageProblemData {
   public RefStream<LabeledObject<Tensor>> trainingData() {
     return Caltech101.trainingDataStream().parallel()
         .map(x -> {
-          LabeledObject<Tensor> map = x.map(y -> Tensor.fromRGB(ImageUtil.resize(y.get(), getImageSize())));
+          LabeledObject<Tensor> map = x.map(y -> {
+            BufferedImage image = y.get();
+            Tensor tensor = Tensor.fromRGB(ImageUtil.resize(image, getImageSize()));
+            y.freeRef();
+            return tensor;
+          });
           x.freeRef();
           return map;
         });
