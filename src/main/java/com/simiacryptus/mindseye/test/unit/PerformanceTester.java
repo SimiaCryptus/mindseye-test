@@ -67,7 +67,6 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
     return testEvaluation;
   }
 
-  @Nonnull
   public void setTestEvaluation(final boolean testEvaluation) {
     this.testEvaluation = testEvaluation;
   }
@@ -76,7 +75,6 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
     return testLearning;
   }
 
-  @Nonnull
   public void setTestLearning(final boolean testLearning) {
     this.testLearning = testLearning;
   }

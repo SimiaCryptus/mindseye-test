@@ -224,7 +224,6 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     return testTraining;
   }
 
-  @Nonnull
   public void setTestTraining(boolean testTraining) {
     this.testTraining = testTraining;
   }

@@ -34,8 +34,8 @@ import com.simiacryptus.ref.wrappers.RefDoubleStream;
 import com.simiacryptus.ref.wrappers.RefIntStream;
 import com.simiacryptus.ref.wrappers.RefList;
 import org.junit.After;
-import smile.plot.PlotCanvas;
-import smile.plot.ScatterPlot;
+import smile.plot.swing.PlotCanvas;
+import smile.plot.swing.ScatterPlot;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

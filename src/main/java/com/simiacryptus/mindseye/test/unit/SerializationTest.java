@@ -58,7 +58,6 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
     return persist;
   }
 
-  @Nonnull
   public void setPersist(boolean persist) {
     this.persist = persist;
   }

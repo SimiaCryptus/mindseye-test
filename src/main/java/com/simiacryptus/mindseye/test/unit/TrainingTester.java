@@ -42,7 +42,7 @@ import com.simiacryptus.ref.wrappers.*;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import smile.plot.PlotCanvas;
+import smile.plot.swing.PlotCanvas;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -553,7 +553,6 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
 
   protected abstract Layer lossLayer();
 
-  @NotNull
   private TrainingTester.TrainingResult getResult(double min) {
     return new TrainingResult(Math.abs(min) < 1e-9
         ? ResultType.Converged
@@ -750,7 +749,6 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
       this.map = new HashMap<>();
     }
 
-    @Nonnull
     public void put(CharSequence key, TrainingResult result) {
       map.put(key, result);
     }

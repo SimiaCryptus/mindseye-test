@@ -19,9 +19,9 @@
 
 package com.simiacryptus.mindseye.test;
 
-import smile.plot.LinePlot;
-import smile.plot.Plot;
-import smile.plot.ScatterPlot;
+import smile.plot.swing.LinePlot;
+import smile.plot.swing.Plot;
+import smile.plot.swing.ScatterPlot;
 
 import java.awt.*;
 import java.util.List;
