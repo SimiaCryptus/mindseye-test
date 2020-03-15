@@ -26,6 +26,7 @@ import com.simiacryptus.ref.wrappers.RefString;
 import com.simiacryptus.util.CodeUtil;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.test.SysOutInterceptor;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,8 +48,33 @@ public abstract class NotebookReportBase {
   @Nonnull
   protected String reportingFolder = "reports/_reports";
 
+  @Nonnull
+  public NotebookOutput getLog() {
+    CharSequence[] logPath = getReportPath();
+    final File path = getTestReportLocation(getTargetClass(), reportingFolder, logPath);
+    try {
+      StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[3];
+      String methodName = callingFrame.getMethodName() + "_" + UUID.randomUUID().toString();
+      path.getParentFile().mkdirs();
+      return new MarkdownNotebookOutput(new File(path, methodName), true) {
+        @Nullable
+        @Override
+        public File writeZip(File root, String baseName) {
+          return null;
+        }
+      };
+    } catch (FileNotFoundException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   public Class<? extends NotebookReportBase> getReportClass() {
     return getClass();
+  }
+
+  @NotNull
+  public String[] getReportPath() {
+    return new String[]{getClass().getSimpleName()};
   }
 
   @Nonnull
@@ -57,16 +83,16 @@ public abstract class NotebookReportBase {
   protected abstract Class<?> getTargetClass();
 
   @Nullable
-  public static CharSequence printHeader(@Nonnull NotebookOutput log, @Nullable Class<?> networkClass,
-                                         final CharSequence prefix) {
+  public static CharSequence setReportType(@Nonnull NotebookOutput log, @Nullable Class<?> networkClass,
+                                           final CharSequence prefix) {
     if (null == networkClass)
       return null;
     @Nullable
     String javadoc = CodeUtil.getJavadoc(networkClass);
-    log.setFrontMatterProperty(prefix + "_class_short", networkClass.getSimpleName());
-    log.setFrontMatterProperty(prefix + "_class_full", networkClass.getCanonicalName());
+    log.setMetadata(prefix + "_class_short", networkClass.getSimpleName());
+    log.setMetadata(prefix + "_class_full", networkClass.getCanonicalName());
     assert javadoc != null;
-    log.setFrontMatterProperty(prefix + "_class_doc", javadoc.replaceAll("\n", ""));
+    log.setMetadata(prefix + "_class_doc", javadoc.replaceAll("\n", ""));
     return javadoc;
   }
 
@@ -91,46 +117,19 @@ public abstract class NotebookReportBase {
   }
 
   public void printHeader(@Nonnull NotebookOutput log) {
-    log.setFrontMatterProperty("created_on", new Date().toString());
-    log.setFrontMatterProperty("report_type", getReportType().name());
-    @Nullable
-    CharSequence targetJavadoc = printHeader(log, getTargetClass(), "network");
-    @Nullable
-    CharSequence reportJavadoc = printHeader(log, getReportClass(), "report");
-    //    log.p("__Target Description:__ " + StringEscapeUtils.escapeHtml4(targetJavadoc));
-    //    log.p("__Report Description:__ " + StringEscapeUtils.escapeHtml4(reportJavadoc));
-    log.p("__Target Description:__ " + targetJavadoc);
-    log.p("__Report Description:__ " + reportJavadoc);
+    log.setMetadata("created_on", new Date().toString());
+    log.setMetadata("report_type", getReportType().name());
+    log.p("__Target Description:__ " + setReportType(log, getTargetClass(), "network"));
+    log.p("__Report Description:__ " + setReportType(log, getReportClass(), "report"));
   }
 
-  public void run(@Nonnull RefConsumer<NotebookOutput> fn, @Nonnull CharSequence... logPath) {
+  public void run(@Nonnull RefConsumer<NotebookOutput> fn) {
     try (@Nonnull
-         NotebookOutput log = getLog(logPath)) {
+         NotebookOutput log = getLog()) {
       CodeUtil.withRefLeakMonitor(log, NotebookOutput.concat(this::printHeader, MarkdownNotebookOutput.wrapFrontmatter(fn)));
     } catch (RuntimeException e) {
       throw e;
     } catch (Throwable e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  @Nonnull
-  public NotebookOutput getLog(@Nullable CharSequence... logPath) {
-    if (null == logPath || logPath.length == 0)
-      logPath = new String[]{getClass().getSimpleName()};
-    final File path = getTestReportLocation(getTargetClass(), reportingFolder, logPath);
-    try {
-      StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[3];
-      String methodName = callingFrame.getMethodName() + "_" + UUID.randomUUID().toString();
-      path.getParentFile().mkdirs();
-      return new MarkdownNotebookOutput(new File(path, methodName), true) {
-        @Nullable
-        @Override
-        public File writeZip(File root, String baseName) {
-          return null;
-        }
-      };
-    } catch (FileNotFoundException e) {
       throw new RuntimeException(e);
     }
   }

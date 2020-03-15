@@ -39,7 +39,6 @@ import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.ref.lang.RefIgnore;
 import com.simiacryptus.ref.lang.RefUtil;
 import com.simiacryptus.ref.wrappers.*;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import smile.plot.swing.PlotCanvas;
@@ -257,7 +256,7 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
       return new ComponentResult(null == inputLearning ? null : inputLearning.value,
           null == modelLearning ? null : modelLearning.value, null == completeLearning ? null : completeLearning.value);
     });
-    log.setFrontMatterProperty("training_analysis", result.toString());
+    log.setMetadata("training_analysis", result.toString());
     if (throwExceptions) {
       assert result.complete.map.values().stream().allMatch(x -> x.type == ResultType.Converged);
       assert result.input.map.values().stream().allMatch(x -> x.type == ResultType.Converged);

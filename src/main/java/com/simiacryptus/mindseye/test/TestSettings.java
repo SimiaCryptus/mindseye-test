@@ -24,12 +24,14 @@ import com.simiacryptus.lang.Settings;
 public class TestSettings implements Settings {
   public static final TestSettings INSTANCE = new TestSettings();
   public final String tag;
+  public final String testRepo;
   public boolean isInteractive = false;
 
   private TestSettings() {
     if (TestSettings.INSTANCE != null)
       throw new RuntimeException();
     tag = Settings.get("GIT_TAG", "master");
+    testRepo = Settings.get("TEST_REPO", "H:\\SimiaCryptus\\all-projects");
   }
 
 }

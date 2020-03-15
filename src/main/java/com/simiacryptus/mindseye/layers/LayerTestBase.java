@@ -23,7 +23,10 @@ import com.simiacryptus.mindseye.test.unit.StandardLayerTests;
 import com.simiacryptus.ref.wrappers.RefSystem;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+
+import java.util.concurrent.TimeUnit;
 
 public abstract class LayerTestBase extends StandardLayerTests {
 
@@ -32,7 +35,8 @@ public abstract class LayerTestBase extends StandardLayerTests {
   //    apply(this::monteCarlo);
   //  }
 
-  @Test(timeout = 15 * 60 * 1000)
+  @Test
+  @Timeout(value = 15, unit = TimeUnit.MINUTES)
   public void test() {
     run(this::run);
   }
