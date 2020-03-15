@@ -25,6 +25,7 @@ import com.simiacryptus.ref.wrappers.RefSystem;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.Timeout;
 
 import javax.annotation.Nonnull;
@@ -33,15 +34,10 @@ import java.util.concurrent.TimeUnit;
 
 public abstract class LayerTestBase extends StandardLayerTests {
 
-  //  @Test(timeout = 15 * 60 * 1000)
-  //  public void testMonteCarlo() throws Throwable {
-  //    apply(this::monteCarlo);
-  //  }
-
   @Test
   @Timeout(value = 15, unit = TimeUnit.MINUTES)
-  public void test() {
-    run(this::run);
+  public void test(TestInfo testInfo) {
+    run(testInfo, this::run);
   }
 
   @Before

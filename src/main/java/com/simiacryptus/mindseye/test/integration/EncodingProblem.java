@@ -208,7 +208,7 @@ public abstract class EncodingProblem implements Problem {
 
     try {
       @Nonnull
-      String filename = log.getName() + EncodingProblem.modelNo++ + "_plot.png";
+      String filename = log.getFileName() + EncodingProblem.modelNo++ + "_plot.png";
       ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", log.file(filename));
       log.appendMetadata("result_plot", filename, ";");
     } catch (IOException e) {

@@ -192,7 +192,7 @@ public abstract class ClassifyProblem implements Problem {
     }
 
     @Nonnull
-    String training_name = log.getName() + "_" + ClassifyProblem.modelNo++ + "_plot.png";
+    String training_name = log.getFileName() + "_" + ClassifyProblem.modelNo++ + "_plot.png";
     try {
       BufferedImage image = Util.toImage(TestUtil.plot(history));
       if (null != image)

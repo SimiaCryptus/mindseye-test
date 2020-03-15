@@ -134,6 +134,10 @@
             <artifactId>refcount-core</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.simiacryptus</groupId>
+            <artifactId>aws-utilities</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

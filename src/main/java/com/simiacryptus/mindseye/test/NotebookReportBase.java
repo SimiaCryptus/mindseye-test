@@ -19,6 +19,10 @@
 
 package com.simiacryptus.mindseye.test;
 
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.simiacryptus.aws.EC2Util;
+import com.simiacryptus.aws.S3Util;
 import com.simiacryptus.notebook.MarkdownNotebookOutput;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.ref.wrappers.RefConsumer;
@@ -27,6 +31,7 @@ import com.simiacryptus.util.CodeUtil;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.test.SysOutInterceptor;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.TestInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,8 +39,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.UUID;
 
 public abstract class NotebookReportBase {
 
@@ -49,20 +54,27 @@ public abstract class NotebookReportBase {
   protected String reportingFolder = "reports/_reports";
 
   @Nonnull
-  public NotebookOutput getLog() {
-    CharSequence[] logPath = getReportPath();
-    final File path = getTestReportLocation(getTargetClass(), reportingFolder, logPath);
+  public NotebookOutput getLog(TestInfo testInfo) {
+    Class<?> targetClass = getTargetClass();
+    final File reportFile = getTestReportLocation(testInfo, targetClass);
     try {
-      StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[3];
-      String methodName = callingFrame.getMethodName() + "_" + UUID.randomUUID().toString();
-      path.getParentFile().mkdirs();
-      return new MarkdownNotebookOutput(new File(path, methodName), true) {
-        @Nullable
-        @Override
-        public File writeZip(File root, String baseName) {
-          return null;
-        }
-      };
+      MarkdownNotebookOutput markdownNotebookOutput = new MarkdownNotebookOutput(
+          reportFile, true, testInfo.getTestMethod().get().getName()
+      );
+      markdownNotebookOutput.setEnableZip(false);
+      markdownNotebookOutput.setArchiveHome(TestSettings.INSTANCE.testArchive.resolve(
+          Util.mkString("/",
+              toPathString(targetClass, '/'),
+              testInfo.getTestClass().map(c->c.getSimpleName()).orElse(""),
+              testInfo.getTestMethod().get().getName(),
+              new SimpleDateFormat("yyyyMMddmmss").format(new Date())
+          )
+      ));
+      S3Util.uploadOnComplete(markdownNotebookOutput, AmazonS3ClientBuilder.standard().build());
+      File metadataLocation = new File(TestSettings.INSTANCE.testRepo, "registry");
+      metadataLocation.mkdirs();
+      markdownNotebookOutput.setMetadataLocation(metadataLocation);
+      return markdownNotebookOutput;
     } catch (FileNotFoundException e) {
       throw new RuntimeException(e);
     }
@@ -70,11 +82,6 @@ public abstract class NotebookReportBase {
 
   public Class<? extends NotebookReportBase> getReportClass() {
     return getClass();
-  }
-
-  @NotNull
-  public String[] getReportPath() {
-    return new String[]{getClass().getSimpleName()};
   }
 
   @Nonnull
@@ -97,23 +104,30 @@ public abstract class NotebookReportBase {
   }
 
   @Nonnull
-  public static File getTestReportLocation(@Nonnull final Class<?> sourceClass, String reportingFolder,
-                                           @Nonnull final CharSequence... suffix) {
-    final StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[2];
-    final CharSequence methodName = callingFrame.getMethodName();
-    final String className = sourceClass.getCanonicalName();
-    String classFilename = className.replaceAll("\\.", "/").replaceAll("\\$", "/");
+  public static File getTestReportLocation(TestInfo testInfo, @Nonnull final Class<?> sourceClass) {
     @Nonnull
-    File path = new File(Util.mkString(File.separator, reportingFolder, classFilename));
-    for (int i = 0; i < suffix.length - 1; i++)
-      path = new File(path, suffix[i].toString());
-    String testName = suffix.length == 0 ? String.valueOf(methodName) : suffix[suffix.length - 1].toString();
-    File parent = path;
-    //parent = new File(path, new SimpleDateFormat("yyyy-MM-dd_HHmmss").format(new Date()));
-    path = new File(parent, testName + ".md");
+    File path = new File(Util.mkString(File.separator,
+        TestSettings.INSTANCE.testRepo,
+        toPathString(sourceClass),
+        testInfo.getTestClass().map(c->c.getSimpleName()).orElse(""),
+        testInfo.getTestMethod().get().getName(),
+        new SimpleDateFormat("yyyyMMddmmss").format(new Date())
+    ));
     path.getParentFile().mkdirs();
     logger.info(RefString.format("Output Location: %s", path.getAbsoluteFile()));
     return path;
+  }
+
+  @NotNull
+  public static String toPathString(@Nonnull Class<?> sourceClass) {
+    return toPathString(sourceClass, File.separatorChar);
+  }
+
+  @NotNull
+  public static String toPathString(@Nonnull Class<?> sourceClass, char separatorChar) {
+    return sourceClass.getCanonicalName()
+        .replace('.', separatorChar)
+        .replace('$', separatorChar);
   }
 
   public void printHeader(@Nonnull NotebookOutput log) {
@@ -123,9 +137,9 @@ public abstract class NotebookReportBase {
     log.p("__Report Description:__ " + setReportType(log, getReportClass(), "report"));
   }
 
-  public void run(@Nonnull RefConsumer<NotebookOutput> fn) {
+  public void run(TestInfo testInfo, @Nonnull RefConsumer<NotebookOutput> fn) {
     try (@Nonnull
-         NotebookOutput log = getLog()) {
+         NotebookOutput log = getLog(testInfo)) {
       CodeUtil.withRefLeakMonitor(log, NotebookOutput.concat(this::printHeader, MarkdownNotebookOutput.wrapFrontmatter(fn)));
     } catch (RuntimeException e) {
       throw e;

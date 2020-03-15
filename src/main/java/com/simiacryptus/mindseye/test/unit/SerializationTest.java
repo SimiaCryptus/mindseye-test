@@ -109,7 +109,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
         return new GsonBuilder().setPrettyPrinting().create().toJson(json);
       }, layer.addRef()));
       @Nonnull
-      String filename = layer.getClass().getSimpleName() + "_" + log.getName() + ".json";
+      String filename = layer.getClass().getSimpleName() + "_" + log.getFileName() + ".json";
       log.p(log.file(prettyPrint, filename,
           RefString.format("Wrote Model to %s; %s characters", filename, prettyPrint.length())));
     } catch (RuntimeException e) {
@@ -127,7 +127,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
           .forEach(RefUtil.wrapInterface((Consumer<? super SerialPrecision>) precision -> {
             try {
               @Nonnull
-              File file = new File(log.getResourceDir(), log.getName() + "_" + precision.name() + ".zip");
+              File file = new File(log.getResourceDir(), log.getFileName() + "_" + precision.name() + ".zip");
               layer.writeZip(file, precision);
               @Nonnull final Layer echo = Layer.fromZip(new ZipFile(file));
               RefHashMap<SerialPrecision, Layer> temp_23_0001 = getModels();

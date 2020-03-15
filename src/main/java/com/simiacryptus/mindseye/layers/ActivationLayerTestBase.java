@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.layers;
 import com.simiacryptus.lang.UncheckedSupplier;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.test.LayerTestBase;
 import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.TrainingTester;

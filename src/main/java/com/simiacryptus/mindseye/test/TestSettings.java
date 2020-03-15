@@ -21,17 +21,27 @@ package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.lang.Settings;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.UUID;
+
 public class TestSettings implements Settings {
   public static final TestSettings INSTANCE = new TestSettings();
   public final String tag;
   public final String testRepo;
+  public final URI testArchive;
   public boolean isInteractive = false;
 
   private TestSettings() {
     if (TestSettings.INSTANCE != null)
       throw new RuntimeException();
     tag = Settings.get("GIT_TAG", "master");
-    testRepo = Settings.get("TEST_REPO", "H:\\SimiaCryptus\\all-projects");
+    testRepo = Settings.get("TEST_REPO", "H:\\SimiaCryptus\\all-projects\\reports");
+    try {
+      testArchive = new URI(Settings.get("TEST_ARCHIVE", "s3://simiacryptus/tests/"));
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
   }
 
 }

@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.layers;
 
+import com.simiacryptus.mindseye.test.LayerTestBase;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 
