@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.test.data;
 
 import com.simiacryptus.lang.UncheckedSupplier;
-import com.simiacryptus.mindseye.test.NotebookReportBase;
+import com.simiacryptus.util.test.NotebookReportBase;
 import com.simiacryptus.mindseye.util.ImageUtil;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.ref.lang.RefUtil;
