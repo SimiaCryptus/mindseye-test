@@ -62,7 +62,7 @@ public class MNIST {
         merged.forEach(RefUtil.wrapInterface((Consumer<? super LabeledObject<Tensor>>) queue::add,
             queue.addRef()));
       } catch (@Nonnull final IOException e) {
-        throw new RuntimeException(e);
+        throw Util.throwException(e);
       }
       queue.freeRef();
     }
@@ -89,7 +89,7 @@ public class MNIST {
         merged.forEach(RefUtil.wrapInterface((Consumer<? super LabeledObject<Tensor>>) queue::add,
             queue.addRef()));
       } catch (@Nonnull final IOException e) {
-        throw new RuntimeException(e);
+        throw Util.throwException(e);
       }
       queue.freeRef();
     }
@@ -112,7 +112,7 @@ public class MNIST {
     try {
       stream = Util.cacheStream(TestUtil.S3_ROOT.resolve(name));
     } catch (@Nonnull NoSuchAlgorithmException | KeyManagementException e) {
-      throw new RuntimeException(e);
+      throw Util.throwException(e);
     }
     final byte[] fileData = IOUtils
         .toByteArray(new BufferedInputStream(new GZIPInputStream(new BufferedInputStream(stream))));

@@ -77,7 +77,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
         IOUtils.write(bytes, out);
       }
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw Util.throwException(e);
     }
     return byteArrayOutputStream.toByteArray();
   }

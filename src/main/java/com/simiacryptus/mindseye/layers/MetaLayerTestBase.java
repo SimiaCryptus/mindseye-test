@@ -20,22 +20,24 @@
 package com.simiacryptus.mindseye.layers;
 
 import com.simiacryptus.mindseye.test.LayerTestBase;
-import com.simiacryptus.mindseye.test.ToleranceStatistics;
-import com.simiacryptus.mindseye.test.unit.ComponentTest;
-
-import javax.annotation.Nullable;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.TestInfo;
 
 public abstract class MetaLayerTestBase extends LayerTestBase {
 
   public MetaLayerTestBase() {
-    validateBatchExecution = false;
   }
 
-  @Nullable
   @Override
-  public ComponentTest<ToleranceStatistics> getDerivativeTester() {
-    return null;
-    //return new BatchDerivativeTester(1e-3, 1e-4, 10);
+  @Disabled
+  public void batchingTest(TestInfo testInfo) {
+    super.batchingTest(testInfo);
+  }
+
+  @Override
+  @Disabled
+  public void derivativeTest(TestInfo testInfo) {
+    super.derivativeTest(testInfo);
   }
 
 }

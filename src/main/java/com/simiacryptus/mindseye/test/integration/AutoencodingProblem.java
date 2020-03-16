@@ -37,6 +37,7 @@ import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.notebook.TableOutput;
 import com.simiacryptus.ref.lang.RefUtil;
+import com.simiacryptus.util.Util;
 import com.simiacryptus.util.test.LabeledObject;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
@@ -104,7 +105,7 @@ public abstract class AutoencodingProblem implements Problem {
         return tensors;
       }).toArray(Tensor[][]::new);
     } catch (@Nonnull final IOException e) {
-      throw new RuntimeException(e);
+      throw Util.throwException(e);
     }
   }
 

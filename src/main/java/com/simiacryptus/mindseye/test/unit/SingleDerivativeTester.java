@@ -604,7 +604,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
   private Tensor getDelta(DeltaSet<UUID> deltaSet, UUID inputKeyId, int[] dimensions) {
     RefMap<UUID, Delta<UUID>> map = deltaSet.getMap();
     final Delta<UUID> inputDelta = map.get(inputKeyId);
-    Tensor tensor;
+    final Tensor tensor;
     if (null != inputDelta) {
       tensor = new Tensor(inputDelta.getDelta(), dimensions);
       inputDelta.freeRef();

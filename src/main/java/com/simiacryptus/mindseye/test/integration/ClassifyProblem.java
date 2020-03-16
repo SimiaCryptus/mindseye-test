@@ -83,7 +83,7 @@ public abstract class ClassifyProblem implements Problem {
         return label;
       }).distinct().sorted().collect(Collectors.toList());
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw Util.throwException(e);
     }
   }
 
@@ -125,7 +125,7 @@ public abstract class ClassifyProblem implements Problem {
         return new Tensor[]{data, categoryTensor};
       }).toArray(Tensor[][]::new);
     } catch (@Nonnull final IOException e) {
-      throw new RuntimeException(e);
+      throw Util.throwException(e);
     }
   }
 
@@ -245,7 +245,7 @@ public abstract class ClassifyProblem implements Problem {
         partitioned.freeRef();
         return table;
       } catch (@Nonnull final IOException e) {
-        throw new RuntimeException(e);
+        throw Util.throwException(e);
       }
     }, network));
     return this;

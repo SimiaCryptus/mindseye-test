@@ -33,6 +33,7 @@ import com.simiacryptus.ref.lang.RefIgnore;
 import com.simiacryptus.ref.lang.RefUtil;
 import com.simiacryptus.ref.wrappers.*;
 import com.simiacryptus.util.JsonUtil;
+import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.PercentileStatistics;
 import com.simiacryptus.util.io.GifSequenceWriter;
 import guru.nidi.graphviz.attribute.Label;
@@ -539,7 +540,7 @@ public class TestUtil {
           //JsonUtil.MAPPER.writer().writeValue(out, new HashMap<>());
           out.close();
         } catch (IOException e) {
-          throw new RuntimeException(e);
+          throw Util.throwException(e);
         }
       });
     }
@@ -592,7 +593,7 @@ public class TestUtil {
       GifSequenceWriter.write(file, loopTimeMs / images.length, true, images);
       return RefString.format("<img src=\"etc/%s\" />", filename);
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw Util.throwException(e);
     }
   }
 

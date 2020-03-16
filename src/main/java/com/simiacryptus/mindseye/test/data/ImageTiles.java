@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.test.data;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.ref.wrappers.RefArrayList;
 import com.simiacryptus.ref.wrappers.RefList;
+import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.DataLoader;
 
 import javax.annotation.Nonnull;
@@ -171,7 +172,7 @@ public class ImageTiles {
           queue.addAll(ImageTiles.toTiles(f, tileWidth, tileHeight, minSpacingWidth, minSpacingHeight, maxTileCols,
               maxTileRows));
         } catch (@Nonnull final Throwable e) {
-          throw new RuntimeException(e);
+          throw Util.throwException(e);
         }
       }
       queue.freeRef();

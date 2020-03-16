@@ -19,10 +19,9 @@
 
 package com.simiacryptus.mindseye.test;
 
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.simiacryptus.aws.EC2Util;
 import com.simiacryptus.aws.S3Util;
+import com.simiacryptus.lang.TimedResult;
 import com.simiacryptus.notebook.MarkdownNotebookOutput;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.ref.wrappers.RefConsumer;
@@ -39,6 +38,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -52,33 +52,6 @@ public abstract class NotebookReportBase {
 
   @Nonnull
   protected String reportingFolder = "reports/_reports";
-
-  @Nonnull
-  public NotebookOutput getLog(TestInfo testInfo) {
-    Class<?> targetClass = getTargetClass();
-    final File reportFile = getTestReportLocation(testInfo, targetClass);
-    try {
-      MarkdownNotebookOutput markdownNotebookOutput = new MarkdownNotebookOutput(
-          reportFile, true, testInfo.getTestMethod().get().getName()
-      );
-      markdownNotebookOutput.setEnableZip(false);
-      markdownNotebookOutput.setArchiveHome(TestSettings.INSTANCE.testArchive.resolve(
-          Util.mkString("/",
-              toPathString(targetClass, '/'),
-              testInfo.getTestClass().map(c->c.getSimpleName()).orElse(""),
-              testInfo.getTestMethod().get().getName(),
-              new SimpleDateFormat("yyyyMMddmmss").format(new Date())
-          )
-      ));
-      S3Util.uploadOnComplete(markdownNotebookOutput, AmazonS3ClientBuilder.standard().build());
-      File metadataLocation = new File(TestSettings.INSTANCE.testRepo, "registry");
-      metadataLocation.mkdirs();
-      markdownNotebookOutput.setMetadataLocation(metadataLocation);
-      return markdownNotebookOutput;
-    } catch (FileNotFoundException e) {
-      throw new RuntimeException(e);
-    }
-  }
 
   public Class<? extends NotebookReportBase> getReportClass() {
     return getClass();
@@ -109,7 +82,7 @@ public abstract class NotebookReportBase {
     File path = new File(Util.mkString(File.separator,
         TestSettings.INSTANCE.testRepo,
         toPathString(sourceClass),
-        testInfo.getTestClass().map(c->c.getSimpleName()).orElse(""),
+        testInfo.getTestClass().map(c -> c.getSimpleName()).orElse(""),
         testInfo.getTestMethod().get().getName(),
         new SimpleDateFormat("yyyyMMddmmss").format(new Date())
     ));
@@ -130,21 +103,67 @@ public abstract class NotebookReportBase {
         .replace('$', separatorChar);
   }
 
+  @Nonnull
+  public NotebookOutput getLog(TestInfo testInfo) {
+    Class<?> targetClass = getTargetClass();
+    final File reportFile = getTestReportLocation(testInfo, targetClass);
+    try {
+      MarkdownNotebookOutput markdownNotebookOutput = new MarkdownNotebookOutput(
+          reportFile, true, testInfo.getTestMethod().get().getName()
+      );
+      markdownNotebookOutput.setEnableZip(false);
+      URI testArchive = TestSettings.INSTANCE.testArchive;
+      if (null != testArchive) markdownNotebookOutput.setArchiveHome(testArchive.resolve(
+          Util.mkString("/",
+              toPathString(targetClass, '/'),
+              testInfo.getTestClass().map(c -> c.getSimpleName()).orElse(""),
+              testInfo.getTestMethod().get().getName(),
+              new SimpleDateFormat("yyyyMMddmmss").format(new Date())
+          )
+      ));
+      S3Util.uploadOnComplete(markdownNotebookOutput, AmazonS3ClientBuilder.standard().build());
+      File metadataLocation = new File(TestSettings.INSTANCE.testRepo, "registry");
+      metadataLocation.mkdirs();
+      markdownNotebookOutput.setMetadataLocation(metadataLocation);
+      return markdownNotebookOutput;
+    } catch (FileNotFoundException e) {
+      throw Util.throwException(e);
+    }
+  }
+
   public void printHeader(@Nonnull NotebookOutput log) {
     log.setMetadata("created_on", new Date().toString());
     log.setMetadata("report_type", getReportType().name());
-    log.p("__Target Description:__ " + setReportType(log, getTargetClass(), "network"));
-    log.p("__Report Description:__ " + setReportType(log, getReportClass(), "report"));
+    CharSequence targetDescription = setReportType(log, getTargetClass(), "network");
+    if (null != targetDescription && targetDescription.length() > 0) {
+      log.p("__Target Description:__ " + targetDescription);
+    }
+    CharSequence reportDescription = setReportType(log, getReportClass(), "report");
+    if (null != reportDescription && reportDescription.length() > 0) {
+      log.p("__Report Description:__ " + reportDescription);
+    }
   }
 
-  public void run(TestInfo testInfo, @Nonnull RefConsumer<NotebookOutput> fn) {
-    try (@Nonnull
-         NotebookOutput log = getLog(testInfo)) {
-      CodeUtil.withRefLeakMonitor(log, NotebookOutput.concat(this::printHeader, MarkdownNotebookOutput.wrapFrontmatter(fn)));
-    } catch (RuntimeException e) {
-      throw e;
+  public void report(TestInfo testInfo, @Nonnull RefConsumer<NotebookOutput> fn) {
+    try (@Nonnull NotebookOutput log = getLog(testInfo)) {
+      CodeUtil.withRefLeakMonitor(log, withRef -> {
+        printHeader(withRef);
+        @Nonnull
+        TimedResult<Void> time = TimedResult.time(() -> {
+          try {
+            fn.accept(withRef);
+            withRef.setMetadata("result", "OK");
+          } catch (Throwable e) {
+            withRef.setMetadata("result", MarkdownNotebookOutput.replaceAll(MarkdownNotebookOutput.getExceptionString(e).toString(), "\n", "<br/>").trim());
+            throw Util.throwException(e);
+          }
+        });
+        withRef.setMetadata("execution_time", RefString.format("%.6f", time.timeNanos / 1e9));
+        withRef.setMetadata("gc_time", RefString.format("%.6f", time.gcMs / 1e9));
+        time.freeRef();
+      });
     } catch (Throwable e) {
-      throw new RuntimeException(e);
+      throw Util.throwException(e);
     }
   }
 

@@ -111,7 +111,7 @@ public abstract class EncodingProblem implements Problem {
         return new Tensor[]{tensor, data};
       }).toArray(Tensor[][]::new);
     } catch (@Nonnull final IOException e) {
-      throw new RuntimeException(e);
+      throw Util.throwException(e);
     }
   }
 
@@ -212,7 +212,7 @@ public abstract class EncodingProblem implements Problem {
       ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", log.file(filename));
       log.appendMetadata("result_plot", filename, ";");
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw Util.throwException(e);
     }
 
     //log.file()

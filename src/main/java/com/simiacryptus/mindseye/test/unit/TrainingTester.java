@@ -39,6 +39,7 @@ import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.ref.lang.RefIgnore;
 import com.simiacryptus.ref.lang.RefUtil;
 import com.simiacryptus.ref.wrappers.*;
+import com.simiacryptus.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import smile.plot.swing.PlotCanvas;
@@ -462,7 +463,7 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
       });
     } catch (Throwable e) {
       if (isThrowExceptions())
-        throw new RuntimeException(e);
+        throw Util.throwException(e);
     } finally {
       trainable.freeRef();
     }
@@ -490,7 +491,7 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
       });
     } catch (Throwable e) {
       if (isThrowExceptions())
-        throw new RuntimeException(e);
+        throw Util.throwException(e);
     } finally {
       trainable.freeRef();
     }
@@ -520,7 +521,7 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
       });
     } catch (Throwable e) {
       if (isThrowExceptions())
-        throw new RuntimeException(e);
+        throw Util.throwException(e);
     } finally {
       trainable.freeRef();
     }

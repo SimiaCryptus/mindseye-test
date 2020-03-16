@@ -20,8 +20,12 @@
 package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.test.unit.StandardLayerTests;
+import com.simiacryptus.mindseye.test.unit.EquivalencyTester;
+import com.simiacryptus.mindseye.test.unit.LayerTests;
+import com.simiacryptus.mindseye.test.unit.ReferenceIO;
+import com.simiacryptus.mindseye.test.unit.SerializationTest;
 import com.simiacryptus.ref.wrappers.RefSystem;
+import com.simiacryptus.util.Util;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.jupiter.api.Test;
@@ -30,14 +34,75 @@ import org.junit.jupiter.api.Timeout;
 
 import javax.annotation.Nonnull;
 import java.lang.management.ManagementFactory;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-public abstract class LayerTestBase extends StandardLayerTests {
+public abstract class LayerTestBase extends LayerTests {
 
   @Test
   @Timeout(value = 15, unit = TimeUnit.MINUTES)
-  public void test(TestInfo testInfo) {
-    run(testInfo, this::run);
+  public void perfTest(TestInfo testInfo) {
+    report(testInfo, log -> {
+      long seed = (long) (Math.random() * Long.MAX_VALUE);
+      run(log, getPerformanceTester(), getSmallDims(new Random(seed)), seed);
+    });
+  }
+
+  @Test
+  @Timeout(value = 15, unit = TimeUnit.MINUTES)
+  public void batchingTest(TestInfo testInfo) {
+    report(testInfo, log -> {
+      long seed = (long) (Math.random() * Long.MAX_VALUE);
+      run(log, getBatchingTester(), getSmallDims(new Random(seed)), seed);
+    });
+  }
+
+  @Test
+  @Timeout(value = 15, unit = TimeUnit.MINUTES)
+  public void referenceIOTest(TestInfo testInfo) {
+    report(testInfo, log -> {
+      long seed = (long) (Math.random() * Long.MAX_VALUE);
+      run(log, new ReferenceIO(getReferenceIO()), getSmallDims(new Random(seed)), seed);
+    });
+  }
+
+  @Test
+  @Timeout(value = 15, unit = TimeUnit.MINUTES)
+  public void equivalencyTest(TestInfo testInfo) {
+    report(testInfo, log -> {
+      long seed = (long) (Math.random() * Long.MAX_VALUE);
+      EquivalencyTester equivalencyTester = getEquivalencyTester();
+      if (null != equivalencyTester) {
+        run(log, equivalencyTester, getSmallDims(new Random(seed)), seed);
+      }
+    });
+  }
+
+  @Test
+  @Timeout(value = 15, unit = TimeUnit.MINUTES)
+  public void jsonTest(TestInfo testInfo) {
+    report(testInfo, log -> {
+      long seed = (long) (Math.random() * Long.MAX_VALUE);
+      run(log, new SerializationTest(), getSmallDims(new Random(seed)), seed);
+    });
+  }
+
+  @Test
+  @Timeout(value = 15, unit = TimeUnit.MINUTES)
+  public void derivativeTest(TestInfo testInfo) {
+    report(testInfo, log -> {
+      long seed = (long) (Math.random() * Long.MAX_VALUE);
+      run(log, getDerivativeTester(), getSmallDims(new Random(seed)), seed);
+    });
+  }
+
+  @Test
+  @Timeout(value = 15, unit = TimeUnit.MINUTES)
+  public void trainingTest(TestInfo testInfo) {
+    report(testInfo, log -> {
+      long seed = (long) (Math.random() * Long.MAX_VALUE);
+      run(log, getTrainingTester(), getSmallDims(new Random(seed)), seed);
+    });
   }
 
   @Before
@@ -65,7 +130,7 @@ public abstract class LayerTestBase extends StandardLayerTests {
     try {
       return (Layer) Class.forName("com.simiacryptus.mindseye.layers.java.EntropyLossLayer").getConstructor().newInstance();
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw Util.throwException(e);
     }
   }
 

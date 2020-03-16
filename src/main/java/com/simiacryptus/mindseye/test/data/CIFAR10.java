@@ -63,7 +63,7 @@ public class CIFAR10 {
         try {
           stream = Util.cacheStream(TestUtil.S3_ROOT.resolve("cifar-10-binary.tar.gz"));
         } catch (@Nonnull NoSuchAlgorithmException | KeyManagementException e) {
-          throw new RuntimeException(e);
+          throw Util.throwException(e);
         }
         final int recordSize = 3073;
         @Nonnull final GZIPInputStream inflatedInput = new GZIPInputStream(stream);
@@ -88,7 +88,7 @@ public class CIFAR10 {
         RefSystem.err.println("Done loading");
       } catch (@Nonnull final IOException e) {
         e.printStackTrace();
-        throw new RuntimeException(e);
+        throw Util.throwException(e);
       }
       queue.freeRef();
     }

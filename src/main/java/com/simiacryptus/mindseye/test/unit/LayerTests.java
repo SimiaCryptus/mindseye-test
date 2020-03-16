@@ -19,11 +19,14 @@
 
 package com.simiacryptus.mindseye.test.unit;
 
+import com.google.gson.GsonBuilder;
 import com.simiacryptus.devutil.Javadoc;
+import com.simiacryptus.lang.UncheckedSupplier;
 import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.layers.Explodable;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
-import com.simiacryptus.mindseye.test.ToleranceStatistics;
+import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.notebook.TableOutput;
 import com.simiacryptus.ref.lang.LifecycleException;
@@ -31,10 +34,16 @@ import com.simiacryptus.ref.lang.RefUtil;
 import com.simiacryptus.ref.lang.ReferenceCountingBase;
 import com.simiacryptus.ref.wrappers.*;
 import com.simiacryptus.util.IOUtil;
+import com.simiacryptus.util.Util;
+import com.simiacryptus.util.test.SysOutInterceptor;
+import guru.nidi.graphviz.engine.Format;
+import guru.nidi.graphviz.engine.Graphviz;
+import guru.nidi.graphviz.model.Graph;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -43,68 +52,43 @@ import java.util.function.DoubleSupplier;
 public abstract class LayerTests extends NotebookReportBase {
   public static final long seed = 51389; //com.simiacryptus.ref.wrappers.RefSystem.nanoTime();
   protected static final Map<String, ? extends NavigableMap<String, String>> javadocs = LayerTests.loadJavadoc();
+
+  static {
+    SysOutInterceptor.INSTANCE.init();
+  }
+
   private final Random random = getRandom();
   protected int testingBatchSize = 5;
-  protected boolean validateDifferentials = true;
-  protected double tolerance;
+  protected double tolerance = 1e-3;
 
-  public LayerTests() {
-    tolerance = 1e-3;
+  @Nonnull
+  protected BatchingTester getBatchingTester() {
+    return getBatchingTester(1e-2, true, this.testingBatchSize);
   }
 
   @Nullable
-  public ComponentTest<ToleranceStatistics> getBatchingTester() {
-    BatchingTester batchingTester = new BatchingTester(1e-2, validateDifferentials) {
-      {
-      }
-
-      @Override
-      public double getRandom() {
-        return random();
-      }
-
-      public @SuppressWarnings("unused")
-      void _free() {
-        super._free();
-      }
-    };
-    batchingTester.setBatchSize(testingBatchSize);
-    return batchingTester;
-  }
-
-  @Nullable
-  public ComponentTest<ToleranceStatistics> getDerivativeTester() {
-    if (!validateDifferentials)
-      return null;
+  protected SingleDerivativeTester getDerivativeTester() {
     return new SingleDerivativeTester(tolerance, 1e-4);
   }
 
   @Nullable
-  public ComponentTest<ToleranceStatistics> getEquivalencyTester() {
+  protected EquivalencyTester getEquivalencyTester() {
     @Nullable final Layer referenceLayer = getReferenceLayer();
     if (null == referenceLayer) {
       return null;
     }
-    EquivalencyTester temp_07_0002 = new EquivalencyTester(1e-2,
-        referenceLayer.addRef());
-    referenceLayer.freeRef();
-    return temp_07_0002;
+    return new EquivalencyTester(1e-2, referenceLayer);
   }
 
   @Nullable
-  protected ComponentTest<ToleranceStatistics> getJsonTester() {
-    return new SerializationTest();
-  }
-
-  @Nullable
-  public ComponentTest<ToleranceStatistics> getPerformanceTester() {
+  protected PerformanceTester getPerformanceTester() {
     PerformanceTester performanceTester = new PerformanceTester();
     performanceTester.setBatches(this.testingBatchSize);
     return performanceTester;
   }
 
   @Nonnull
-  public Random getRandom() {
+  protected Random getRandom() {
     return new Random(seed);
   }
 
@@ -114,17 +98,12 @@ public abstract class LayerTests extends NotebookReportBase {
   }
 
   @Nullable
-  protected ComponentTest<ToleranceStatistics> getReferenceIOTester() {
-    return new ReferenceIO(getReferenceIO());
-  }
-
-  @Nullable
-  public Layer getReferenceLayer() {
+  protected Layer getReferenceLayer() {
     return convertToReferenceLayer(getLayer(getSmallDims(new Random()), new Random()));
   }
 
   @Nullable
-  public Class<? extends Layer> getReferenceLayerClass() {
+  protected Class<? extends Layer> getReferenceLayerClass() {
     return null;
   }
 
@@ -134,6 +113,7 @@ public abstract class LayerTests extends NotebookReportBase {
     return ReportType.Components;
   }
 
+  @Nonnull
   @Override
   protected Class<?> getTargetClass() {
     Layer layer = getLayer(getSmallDims(new Random()), new Random());
@@ -148,7 +128,8 @@ public abstract class LayerTests extends NotebookReportBase {
     }
   }
 
-  public Class<?> getTestClass() {
+  @Nonnull
+  protected Class<?> getTestClass() {
     Layer layer = getLayer(getSmallDims(new Random()), new Random());
     assert layer != null;
     Class<?> layerClass = layer.getClass();
@@ -157,8 +138,8 @@ public abstract class LayerTests extends NotebookReportBase {
   }
 
   @Nullable
-  public ComponentTest<TrainingTester.ComponentResult> getTrainingTester() {
-    return new TrainingTester() {
+  protected TrainingTester getTrainingTester() {
+    TrainingTester trainingTester = new TrainingTester() {
 
       public @SuppressWarnings("unused")
       void _free() {
@@ -171,6 +152,8 @@ public abstract class LayerTests extends NotebookReportBase {
         return LayerTests.this.lossLayer();
       }
     };
+    trainingTester.setBatches(testingBatchSize);
+    return trainingTester;
   }
 
   public static int[] getDimensions(TensorList tensorList) {
@@ -193,10 +176,92 @@ public abstract class LayerTests extends NotebookReportBase {
   @NotNull
   public static Layer copy(Layer layer) {
     assert layer != null;
+    layer.assertAlive();
     try {
       return layer.copy();
     } finally {
       layer.freeRef();
+    }
+  }
+
+  public static final void renderGraph(@Nonnull NotebookOutput log, Layer layer) {
+    if (layer instanceof DAGNetwork) {
+      try {
+        log.h1("Network Diagram");
+        log.p("This is a network apply the following layout:");
+        log.eval(RefUtil.wrapInterface((UncheckedSupplier<BufferedImage>) () -> {
+          return Graphviz.fromGraph((Graph) TestUtil.toGraph(((DAGNetwork) layer).addRef())).height(400).width(600)
+              .render(Format.PNG).toImage();
+        }, layer.addRef()));
+      } catch (Throwable e) {
+        logger.info("Error plotting graph", e);
+      }
+    } else if (layer instanceof Explodable) {
+      try {
+        Layer explode = ((Explodable) layer).explode();
+        if (explode instanceof DAGNetwork) {
+          log.h1("Exploded Network Diagram");
+          log.p("This is a network apply the following layout:");
+          @Nonnull
+          DAGNetwork network = (DAGNetwork) explode.addRef();
+          log.eval(RefUtil.wrapInterface((UncheckedSupplier<String>) () -> {
+            @Nonnull
+            Graphviz graphviz = Graphviz.fromGraph((Graph) TestUtil.toGraph(network.addRef()))
+                .height(400).width(600);
+            @Nonnull
+            File file = new File(log.getResourceDir(), log.getFileName() + "_network.svg");
+            graphviz.render(Format.SVG_STANDALONE).toFile(file);
+            log.link(file, "Saved to File");
+            return graphviz.render(Format.SVG).toString();
+          }, network));
+        }
+        explode.freeRef();
+      } catch (Throwable e) {
+        logger.info("Error plotting graph", e);
+      }
+    }
+    layer.freeRef();
+  }
+
+  public static final void logDetails(@Nonnull NotebookOutput log, LayerTestParameters layerTestParameters, Layer subLayer) {
+    assert subLayer != null;
+    log.p(RefArrays.deepToString(layerTestParameters.getDims()));
+    layerTestParameters.freeRef();
+    log.eval(() -> {
+      return new GsonBuilder().setPrettyPrinting().create().toJson(
+          subLayer.getJson(new HashMap<>(), SerialPrecision.Double)
+      );
+    });
+    subLayer.freeRef();
+  }
+
+  @NotNull
+  public static String getName(Class<? extends ComponentTest> testClass) {
+    String name = testClass.getCanonicalName();
+    if (null == name)
+      name = testClass.getName();
+    if (null == name)
+      name = testClass.toString();
+    return name;
+  }
+
+  public static void throwException(@Nonnull RefList<TestError> exceptions) {
+    exceptions.forEach(exception -> {
+      logger.info(RefString.format("LayerBase: %s", exception.layer));
+      logger.info("Error", exception.toString());
+    });
+    try {
+      exceptions.forEach(exception -> {
+        try {
+          ReferenceCountingBase.supressLog = true;
+          RefSystem.gc();
+          throw Util.throwException(exception);
+        } finally {
+          ReferenceCountingBase.supressLog = false;
+        }
+      });
+    } finally {
+      exceptions.freeRef();
     }
   }
 
@@ -212,27 +277,45 @@ public abstract class LayerTests extends NotebookReportBase {
     }
   }
 
+  @NotNull
+  protected final BatchingTester getBatchingTester(double tolerance, boolean validateDifferentials, int testingBatchSize) {
+    BatchingTester batchingTester = new BatchingTester(tolerance, validateDifferentials) {
+
+      @Override
+      public double getRandom() {
+        return random();
+      }
+
+      public @SuppressWarnings("unused")
+      void _free() {
+        super._free();
+      }
+    };
+    batchingTester.setBatchSize(testingBatchSize);
+    return batchingTester;
+  }
+
   @Nonnull
-  public abstract int[][] getSmallDims(Random random);
+  protected abstract int[][] getSmallDims(Random random);
 
   @Nullable
-  public abstract Layer getLayer(int[][] inputSize, Random random);
+  protected abstract Layer getLayer(int[][] inputSize, Random random);
 
   @Nonnull
-  public int[][] getLargeDims(Random random) {
+  protected int[][] getLargeDims(Random random) {
     return getSmallDims(new Random());
   }
 
-  public double random() {
+  protected double random() {
     return random(random);
   }
 
-  public double random(@Nonnull Random random) {
+  protected double random(@Nonnull Random random) {
     return Math.round(1000.0 * (random.nextDouble() - 0.5)) / 250.0;
   }
 
   @Nonnull
-  public Tensor[] randomize(@Nonnull final int[][] inputDims) {
+  protected Tensor[] randomTensors(@Nonnull final int[][] inputDims) {
     return RefArrays.stream(inputDims).map(dim -> {
       Tensor tensor = new Tensor(dim);
       tensor.set((DoubleSupplier) this::random);
@@ -240,23 +323,14 @@ public abstract class LayerTests extends NotebookReportBase {
     }).toArray(Tensor[]::new);
   }
 
-  public static void throwException(@Nonnull RefList<TestError> exceptions) {
-    exceptions.forEach(exception -> {
-      logger.info(RefString.format("LayerBase: %s", exception.layer));
-      logger.info("Error", exception.toString());
-    });
-    try {
-      exceptions.forEach(exception -> {
-        try {
-          ReferenceCountingBase.supressLog = true;
-          RefSystem.gc();
-          throw new RuntimeException(exception);
-        } finally {
-          ReferenceCountingBase.supressLog = false;
-        }
+  protected final void printJavadoc(@Nonnull NotebookOutput log) {
+    NavigableMap<String, String> javadoc = javadocs.get(getTargetClass().getCanonicalName());
+    if (null != javadoc) {
+      log.p("Class Javadoc: " + javadoc.get(":class"));
+      javadoc.remove(":class");
+      javadoc.forEach((key, doc) -> {
+        log.p(RefString.format("Field __%s__: %s", key, doc));
       });
-    } finally {
-      exceptions.freeRef();
     }
   }
 
@@ -278,19 +352,81 @@ public abstract class LayerTests extends NotebookReportBase {
   @Nonnull
   protected abstract Layer lossLayer();
 
-  protected void run(@Nonnull final NotebookOutput log,
-                     @Nonnull final RefList<ComponentTest<?>> tests,
-                     @Nonnull final Invocation invocation,
-                     @Nonnull final RefList<TestError> out_exceptions,
-                     @Nonnull TableOutput out_results) {
-    tests.stream().filter(x -> {
-      boolean notNull = null != x;
-      if (null != x) x.freeRef();
-      return notNull;
-    }).forEach(RefUtil.wrapInterface(test -> {
-      run(log, invocation, test, out_exceptions.addRef(), out_results);
-    }, out_exceptions, invocation));
-    tests.freeRef();
+  protected void run(@Nonnull NotebookOutput log, ComponentTest<?> test, @Nonnull LayerTestParameters layerTestParameters, @Nonnull RefList<TestError> out_exceptions, @Nonnull TableOutput out_results) {
+    @Nonnull RefList<TestError> exceptions = new RefArrayList<>();
+    @Nonnull Layer layer = LayerTests.copy(layerTestParameters.getLayer());
+
+    try {
+      Map<CharSequence, Object> testResultProps = new LinkedHashMap<>();
+      try {
+        String testname = test.getClass().getCanonicalName();
+        testResultProps.put("class", testname);
+        Tensor[] inputs = randomTensors(layerTestParameters.getDims());
+        Object result = test.test(log, layer.addRef(), inputs);
+        testResultProps.put("details", null == result ? null : result.toString());
+        RefUtil.freeRef(result);
+        testResultProps.put("result", "OK");
+      } catch (LifecycleException e) {
+        throw e;
+      } catch (Throwable e) {
+        testResultProps.put("result", e.toString());
+        exceptions.add(new TestError(e, test.addRef(), layer.addRef()));
+      }
+      out_results.putRow(testResultProps);
+
+      if (!exceptions.isEmpty() && layer instanceof DAGNetwork) {
+        log.h1("SubTests: " + layer.getClass().getSimpleName());
+        RefCollection<LayerTestParameters> subLayerTestParameters = LayerTestParameters.getNodeTests(layer.addRef(), layerTestParameters.getDims());
+        subLayerTestParameters.forEach(sub_layerTestParameters -> {
+          logDetails(log, sub_layerTestParameters.addRef(), sub_layerTestParameters.getLayer());
+          RefArrayList<TestError> subExceptions = new RefArrayList<>();
+          run(log, test.addRef(), sub_layerTestParameters, subExceptions.addRef(), out_results);
+          subExceptions.forEach((TestError ex) -> log.eval(() -> {
+            return Util.toString(ex);
+          }));
+          exceptions.addAll(subExceptions);
+        });
+        subLayerTestParameters.freeRef();
+      }
+      out_exceptions.addAll(exceptions);
+    } finally {
+      layer.freeRef();
+      test.freeRef();
+      out_exceptions.freeRef();
+      layerTestParameters.freeRef();
+      RefSystem.gc();
+    }
+
+
+  }
+
+  protected void run(@Nonnull NotebookOutput log, ComponentTest<?> test, @Nonnull int[][] dims, long seed) {
+    logger.info("Seed: " + seed);
+    printJavadoc(log);
+    final Layer layer = getLayer(dims, new Random(seed));
+    TableOutput results = new TableOutput();
+    try {
+      log.h1("Test Modules");
+      RefArrayList<TestError> exceptions = new RefArrayList<>();
+      renderGraph(log, layer.addRef());
+      log.p(RefString.format("Using Seed %d", seed));
+
+      run(log,
+          test, new LayerTestParameters(
+              layer.copy(),
+              dims
+          ),
+          exceptions.addRef(),
+          results);
+      log.run(RefUtil.wrapInterface(() -> {
+        throwException(exceptions.addRef());
+      }, exceptions));
+    } finally {
+      layer.freeRef();
+    }
+
+    log.h1("Results");
+    log.out(results.toMarkdownTable());
   }
 
   @Nullable
@@ -316,34 +452,6 @@ public abstract class LayerTests extends NotebookReportBase {
       }
     } else {
       return layer;
-    }
-  }
-
-  private void run(@Nonnull NotebookOutput log, @Nonnull Invocation invocation, ComponentTest<?> test, @Nonnull RefList<TestError> out_exceptions, @Nonnull TableOutput out_results) {
-    @Nonnull Layer layer = LayerTests.copy(invocation.getLayer());
-    Tensor[] inputs = randomize(invocation.getDims());
-    Map<CharSequence, Object> testResultProps = new LinkedHashMap<>();
-    try {
-      String testname = test.getClass().getCanonicalName();
-      testResultProps.put("class", testname);
-      Object result = log.subreport(RefUtil.wrapInterface(
-          sublog -> test.test(sublog, layer.addRef(), RefUtil.addRef(inputs)),
-          inputs, layer.addRef(), test.addRef()),
-          String.format("%s (Test: %s)", log.getDisplayName(), testname));
-      testResultProps.put("details", null == result ? null : result.toString());
-      RefUtil.freeRef(result);
-      testResultProps.put("result", "OK");
-    } catch (LifecycleException e) {
-      throw e;
-    } catch (Throwable e) {
-      testResultProps.put("result", e.toString());
-      out_exceptions.add(new TestError(e, test.addRef(), layer.addRef()));
-    } finally {
-      out_results.putRow(testResultProps);
-      out_exceptions.freeRef();
-      test.freeRef();
-      layer.freeRef();
-      RefSystem.gc();
     }
   }
 

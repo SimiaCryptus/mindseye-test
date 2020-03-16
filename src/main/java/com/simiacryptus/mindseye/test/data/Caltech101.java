@@ -59,7 +59,7 @@ public class Caltech101 {
           // Repackaging as a zip is needed - the tar format classes dont work here
           stream = Util.cacheStream(TestUtil.S3_ROOT.resolve("101_ObjectCategories.zip"));
         } catch (@Nonnull NoSuchAlgorithmException | KeyManagementException e) {
-          throw new RuntimeException(e);
+          throw Util.throwException(e);
         }
         final boolean continueLoop = true;
         @Nullable final ZipInputStream tar = new ZipInputStream(stream);
@@ -85,13 +85,13 @@ public class Caltech101 {
             try {
               return ImageIO.read(new ByteArrayInputStream(data));
             } catch (@Nonnull final IOException e) {
-              throw new RuntimeException(e);
+              throw Util.throwException(e);
             }
           }), category));
         }
       } catch (@Nonnull final IOException e) {
         e.printStackTrace();
-        throw new RuntimeException(e);
+        throw Util.throwException(e);
       }
       queue.freeRef();
     }

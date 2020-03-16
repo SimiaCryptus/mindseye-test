@@ -36,12 +36,12 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 
-class Invocation extends ReferenceCountingBase {
+class LayerTestParameters extends ReferenceCountingBase {
   @Nullable
   private final Layer layer;
   private final int[][] inputDims;
 
-  protected Invocation(@Nullable Layer layer, int[][] inputDims) {
+  protected LayerTestParameters(@Nullable Layer layer, int[][] inputDims) {
     this.layer = layer;
     this.inputDims = inputDims;
   }
@@ -56,12 +56,12 @@ class Invocation extends ReferenceCountingBase {
   }
 
   @Nonnull
-  public static RefCollection<Invocation> getInvocations(@Nonnull Layer layer, @Nonnull int[][] inputDims) {
+  public static RefCollection<LayerTestParameters> getNodeTests(@Nonnull Layer layer, @Nonnull int[][] inputDims) {
     @Nonnull
     DAGNetwork layerCopy = (DAGNetwork) layer.copy();
     layer.freeRef();
     @Nonnull
-    RefHashSet<Invocation> invocations = new RefHashSet<>();
+    RefHashSet<LayerTestParameters> layerTestParameters = new RefHashSet<>();
     layerCopy.visitNodes(RefUtil.wrapInterface(node -> {
       @Nullable
       Layer inner = node.getLayer();
@@ -69,7 +69,7 @@ class Invocation extends ReferenceCountingBase {
       Layer wrapper = new LayerBase() {
         {
           inner.addRef();
-          invocations.addRef();
+          layerTestParameters.addRef();
         }
 
         @Nullable
@@ -81,8 +81,8 @@ class Invocation extends ReferenceCountingBase {
           }
           @Nullable
           Result result = inner.eval(RefUtil.addRef(array));
-          invocations.add(
-              new Invocation(inner.addRef(), RefArrays.stream(array).map(x -> {
+          layerTestParameters.add(
+              new LayerTestParameters(inner.addRef(), RefArrays.stream(array).map(x -> {
                 return LayerTests.getDimensions(LayerTests.getData(x));
               }).toArray(int[][]::new)));
           return result;
@@ -104,20 +104,20 @@ class Invocation extends ReferenceCountingBase {
         public void _free() {
           super._free();
           inner.freeRef();
-          invocations.freeRef();
+          layerTestParameters.freeRef();
         }
       };
       if (null != inner)
         inner.freeRef();
       node.setLayer(wrapper);
       node.freeRef();
-    }, invocations.addRef()));
+    }, layerTestParameters.addRef()));
     Tensor[] input = RefArrays.stream(inputDims).map(Tensor::new).toArray(Tensor[]::new);
     Result eval = layerCopy.eval(input);
     layerCopy.freeRef();
     assert eval != null;
     eval.freeRef();
-    return invocations;
+    return layerTestParameters;
   }
 
   @Override
@@ -125,7 +125,7 @@ class Invocation extends ReferenceCountingBase {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-    Invocation that = (Invocation) o;
+    LayerTestParameters that = (LayerTestParameters) o;
     return Objects.equals(layer, that.layer) &&
         Arrays.equals(inputDims, that.inputDims);
   }
@@ -147,7 +147,7 @@ class Invocation extends ReferenceCountingBase {
   @Nonnull
   public @Override
   @SuppressWarnings("unused")
-  Invocation addRef() {
-    return (Invocation) super.addRef();
+  LayerTestParameters addRef() {
+    return (LayerTestParameters) super.addRef();
   }
 }

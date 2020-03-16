@@ -49,7 +49,7 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
 
   @Test
   public void run(TestInfo testInfo) {
-    run(testInfo, this::run);
+    report(testInfo, this::run);
   }
 
   public void run(@Nonnull NotebookOutput log) {
