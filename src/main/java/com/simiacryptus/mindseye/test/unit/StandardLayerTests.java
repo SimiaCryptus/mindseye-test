@@ -30,7 +30,6 @@ import com.simiacryptus.ref.wrappers.RefString;
 import com.simiacryptus.util.test.SysOutInterceptor;
 
 import javax.annotation.Nonnull;
-import java.util.Random;
 
 public abstract class StandardLayerTests extends LayerTests {
 
@@ -62,10 +61,10 @@ public abstract class StandardLayerTests extends LayerTests {
   public final void allTests(@Nonnull final NotebookOutput log) {
     printJavadoc(log);
     long seed = (long) (Math.random() * Long.MAX_VALUE);
-    @Nonnull int[][] smallDims = getSmallDims(new Random(seed));
-    final Layer smallLayer = getLayer(smallDims, new Random(seed));
-    @Nonnull int[][] largeDims = getLargeDims(new Random(seed));
-    final Layer largeLayer = getLayer(largeDims, new Random(seed));
+    @Nonnull int[][] smallDims = getSmallDims();
+    final Layer smallLayer = getLayer();
+    @Nonnull int[][] largeDims = getLargeDims();
+    final Layer largeLayer = getLayer();
     assert smallLayer.getClass() == largeLayer.getClass();
 
     TableOutput results = new TableOutput();
@@ -96,7 +95,7 @@ public abstract class StandardLayerTests extends LayerTests {
       run(log,
           getFinalTests(),
           new LayerTestParameters(
-              getLayer(largeDims, new Random(seed)),
+              getLayer(),
               largeDims),
           new RefArrayList<>(), results);
 

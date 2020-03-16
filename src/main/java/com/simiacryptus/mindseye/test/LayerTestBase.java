@@ -24,105 +24,67 @@ import com.simiacryptus.mindseye.test.unit.EquivalencyTester;
 import com.simiacryptus.mindseye.test.unit.LayerTests;
 import com.simiacryptus.mindseye.test.unit.ReferenceIO;
 import com.simiacryptus.mindseye.test.unit.SerializationTest;
-import com.simiacryptus.ref.wrappers.RefSystem;
 import com.simiacryptus.util.Util;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.Timeout;
 
 import javax.annotation.Nonnull;
-import java.lang.management.ManagementFactory;
-import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 public abstract class LayerTestBase extends LayerTests {
 
   @Test
   @Timeout(value = 15, unit = TimeUnit.MINUTES)
-  public void perfTest(TestInfo testInfo) {
-    report(testInfo, log -> {
-      long seed = (long) (Math.random() * Long.MAX_VALUE);
-      run(log, getPerformanceTester(), getSmallDims(new Random(seed)), seed);
-    });
+  public void perfTest() {
+    long seed = (long) (Math.random() * Long.MAX_VALUE);
+    run(getLog(), getPerformanceTester(), getLargeDims(), seed);
   }
 
   @Test
   @Timeout(value = 15, unit = TimeUnit.MINUTES)
-  public void batchingTest(TestInfo testInfo) {
-    report(testInfo, log -> {
-      long seed = (long) (Math.random() * Long.MAX_VALUE);
-      run(log, getBatchingTester(), getSmallDims(new Random(seed)), seed);
-    });
+  public void batchingTest() {
+    long seed = (long) (Math.random() * Long.MAX_VALUE);
+    run(getLog(), getBatchingTester(), getLargeDims(), seed);
   }
 
   @Test
   @Timeout(value = 15, unit = TimeUnit.MINUTES)
-  public void referenceIOTest(TestInfo testInfo) {
-    report(testInfo, log -> {
-      long seed = (long) (Math.random() * Long.MAX_VALUE);
-      run(log, new ReferenceIO(getReferenceIO()), getSmallDims(new Random(seed)), seed);
-    });
+  public void referenceIOTest() {
+    long seed = (long) (Math.random() * Long.MAX_VALUE);
+    run(getLog(), new ReferenceIO(getReferenceIO()), getLargeDims(), seed);
   }
 
   @Test
   @Timeout(value = 15, unit = TimeUnit.MINUTES)
-  public void equivalencyTest(TestInfo testInfo) {
-    report(testInfo, log -> {
-      long seed = (long) (Math.random() * Long.MAX_VALUE);
-      EquivalencyTester equivalencyTester = getEquivalencyTester();
-      if (null != equivalencyTester) {
-        run(log, equivalencyTester, getSmallDims(new Random(seed)), seed);
-      }
-    });
+  public void equivalencyTest() {
+    long seed = (long) (Math.random() * Long.MAX_VALUE);
+    EquivalencyTester equivalencyTester = getEquivalencyTester();
+    if (null != equivalencyTester) {
+      run(getLog(), equivalencyTester, getLargeDims(), seed);
+    }
   }
 
   @Test
   @Timeout(value = 15, unit = TimeUnit.MINUTES)
-  public void jsonTest(TestInfo testInfo) {
-    report(testInfo, log -> {
-      long seed = (long) (Math.random() * Long.MAX_VALUE);
-      run(log, new SerializationTest(), getSmallDims(new Random(seed)), seed);
-    });
+  public void jsonTest() {
+    long seed = (long) (Math.random() * Long.MAX_VALUE);
+    run(getLog(), new SerializationTest(), getSmallDims(), seed);
   }
 
   @Test
   @Timeout(value = 15, unit = TimeUnit.MINUTES)
-  public void derivativeTest(TestInfo testInfo) {
-    report(testInfo, log -> {
-      long seed = (long) (Math.random() * Long.MAX_VALUE);
-      run(log, getDerivativeTester(), getSmallDims(new Random(seed)), seed);
-    });
+  public void derivativeTest() {
+    long seed = (long) (Math.random() * Long.MAX_VALUE);
+    run(getLog(), getDerivativeTester(), getSmallDims(), seed);
   }
 
   @Test
   @Timeout(value = 15, unit = TimeUnit.MINUTES)
-  public void trainingTest(TestInfo testInfo) {
-    report(testInfo, log -> {
-      long seed = (long) (Math.random() * Long.MAX_VALUE);
-      run(log, getTrainingTester(), getSmallDims(new Random(seed)), seed);
-    });
+  public void trainingTest() {
+    long seed = (long) (Math.random() * Long.MAX_VALUE);
+    run(getLog(), getTrainingTester(), getLargeDims(), seed);
   }
 
-  @Before
-  public void setup() {
-    reportingFolder = "reports/_reports";
-    //GpuController.remove();
-  }
-
-  @After
-  public void cleanup() {
-    RefSystem.gc();
-    long used = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed();
-    logger.info("Total memory after GC: " + used);
-//    try {
-//      Thread.sleep(5*1000);
-//    } catch (InterruptedException e) {
-//      e.printStackTrace();
-//    }
-    //GpuController.remove();
-  }
 
   @Nonnull
   @Override

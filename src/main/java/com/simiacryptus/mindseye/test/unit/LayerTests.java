@@ -80,6 +80,14 @@ public abstract class LayerTests extends NotebookReportBase {
     return new EquivalencyTester(1e-2, referenceLayer);
   }
 
+  @Nonnull
+  protected int[][] getLargeDims() {
+    return getSmallDims();
+  }
+
+  @Nullable
+  protected abstract Layer getLayer();
+
   @Nullable
   protected PerformanceTester getPerformanceTester() {
     PerformanceTester performanceTester = new PerformanceTester();
@@ -99,7 +107,7 @@ public abstract class LayerTests extends NotebookReportBase {
 
   @Nullable
   protected Layer getReferenceLayer() {
-    return convertToReferenceLayer(getLayer(getSmallDims(new Random()), new Random()));
+    return convertToReferenceLayer(getLayer());
   }
 
   @Nullable
@@ -114,9 +122,12 @@ public abstract class LayerTests extends NotebookReportBase {
   }
 
   @Nonnull
+  protected abstract int[][] getSmallDims();
+
+  @Nonnull
   @Override
   protected Class<?> getTargetClass() {
-    Layer layer = getLayer(getSmallDims(new Random()), new Random());
+    Layer layer = getLayer();
     try {
       assert layer != null;
       return layer.getClass();
@@ -130,7 +141,7 @@ public abstract class LayerTests extends NotebookReportBase {
 
   @Nonnull
   protected Class<?> getTestClass() {
-    Layer layer = getLayer(getSmallDims(new Random()), new Random());
+    Layer layer = getLayer();
     assert layer != null;
     Class<?> layerClass = layer.getClass();
     layer.freeRef();
@@ -295,17 +306,6 @@ public abstract class LayerTests extends NotebookReportBase {
     return batchingTester;
   }
 
-  @Nonnull
-  protected abstract int[][] getSmallDims(Random random);
-
-  @Nullable
-  protected abstract Layer getLayer(int[][] inputSize, Random random);
-
-  @Nonnull
-  protected int[][] getLargeDims(Random random) {
-    return getSmallDims(new Random());
-  }
-
   protected double random() {
     return random(random);
   }
@@ -403,7 +403,7 @@ public abstract class LayerTests extends NotebookReportBase {
   protected void run(@Nonnull NotebookOutput log, ComponentTest<?> test, @Nonnull int[][] dims, long seed) {
     logger.info("Seed: " + seed);
     printJavadoc(log);
-    final Layer layer = getLayer(dims, new Random(seed));
+    final Layer layer = getLayer();
     TableOutput results = new TableOutput();
     try {
       log.h1("Test Modules");

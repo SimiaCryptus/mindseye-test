@@ -28,7 +28,6 @@ import com.simiacryptus.ref.wrappers.*;
 import com.simiacryptus.util.function.WeakCachedSupplier;
 import com.simiacryptus.util.test.LabeledObject;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -48,11 +47,8 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
   }
 
   @Test
-  public void run(TestInfo testInfo) {
-    report(testInfo, this::run);
-  }
-
-  public void run(@Nonnull NotebookOutput log) {
+  public void run() {
+    @Nonnull NotebookOutput log = getLog();
     log.h3("Loading Data");
     RefList<LabeledObject<WeakCachedSupplier<BufferedImage>>> testData = getTrainingStream(log)
         .sorted(getShuffleComparator()).collect(RefCollectors.toList());

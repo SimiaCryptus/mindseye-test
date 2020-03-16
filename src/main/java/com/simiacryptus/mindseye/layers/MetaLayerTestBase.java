@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers;
 
 import com.simiacryptus.mindseye.test.LayerTestBase;
 import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.TestInfo;
 
 public abstract class MetaLayerTestBase extends LayerTestBase {
 
@@ -30,14 +29,14 @@ public abstract class MetaLayerTestBase extends LayerTestBase {
 
   @Override
   @Disabled
-  public void batchingTest(TestInfo testInfo) {
-    super.batchingTest(testInfo);
+  public void batchingTest() {
+    super.batchingTest();
   }
 
   @Override
   @Disabled
-  public void derivativeTest(TestInfo testInfo) {
-    super.derivativeTest(testInfo);
+  public void derivativeTest() {
+    super.derivativeTest();
   }
 
 }

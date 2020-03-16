@@ -114,7 +114,7 @@ public abstract class ClassifyProblem implements Problem {
   }
 
   @Nonnull
-  public Tensor[][] getTrainingData(final NotebookOutput log) {
+  public Tensor[][] getTrainingData() {
     try {
       return data.trainingData().map(labeledObject -> {
         @Nonnull final Tensor categoryTensor = new Tensor(categories);
@@ -152,7 +152,7 @@ public abstract class ClassifyProblem implements Problem {
   @Override
   public ClassifyProblem run(@Nonnull final NotebookOutput log) {
     @Nonnull final TrainingMonitor monitor = TestUtil.getMonitor(history);
-    final Tensor[][] trainingData = getTrainingData(log);
+    final Tensor[][] trainingData = getTrainingData();
 
     @Nonnull final DAGNetwork network = fwdFactory.imageToVector(log, categories);
     log.h3("Network Diagram");
