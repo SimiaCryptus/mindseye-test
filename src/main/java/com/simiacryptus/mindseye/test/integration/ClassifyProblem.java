@@ -200,11 +200,11 @@ public abstract class ClassifyProblem implements Problem {
     } catch (IOException e) {
       logger.warn("Error writing result images", e);
     }
-    log.appendMetadata("result_plot", new File(log.getResourceDir(), training_name).toString(), ";");
+    log.addMetadata("result_plot", new File(log.getResourceDir(), training_name).toString());
 
     TestUtil.extractPerformance(log, supervisedNetwork);
     @Nonnull final String modelName = "classification_model_" + ClassifyProblem.modelNo++ + ".json";
-    log.appendMetadata("result_model", modelName, ";");
+    log.addMetadata("result_model", modelName);
     log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
 
     log.h3("Validation");

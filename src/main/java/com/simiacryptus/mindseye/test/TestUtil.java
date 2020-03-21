@@ -120,7 +120,7 @@ public class TestUtil {
       filtered.freeRef();
       return canvas;
     } catch (@Nonnull final Exception e) {
-      e.printStackTrace(RefSystem.out);
+      e.printStackTrace(System.out);
       return null;
     }
   }
@@ -175,7 +175,7 @@ public class TestUtil {
       filtered.freeRef();
       return canvas;
     } catch (@Nonnull final Exception e) {
-      e.printStackTrace(RefSystem.out);
+      e.printStackTrace(System.out);
       return null;
     }
   }
@@ -372,7 +372,7 @@ public class TestUtil {
       plot.setSize(600, 400);
       return plot;
     } catch (@Nonnull final Exception e) {
-      e.printStackTrace(RefSystem.out);
+      e.printStackTrace(System.out);
       return null;
     }
   }

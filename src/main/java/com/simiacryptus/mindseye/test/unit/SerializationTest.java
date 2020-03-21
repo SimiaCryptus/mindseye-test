@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.test.unit;
 
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.Layer;
@@ -94,7 +95,8 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
     String prettyPrint = "";
     log.h2("Raw Json");
     try {
-      prettyPrint = log.eval(RefUtil.wrapInterface(() -> {
+      Gson gson = new GsonBuilder().setPrettyPrinting().create();
+      prettyPrint = gson.toJson(log.eval(RefUtil.wrapInterface(() -> {
         final JsonObject json = layer.getJson().getAsJsonObject();
         @Nonnull final Layer echo = Layer.fromJson(json);
         if (layer == echo) {
@@ -106,12 +108,12 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
           throw new AssertionError("Serialization not equal");
         }
         echo.freeRef();
-        return new GsonBuilder().setPrettyPrinting().create().toJson(json);
-      }, layer.addRef()));
+        return json;
+      }, layer.addRef())));
       @Nonnull
       String filename = layer.getClass().getSimpleName() + "_" + log.getFileName() + ".json";
       log.p(log.file(prettyPrint, filename,
-          RefString.format("Wrote Model to %s; %s characters", filename, prettyPrint.length())));
+          String.format("Wrote Model to %s; %s characters", filename, prettyPrint.length())));
     } catch (RuntimeException e) {
       e.printStackTrace();
       Util.sleep(1000);

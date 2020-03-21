@@ -86,7 +86,7 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
       String temp_10_0001 = "\t" + RefArrays.toString(t.getDimensions());
       t.freeRef();
       return temp_10_0001;
-    }).forEach(x1 -> RefSystem.out.println(x1));
+    }).forEach(x1 -> System.out.println(x1));
     log.info("Performance:");
     RefList<Tuple2<Double, Double>> performance = RefIntStream.range(0, samples)
         .mapToObj(RefUtil.wrapInterface((IntFunction<? extends Tuple2<Double, Double>>) i -> {

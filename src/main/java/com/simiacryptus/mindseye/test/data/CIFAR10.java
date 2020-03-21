@@ -85,7 +85,7 @@ public class CIFAR10 {
           }
           iterator.freeRef();
         }
-        RefSystem.err.println("Done loading");
+        System.err.println("Done loading");
       } catch (@Nonnull final IOException e) {
         e.printStackTrace();
         throw Util.throwException(e);

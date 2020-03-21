@@ -283,7 +283,7 @@ public abstract class LayerTests extends NotebookReportBase {
       IOUtil.writeJson(new TreeMap<>(javadocData), new File("./javadoc.json"));
       return javadocData;
     } catch (Throwable e) {
-      logger.warn("Error loading javadocs", e);
+      logger.debug("Error loading javadocs", e);
       return new HashMap<>();
     }
   }
@@ -324,13 +324,17 @@ public abstract class LayerTests extends NotebookReportBase {
   }
 
   protected final void printJavadoc(@Nonnull NotebookOutput log) {
-    NavigableMap<String, String> javadoc = javadocs.get(getTargetClass().getCanonicalName());
-    if (null != javadoc) {
-      log.p("Class Javadoc: " + javadoc.get(":class"));
-      javadoc.remove(":class");
-      javadoc.forEach((key, doc) -> {
-        log.p(RefString.format("Field __%s__: %s", key, doc));
-      });
+    try {
+      NavigableMap<String, String> javadoc = javadocs.get(getTargetClass().getCanonicalName());
+      if (null != javadoc) {
+        log.p("Class Javadoc: " + javadoc.get(":class"));
+        javadoc.remove(":class");
+        javadoc.forEach((key, doc) -> {
+          log.p(RefString.format("Field __%s__: %s", key, doc));
+        });
+      }
+    } catch (Throwable e) {
+      logger.warn("Error printing Javadoc",e);
     }
   }
 
