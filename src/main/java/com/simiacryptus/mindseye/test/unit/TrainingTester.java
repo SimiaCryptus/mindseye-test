@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.test.unit;
 
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.simiacryptus.lang.UncheckedSupplier;
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
@@ -257,7 +259,7 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
       return new ComponentResult(null == inputLearning ? null : inputLearning.value,
           null == modelLearning ? null : modelLearning.value, null == completeLearning ? null : completeLearning.value);
     });
-    log.setMetadata("training_analysis", result.toString());
+    log.setMetadata("training_analysis", new GsonBuilder().create().fromJson(result.toString(), JsonObject.class));
     if (throwExceptions) {
       assert result.complete.map.values().stream().allMatch(x -> x.type == ResultType.Converged);
       assert result.input.map.values().stream().allMatch(x -> x.type == ResultType.Converged);
