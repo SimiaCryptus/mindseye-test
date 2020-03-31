@@ -602,8 +602,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
 
   @org.jetbrains.annotations.Nullable
   private Tensor getDelta(DeltaSet<UUID> deltaSet, UUID inputKeyId, int[] dimensions) {
-    RefMap<UUID, Delta<UUID>> map = deltaSet.getMap();
-    final Delta<UUID> inputDelta = map.get(inputKeyId);
+    final Delta<UUID> inputDelta = deltaSet.get(inputKeyId);
     final Tensor tensor;
     if (null != inputDelta) {
       tensor = new Tensor(inputDelta.getDelta(), dimensions);
@@ -611,7 +610,6 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     } else {
       tensor = null;
     }
-    map.freeRef();
     deltaSet.freeRef();
     return tensor;
   }

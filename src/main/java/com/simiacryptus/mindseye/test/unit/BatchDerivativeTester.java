@@ -556,9 +556,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       temp_02_0045.freeRef();
       eval.accumulate(xxx.addRef(), tensorArray);
       eval.freeRef();
-      RefMap<UUID, Delta<UUID>> temp_02_0046 = xxx.getMap();
-      final Delta<UUID> inputDelta = temp_02_0046.get(inputKey);
-      temp_02_0046.freeRef();
+      final Delta<UUID> inputDelta = xxx.get(inputKey.getId());
       xxx.freeRef();
       if (null != inputDelta) {
         result.addInPlace(new Tensor(inputDelta.getDelta(), result.getDimensions()));

@@ -711,7 +711,7 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     @Nonnull
     @Override
     public String toString() {
-      return RefString.format("{\"input\":%s, \"model\":%s, \"complete\":%s}", input, model, complete);
+      return String.format("{\"input\":%s, \"model\":%s, \"complete\":%s}", input, model, complete);
     }
   }
 
@@ -739,7 +739,7 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     @Nonnull
     @Override
     public String toString() {
-      return RefString.format("{\"type\":\"%s\", value:%s}", type, value);
+      return RefString.format("{ \"type\": \"%s\", \"value\": %s }", type, value);
     }
   }
 
@@ -758,11 +758,9 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     @Nonnull
     @Override
     public String toString() {
-      return RefUtil.get(map.entrySet().stream().map(e -> {
-        String temp_18_0018 = RefString.format("\"%s\": %s", e.getKey(), e.getValue().toString());
-        RefUtil.freeRef(e);
-        return temp_18_0018;
-      }).reduce((a, b) -> a + ", " + b));
+      return "{ " + map.entrySet().stream().map(e ->
+          String.format("\"%s\": %s", e.getKey(), e.getValue().toString())
+      ).reduce((a, b) -> a + ", " + b).get() + " }";
     }
   }
 }

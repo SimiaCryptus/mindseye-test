@@ -25,6 +25,8 @@ import com.simiacryptus.mindseye.test.unit.LayerTests;
 import com.simiacryptus.mindseye.test.unit.ReferenceIO;
 import com.simiacryptus.mindseye.test.unit.SerializationTest;
 import com.simiacryptus.util.Util;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
@@ -35,6 +37,7 @@ public abstract class LayerTestBase extends LayerTests {
 
   @Test
   @Timeout(value = 15, unit = TimeUnit.MINUTES)
+  @DisplayName("Performance")
   public void perfTest() {
     long seed = (long) (Math.random() * Long.MAX_VALUE);
     run(getLog(), getPerformanceTester(), getLargeDims(), seed);
@@ -42,6 +45,7 @@ public abstract class LayerTestBase extends LayerTests {
 
   @Test
   @Timeout(value = 15, unit = TimeUnit.MINUTES)
+  @DisplayName("Data Batching Invariance")
   public void batchingTest() {
     long seed = (long) (Math.random() * Long.MAX_VALUE);
     run(getLog(), getBatchingTester(), getLargeDims(), seed);
@@ -49,6 +53,7 @@ public abstract class LayerTestBase extends LayerTests {
 
   @Test
   @Timeout(value = 15, unit = TimeUnit.MINUTES)
+  @DisplayName("Input/Output")
   public void referenceIOTest() {
     long seed = (long) (Math.random() * Long.MAX_VALUE);
     run(getLog(), new ReferenceIO(getReferenceIO()), getLargeDims(), seed);
@@ -56,9 +61,11 @@ public abstract class LayerTestBase extends LayerTests {
 
   @Test
   @Timeout(value = 15, unit = TimeUnit.MINUTES)
+  @DisplayName("Equivalency Validation")
   public void equivalencyTest() {
     long seed = (long) (Math.random() * Long.MAX_VALUE);
     EquivalencyTester equivalencyTester = getEquivalencyTester();
+    Assumptions.assumeTrue(null != equivalencyTester, "No Reference Layer");
     if (null != equivalencyTester) {
       run(getLog(), equivalencyTester, getLargeDims(), seed);
     }
@@ -66,6 +73,7 @@ public abstract class LayerTestBase extends LayerTests {
 
   @Test
   @Timeout(value = 15, unit = TimeUnit.MINUTES)
+  @DisplayName("JSON Serialization")
   public void jsonTest() {
     long seed = (long) (Math.random() * Long.MAX_VALUE);
     run(getLog(), new SerializationTest(), getSmallDims(), seed);
@@ -73,6 +81,7 @@ public abstract class LayerTestBase extends LayerTests {
 
   @Test
   @Timeout(value = 15, unit = TimeUnit.MINUTES)
+  @DisplayName("Derivative Validation")
   public void derivativeTest() {
     long seed = (long) (Math.random() * Long.MAX_VALUE);
     run(getLog(), getDerivativeTester(), getSmallDims(), seed);
@@ -80,6 +89,7 @@ public abstract class LayerTestBase extends LayerTests {
 
   @Test
   @Timeout(value = 15, unit = TimeUnit.MINUTES)
+  @DisplayName("Comparative Training")
   public void trainingTest() {
     long seed = (long) (Math.random() * Long.MAX_VALUE);
     run(getLog(), getTrainingTester(), getLargeDims(), seed);
