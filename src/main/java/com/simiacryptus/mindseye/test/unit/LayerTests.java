@@ -25,7 +25,6 @@ import com.simiacryptus.lang.UncheckedSupplier;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.Explodable;
 import com.simiacryptus.mindseye.network.DAGNetwork;
-import com.simiacryptus.util.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.notebook.TableOutput;
@@ -35,6 +34,7 @@ import com.simiacryptus.ref.lang.ReferenceCountingBase;
 import com.simiacryptus.ref.wrappers.*;
 import com.simiacryptus.util.IOUtil;
 import com.simiacryptus.util.Util;
+import com.simiacryptus.util.test.NotebookReportBase;
 import com.simiacryptus.util.test.SysOutInterceptor;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
@@ -334,7 +334,7 @@ public abstract class LayerTests extends NotebookReportBase {
         });
       }
     } catch (Throwable e) {
-      logger.warn("Error printing Javadoc",e);
+      logger.warn("Error printing Javadoc", e);
     }
   }
 

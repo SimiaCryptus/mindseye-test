@@ -22,7 +22,6 @@ package com.simiacryptus.mindseye.test.data;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.ref.wrappers.RefList;
 import com.simiacryptus.ref.wrappers.RefStream;
-import com.simiacryptus.ref.wrappers.RefSystem;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.function.WeakCachedSupplier;
 import com.simiacryptus.util.io.DataLoader;
