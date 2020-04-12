@@ -30,7 +30,7 @@
 
     <artifactId>mindseye-test</artifactId>
     <description>Testing Tools for Neural Network Components</description>
-    <url>https://simiacryptus.github.io/${github.project}/</url>
+
     <scm>
         <url>https://github.com/SimiaCryptus/mindseye-test/</url>
         <connection>scm:git:git@github.com:SimiaCryptus/mindseye-test.git</connection>
