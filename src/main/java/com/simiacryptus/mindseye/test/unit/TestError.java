@@ -25,12 +25,28 @@ import com.simiacryptus.ref.wrappers.RefString;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * The type Test error.
+ */
 public class TestError extends RuntimeException {
+  /**
+   * The Test.
+   */
   @Nullable
   public final String test;
+  /**
+   * The Layer.
+   */
   @Nonnull
   public final String layer;
 
+  /**
+   * Instantiates a new Test error.
+   *
+   * @param cause the cause
+   * @param test  the test
+   * @param layer the layer
+   */
   public TestError(Throwable cause, @Nonnull ComponentTest<?> test, @Nonnull Layer layer) {
     super(RefString.format("Error in %s apply %s", test.addRef(), layer.addRef()), cause);
     this.test = test.toString();

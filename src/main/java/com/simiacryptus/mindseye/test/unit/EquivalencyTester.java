@@ -36,6 +36,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.function.IntFunction;
 
+/**
+ * The type Equivalency tester.
+ */
 public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
   private static final Logger log = LoggerFactory.getLogger(EquivalencyTester.class);
 
@@ -43,6 +46,12 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
   private final Layer reference;
   private final double tolerance;
 
+  /**
+   * Instantiates a new Equivalency tester.
+   *
+   * @param tolerance      the tolerance
+   * @param referenceLayer the reference layer
+   */
   public EquivalencyTester(final double tolerance, @Nullable final Layer referenceLayer) {
     this.tolerance = tolerance;
     Layer temp_08_0001 = referenceLayer == null ? null : referenceLayer.addRef();
@@ -53,6 +62,13 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
       referenceLayer.freeRef();
   }
 
+  /**
+   * Test tolerance statistics.
+   *
+   * @param subject        the subject
+   * @param inputPrototype the input prototype
+   * @return the tolerance statistics
+   */
   @Nonnull
   public ToleranceStatistics test(@Nullable final Layer subject, @Nonnull final Tensor[] inputPrototype) {
     if (null == reference || null == subject) {

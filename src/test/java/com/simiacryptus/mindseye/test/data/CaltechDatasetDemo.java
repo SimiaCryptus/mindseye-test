@@ -27,6 +27,9 @@ import com.simiacryptus.util.test.LabeledObject;
 import javax.annotation.Nonnull;
 import java.awt.image.BufferedImage;
 
+/**
+ * The type Caltech dataset demo.
+ */
 public class CaltechDatasetDemo extends ImageCategoryDatasetDemo {
 
   @Nonnull

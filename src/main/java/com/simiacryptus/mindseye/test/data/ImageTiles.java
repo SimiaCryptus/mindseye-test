@@ -38,8 +38,21 @@ import java.util.Collections;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * The type Image tiles.
+ */
 public class ImageTiles {
 
+  /**
+   * Read tensor.
+   *
+   * @param image  the image
+   * @param width  the width
+   * @param height the height
+   * @param x      the x
+   * @param y      the y
+   * @return the tensor
+   */
   @Nonnull
   public static Tensor read(@Nonnull final BufferedImage image, final int width, final int height, final int x,
                             final int y) {
@@ -55,6 +68,12 @@ public class ImageTiles {
     return tensor;
   }
 
+  /**
+   * Read files stream.
+   *
+   * @param dir the dir
+   * @return the stream
+   */
   public static Stream<File> readFiles(@Nonnull final File dir) {
     if (dir.isFile()) {
       return Arrays.asList(dir).stream();
@@ -62,17 +81,44 @@ public class ImageTiles {
     return Arrays.stream(dir.listFiles()).flatMap(ImageTiles::readFiles);
   }
 
+  /**
+   * Tiles rgb tensor [ ].
+   *
+   * @param image  the image
+   * @param width  the width
+   * @param height the height
+   * @return the tensor [ ]
+   */
   @Nonnull
   public static Tensor[] tilesRgb(@Nonnull final BufferedImage image, final int width, final int height) {
     return ImageTiles.tilesRgb(image, width, height, false);
   }
 
+  /**
+   * Tiles rgb tensor [ ].
+   *
+   * @param image   the image
+   * @param width   the width
+   * @param height  the height
+   * @param overlap the overlap
+   * @return the tensor [ ]
+   */
   @Nonnull
   public static Tensor[] tilesRgb(@Nonnull final BufferedImage image, final int width, final int height,
                                   final boolean overlap) {
     return ImageTiles.tilesRgb(image, width, height, overlap ? 1 : width, overlap ? 1 : height);
   }
 
+  /**
+   * Tiles rgb tensor [ ].
+   *
+   * @param image  the image
+   * @param width  the width
+   * @param height the height
+   * @param xStep  the x step
+   * @param yStep  the y step
+   * @return the tensor [ ]
+   */
   @Nonnull
   public static Tensor[] tilesRgb(@Nonnull final BufferedImage image, final int width, final int height,
                                   final int xStep, final int yStep) {
@@ -92,6 +138,18 @@ public class ImageTiles {
     return temp_17_0001;
   }
 
+  /**
+   * To tiles ref list.
+   *
+   * @param image            the image
+   * @param tileWidth        the tile width
+   * @param tileHeight       the tile height
+   * @param minSpacingWidth  the min spacing width
+   * @param minSpacingHeight the min spacing height
+   * @param maxTileCols      the max tile cols
+   * @param maxTileRows      the max tile rows
+   * @return the ref list
+   */
   @Nonnull
   public static RefList<Tensor> toTiles(@Nullable final BufferedImage image, final int tileWidth, final int tileHeight,
                                         final int minSpacingWidth, final int minSpacingHeight, final int maxTileCols, final int maxTileRows) {
@@ -118,6 +176,19 @@ public class ImageTiles {
     return queue;
   }
 
+  /**
+   * To tiles ref list.
+   *
+   * @param file             the file
+   * @param tileWidth        the tile width
+   * @param tileHeight       the tile height
+   * @param minSpacingWidth  the min spacing width
+   * @param minSpacingHeight the min spacing height
+   * @param maxTileCols      the max tile cols
+   * @param maxTileRows      the max tile rows
+   * @return the ref list
+   * @throws IOException the io exception
+   */
   @Nonnull
   public static RefList<Tensor> toTiles(@Nonnull final File file, final int tileWidth, final int tileHeight,
                                         final int minSpacingWidth, final int minSpacingHeight, final int maxTileCols, final int maxTileRows)
@@ -126,16 +197,51 @@ public class ImageTiles {
         maxTileRows);
   }
 
+  /**
+   * The type Image tensor loader.
+   */
   public static class ImageTensorLoader extends DataLoader<Tensor> {
 
+    /**
+     * The Max tile cols.
+     */
     public final int maxTileCols;
+    /**
+     * The Max tile rows.
+     */
     public final int maxTileRows;
+    /**
+     * The Min spacing height.
+     */
     public final int minSpacingHeight;
+    /**
+     * The Min spacing width.
+     */
     public final int minSpacingWidth;
+    /**
+     * The Parent directiory.
+     */
     public final File parentDirectiory;
+    /**
+     * The Tile height.
+     */
     public final int tileHeight;
+    /**
+     * The Tile width.
+     */
     public final int tileWidth;
 
+    /**
+     * Instantiates a new Image tensor loader.
+     *
+     * @param parentDirectiory the parent directiory
+     * @param tileWidth        the tile width
+     * @param tileHeight       the tile height
+     * @param minSpacingWidth  the min spacing width
+     * @param minSpacingHeight the min spacing height
+     * @param maxTileRows      the max tile rows
+     * @param maxTileCols      the max tile cols
+     */
     public ImageTensorLoader(final File parentDirectiory, final int tileWidth, final int tileHeight,
                              final int minSpacingWidth, final int minSpacingHeight, final int maxTileRows, final int maxTileCols) {
       this.parentDirectiory = parentDirectiory;

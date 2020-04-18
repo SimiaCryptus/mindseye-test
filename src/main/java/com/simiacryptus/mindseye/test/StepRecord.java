@@ -19,11 +19,30 @@
 
 package com.simiacryptus.mindseye.test;
 
+/**
+ * The type Step record.
+ */
 public final class StepRecord {
+  /**
+   * The Epoch time.
+   */
   public final long epochTime;
+  /**
+   * The Fitness.
+   */
   public final double fitness;
+  /**
+   * The Iteration.
+   */
   public final long iteration;
 
+  /**
+   * Instantiates a new Step record.
+   *
+   * @param fitness   the fitness
+   * @param epochTime the epoch time
+   * @param iteration the iteration
+   */
   public StepRecord(final double fitness, final long epochTime, final long iteration) {
     this.fitness = fitness;
     this.epochTime = epochTime;

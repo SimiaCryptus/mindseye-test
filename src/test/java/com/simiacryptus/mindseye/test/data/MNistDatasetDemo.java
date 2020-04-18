@@ -28,6 +28,9 @@ import com.simiacryptus.util.test.LabeledObject;
 import javax.annotation.Nonnull;
 import java.awt.image.BufferedImage;
 
+/**
+ * The type M nist dataset demo.
+ */
 public class MNistDatasetDemo extends ImageCategoryDatasetDemo {
 
   @Nonnull

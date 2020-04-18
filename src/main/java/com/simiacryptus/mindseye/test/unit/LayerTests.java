@@ -49,8 +49,17 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.DoubleSupplier;
 
+/**
+ * The type Layer tests.
+ */
 public abstract class LayerTests extends NotebookReportBase {
+  /**
+   * The constant seed.
+   */
   public static final long seed = 51389; //com.simiacryptus.ref.wrappers.RefSystem.nanoTime();
+  /**
+   * The constant javadocs.
+   */
   protected static final Map<String, ? extends NavigableMap<String, String>> javadocs = LayerTests.loadJavadoc();
 
   static {
@@ -58,19 +67,40 @@ public abstract class LayerTests extends NotebookReportBase {
   }
 
   private final Random random = getRandom();
+  /**
+   * The Testing batch size.
+   */
   protected int testingBatchSize = 5;
+  /**
+   * The Tolerance.
+   */
   protected double tolerance = 1e-3;
 
+  /**
+   * Gets batching tester.
+   *
+   * @return the batching tester
+   */
   @Nonnull
   protected BatchingTester getBatchingTester() {
     return getBatchingTester(1e-2, true, this.testingBatchSize);
   }
 
+  /**
+   * Gets derivative tester.
+   *
+   * @return the derivative tester
+   */
   @Nullable
   protected SingleDerivativeTester getDerivativeTester() {
     return new SingleDerivativeTester(tolerance, 1e-4);
   }
 
+  /**
+   * Gets equivalency tester.
+   *
+   * @return the equivalency tester
+   */
   @Nullable
   protected EquivalencyTester getEquivalencyTester() {
     @Nullable final Layer referenceLayer = getReferenceLayer();
@@ -80,14 +110,29 @@ public abstract class LayerTests extends NotebookReportBase {
     return new EquivalencyTester(1e-2, referenceLayer);
   }
 
+  /**
+   * Get large dims int [ ] [ ].
+   *
+   * @return the int [ ] [ ]
+   */
   @Nonnull
   protected int[][] getLargeDims() {
     return getSmallDims();
   }
 
+  /**
+   * Gets layer.
+   *
+   * @return the layer
+   */
   @Nullable
   protected abstract Layer getLayer();
 
+  /**
+   * Gets performance tester.
+   *
+   * @return the performance tester
+   */
   @Nullable
   protected PerformanceTester getPerformanceTester() {
     PerformanceTester performanceTester = new PerformanceTester();
@@ -95,21 +140,41 @@ public abstract class LayerTests extends NotebookReportBase {
     return performanceTester;
   }
 
+  /**
+   * Gets random.
+   *
+   * @return the random
+   */
   @Nonnull
   protected Random getRandom() {
     return new Random(seed);
   }
 
+  /**
+   * Gets reference io.
+   *
+   * @return the reference io
+   */
   @Nullable
   protected RefHashMap<Tensor[], Tensor> getReferenceIO() {
     return new RefHashMap<>();
   }
 
+  /**
+   * Gets reference layer.
+   *
+   * @return the reference layer
+   */
   @Nullable
   protected Layer getReferenceLayer() {
     return convertToReferenceLayer(getLayer());
   }
 
+  /**
+   * Gets reference layer class.
+   *
+   * @return the reference layer class
+   */
   @Nullable
   protected Class<? extends Layer> getReferenceLayerClass() {
     return null;
@@ -121,6 +186,11 @@ public abstract class LayerTests extends NotebookReportBase {
     return ReportType.Components;
   }
 
+  /**
+   * Get small dims int [ ] [ ].
+   *
+   * @return the int [ ] [ ]
+   */
   @Nonnull
   protected abstract int[][] getSmallDims();
 
@@ -139,6 +209,11 @@ public abstract class LayerTests extends NotebookReportBase {
     }
   }
 
+  /**
+   * Gets test class.
+   *
+   * @return the test class
+   */
   @Nonnull
   protected Class<?> getTestClass() {
     Layer layer = getLayer();
@@ -148,6 +223,11 @@ public abstract class LayerTests extends NotebookReportBase {
     return layerClass;
   }
 
+  /**
+   * Gets training tester.
+   *
+   * @return the training tester
+   */
   @Nullable
   protected TrainingTester getTrainingTester() {
     TrainingTester trainingTester = new TrainingTester() {
@@ -167,6 +247,12 @@ public abstract class LayerTests extends NotebookReportBase {
     return trainingTester;
   }
 
+  /**
+   * Get dimensions int [ ].
+   *
+   * @param tensorList the tensor list
+   * @return the int [ ]
+   */
   public static int[] getDimensions(TensorList tensorList) {
     try {
       return tensorList.getDimensions();
@@ -175,6 +261,12 @@ public abstract class LayerTests extends NotebookReportBase {
     }
   }
 
+  /**
+   * Gets data.
+   *
+   * @param result the result
+   * @return the data
+   */
   @NotNull
   public static TensorList getData(Result result) {
     try {
@@ -184,6 +276,12 @@ public abstract class LayerTests extends NotebookReportBase {
     }
   }
 
+  /**
+   * Copy layer.
+   *
+   * @param layer the layer
+   * @return the layer
+   */
   @NotNull
   public static Layer copy(Layer layer) {
     assert layer != null;
@@ -195,6 +293,12 @@ public abstract class LayerTests extends NotebookReportBase {
     }
   }
 
+  /**
+   * Render graph.
+   *
+   * @param log   the log
+   * @param layer the layer
+   */
   public static final void renderGraph(@Nonnull NotebookOutput log, Layer layer) {
     if (layer instanceof DAGNetwork) {
       try {
@@ -234,6 +338,13 @@ public abstract class LayerTests extends NotebookReportBase {
     layer.freeRef();
   }
 
+  /**
+   * Log details.
+   *
+   * @param log                 the log
+   * @param layerTestParameters the layer test parameters
+   * @param subLayer            the sub layer
+   */
   public static final void logDetails(@Nonnull NotebookOutput log, LayerTestParameters layerTestParameters, Layer subLayer) {
     assert subLayer != null;
     log.p(RefArrays.deepToString(layerTestParameters.getDims()));
@@ -246,6 +357,12 @@ public abstract class LayerTests extends NotebookReportBase {
     subLayer.freeRef();
   }
 
+  /**
+   * Gets name.
+   *
+   * @param testClass the test class
+   * @return the name
+   */
   @NotNull
   public static String getName(Class<? extends ComponentTest> testClass) {
     String name = testClass.getCanonicalName();
@@ -256,6 +373,11 @@ public abstract class LayerTests extends NotebookReportBase {
     return name;
   }
 
+  /**
+   * Throw exception.
+   *
+   * @param exceptions the exceptions
+   */
   public static void throwException(@Nonnull RefList<TestError> exceptions) {
     exceptions.forEach(exception -> {
       logger.info(RefString.format("LayerBase: %s", exception.layer));
@@ -288,6 +410,14 @@ public abstract class LayerTests extends NotebookReportBase {
     }
   }
 
+  /**
+   * Gets batching tester.
+   *
+   * @param tolerance             the tolerance
+   * @param validateDifferentials the validate differentials
+   * @param testingBatchSize      the testing batch size
+   * @return the batching tester
+   */
   @NotNull
   protected final BatchingTester getBatchingTester(double tolerance, boolean validateDifferentials, int testingBatchSize) {
     BatchingTester batchingTester = new BatchingTester(tolerance, validateDifferentials) {
@@ -306,14 +436,31 @@ public abstract class LayerTests extends NotebookReportBase {
     return batchingTester;
   }
 
+  /**
+   * Random double.
+   *
+   * @return the double
+   */
   protected double random() {
     return random(random);
   }
 
+  /**
+   * Random double.
+   *
+   * @param random the random
+   * @return the double
+   */
   protected double random(@Nonnull Random random) {
     return Math.round(1000.0 * (random.nextDouble() - 0.5)) / 250.0;
   }
 
+  /**
+   * Random tensors tensor [ ].
+   *
+   * @param inputDims the input dims
+   * @return the tensor [ ]
+   */
   @Nonnull
   protected Tensor[] randomTensors(@Nonnull final int[][] inputDims) {
     return RefArrays.stream(inputDims).map(dim -> {
@@ -323,6 +470,11 @@ public abstract class LayerTests extends NotebookReportBase {
     }).toArray(Tensor[]::new);
   }
 
+  /**
+   * Print javadoc.
+   *
+   * @param log the log
+   */
   protected final void printJavadoc(@Nonnull NotebookOutput log) {
     try {
       NavigableMap<String, String> javadoc = javadocs.get(getTargetClass().getCanonicalName());
@@ -338,6 +490,12 @@ public abstract class LayerTests extends NotebookReportBase {
     }
   }
 
+  /**
+   * Convert to reference layer layer.
+   *
+   * @param layer the layer
+   * @return the layer
+   */
   @Nullable
   protected final Layer convertToReferenceLayer(@Nullable Layer layer) {
     AtomicInteger counter = new AtomicInteger(0);
@@ -353,9 +511,23 @@ public abstract class LayerTests extends NotebookReportBase {
     }
   }
 
+  /**
+   * Loss layer layer.
+   *
+   * @return the layer
+   */
   @Nonnull
   protected abstract Layer lossLayer();
 
+  /**
+   * Run.
+   *
+   * @param log                 the log
+   * @param test                the test
+   * @param layerTestParameters the layer test parameters
+   * @param out_exceptions      the out exceptions
+   * @param out_results         the out results
+   */
   protected void run(@Nonnull NotebookOutput log, ComponentTest<?> test, @Nonnull LayerTestParameters layerTestParameters, @Nonnull RefList<TestError> out_exceptions, @Nonnull TableOutput out_results) {
     @Nonnull RefList<TestError> exceptions = new RefArrayList<>();
     @Nonnull Layer layer = LayerTests.copy(layerTestParameters.getLayer());
@@ -404,6 +576,14 @@ public abstract class LayerTests extends NotebookReportBase {
 
   }
 
+  /**
+   * Run.
+   *
+   * @param log  the log
+   * @param test the test
+   * @param dims the dims
+   * @param seed the seed
+   */
   protected void run(@Nonnull NotebookOutput log, ComponentTest<?> test, @Nonnull int[][] dims, long seed) {
     logger.info("Seed: " + seed);
     printJavadoc(log);

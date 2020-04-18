@@ -33,6 +33,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.awt.image.BufferedImage;
 
+/**
+ * The type Image category dataset demo.
+ */
 public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
   @Nonnull
   @Override
@@ -40,12 +43,21 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
     return ReportType.Data;
   }
 
+  /**
+   * Gets shuffle comparator.
+   *
+   * @param <T> the type parameter
+   * @return the shuffle comparator
+   */
   @Nonnull
   public <T> RefComparator<T> getShuffleComparator() {
     final int seed = (int) ((RefSystem.nanoTime() >>> 8) % (Integer.MAX_VALUE - 84));
     return RefComparator.comparingInt(a1 -> RefSystem.identityHashCode(a1) ^ seed);
   }
 
+  /**
+   * Run.
+   */
   @Test
   public void run() {
     @Nonnull NotebookOutput log = getLog();
@@ -82,6 +94,12 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
       testData.freeRef();
   }
 
+  /**
+   * Gets training stream.
+   *
+   * @param log the log
+   * @return the training stream
+   */
   public abstract RefStream<LabeledObject<WeakCachedSupplier<BufferedImage>>> getTrainingStream(NotebookOutput log);
 
 }

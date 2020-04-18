@@ -57,10 +57,21 @@ import java.util.*;
 import java.util.function.*;
 import java.util.stream.Collectors;
 
+/**
+ * The type Test util.
+ */
 public class TestUtil {
+  /**
+   * The constant S3_ROOT.
+   */
   public static final URI S3_ROOT = URI.create("https://s3-us-west-2.amazonaws.com/simiacryptus/");
   private static final Logger logger = LoggerFactory.getLogger(TestUtil.class);
 
+  /**
+   * Gets stack info.
+   *
+   * @return the stack info
+   */
   public static Map<String, List<String>> getStackInfo() {
     return Thread.getAllStackTraces().entrySet().stream().collect(Collectors.toMap(entry -> {
       Thread key = entry.getKey();
@@ -73,6 +84,13 @@ public class TestUtil {
     }));
   }
 
+  /**
+   * Compare plot canvas.
+   *
+   * @param title  the title
+   * @param trials the trials
+   * @return the plot canvas
+   */
   @Nullable
   public static PlotCanvas compare(final String title, @Nonnull final ProblemRun... trials) {
     try {
@@ -125,6 +143,13 @@ public class TestUtil {
     }
   }
 
+  /**
+   * Compare time plot canvas.
+   *
+   * @param title  the title
+   * @param trials the trials
+   * @return the plot canvas
+   */
   @Nullable
   public static PlotCanvas compareTime(final String title, @Nonnull final ProblemRun... trials) {
     try {
@@ -180,6 +205,12 @@ public class TestUtil {
     }
   }
 
+  /**
+   * Extract performance.
+   *
+   * @param log     the log
+   * @param network the network
+   */
   public static void extractPerformance(@Nonnull final NotebookOutput log, @Nonnull final DAGNetwork network) {
     log.p("Per-key Performance Metrics:");
     log.run(RefUtil.wrapInterface(() -> {
@@ -233,6 +264,11 @@ public class TestUtil {
     removeInstrumentation(network);
   }
 
+  /**
+   * Remove instrumentation.
+   *
+   * @param network the network
+   */
   public static void removeInstrumentation(@Nonnull final DAGNetwork network) {
     network.visitNodes(node -> {
       Layer nodeLayer = node.getLayer();
@@ -251,6 +287,12 @@ public class TestUtil {
     network.freeRef();
   }
 
+  /**
+   * Sample performance ref map.
+   *
+   * @param network the network
+   * @return the ref map
+   */
   @Nonnull
   public static RefMap<CharSequence, Object> samplePerformance(@Nonnull final DAGNetwork network) {
     @Nonnull final RefMap<CharSequence, Object> metrics = new RefHashMap<>();
@@ -273,11 +315,24 @@ public class TestUtil {
     return metrics;
   }
 
+  /**
+   * Gets monitor.
+   *
+   * @param history the history
+   * @return the monitor
+   */
   @Nonnull
   public static TrainingMonitor getMonitor(@Nonnull final List<StepRecord> history) {
     return getMonitor(history, null);
   }
 
+  /**
+   * Gets monitor.
+   *
+   * @param history the history
+   * @param network the network
+   * @return the monitor
+   */
   @Nonnull
   public static TrainingMonitor getMonitor(@Nonnull final List<StepRecord> history, @Nullable final Layer network) {
     if (null != network)
@@ -303,6 +358,11 @@ public class TestUtil {
     };
   }
 
+  /**
+   * Instrument performance.
+   *
+   * @param network the network
+   */
   public static void instrumentPerformance(@Nonnull final DAGNetwork network) {
     network.visitNodes(node -> {
       Layer layer = node.getLayer();
@@ -324,6 +384,12 @@ public class TestUtil {
     network.freeRef();
   }
 
+  /**
+   * Plot j panel.
+   *
+   * @param history the history
+   * @return the j panel
+   */
   @Nullable
   public static JPanel plot(@Nonnull final List<StepRecord> history) {
     try {
@@ -357,6 +423,12 @@ public class TestUtil {
     }
   }
 
+  /**
+   * Plot time plot canvas.
+   *
+   * @param history the history
+   * @return the plot canvas
+   */
   @Nullable
   public static PlotCanvas plotTime(@Nonnull final List<StepRecord> history) {
     try {
@@ -377,11 +449,23 @@ public class TestUtil {
     }
   }
 
+  /**
+   * To graph object.
+   *
+   * @param network the network
+   * @return the object
+   */
   @Nonnull
   public static Object toGraph(@Nonnull final DAGNetwork network) {
     return toGraph(network, TestUtil::getName);
   }
 
+  /**
+   * Graph.
+   *
+   * @param log     the log
+   * @param network the network
+   */
   public static void graph(@Nonnull final NotebookOutput log, @Nonnull final DAGNetwork network) {
     Graphviz graphviz = Graphviz.fromGraph((Graph) toGraph(network.addRef(), node -> {
       Layer layer = node.getLayer();
@@ -411,6 +495,13 @@ public class TestUtil {
             + "\n");
   }
 
+  /**
+   * To graph object.
+   *
+   * @param network the network
+   * @param fn      the fn
+   * @return the object
+   */
   @Nonnull
   public static Object toGraph(@Nonnull final DAGNetwork network, @Nonnull RefFunction<DAGNode, String> fn) {
     final RefList<DAGNode> nodes = network.getNodes();
@@ -459,6 +550,12 @@ public class TestUtil {
     return Factory.graph().with(nodeArray).graphAttr().with(Rank.dir(Rank.RankDir.TOP_TO_BOTTOM)).directed();
   }
 
+  /**
+   * Gets name.
+   *
+   * @param node the node
+   * @return the name
+   */
   @Nonnull
   public static String getName(@Nonnull DAGNode node) {
     String name;
@@ -475,6 +572,12 @@ public class TestUtil {
     return name;
   }
 
+  /**
+   * Shuffle ref int stream.
+   *
+   * @param stream the stream
+   * @return the ref int stream
+   */
   @Nonnull
   public static RefIntStream shuffle(@Nonnull RefIntStream stream) {
     // http://primes.utm.edu/lists/small/10000.txt
@@ -494,6 +597,13 @@ public class TestUtil {
     return stream.map(conditions).mapToLong(fn).sorted().mapToInt(inv);
   }
 
+  /**
+   * Or else supplier.
+   *
+   * @param <T>       the type parameter
+   * @param suppliers the suppliers
+   * @return the supplier
+   */
   @Nonnull
   public static <T> Supplier<T> orElse(@Nonnull Supplier<T>... suppliers) {
     return () -> {
@@ -507,11 +617,26 @@ public class TestUtil {
     };
   }
 
+  /**
+   * Animated gif char sequence.
+   *
+   * @param log    the log
+   * @param images the images
+   * @return the char sequence
+   */
   @Nonnull
   public static CharSequence animatedGif(@Nonnull final NotebookOutput log, @Nonnull final BufferedImage... images) {
     return animatedGif(log, 15000, images);
   }
 
+  /**
+   * Build map ref map.
+   *
+   * @param <K>       the type parameter
+   * @param <V>       the type parameter
+   * @param configure the configure
+   * @return the ref map
+   */
   @Nonnull
   public static <K, V> RefMap<K, V> buildMap(@Nonnull RefConsumer<RefMap<K, V>> configure) {
     RefMap<K, V> map = new RefHashMap<>();
@@ -519,12 +644,27 @@ public class TestUtil {
     return map;
   }
 
+  /**
+   * Geometric stream supplier.
+   *
+   * @param start the start
+   * @param end   the end
+   * @param steps the steps
+   * @return the supplier
+   */
   @Nonnull
   public static Supplier<RefDoubleStream> geometricStream(final double start, final double end, final int steps) {
     double step = Math.pow(end / start, 1.0 / (steps - 1));
     return () -> RefDoubleStream.iterate(start, x -> x * step).limit(steps);
   }
 
+  /**
+   * Shuffle ref list.
+   *
+   * @param <T>  the type parameter
+   * @param list the list
+   * @return the ref list
+   */
   @Nonnull
   public static <T> RefList<T> shuffle(@Nullable final RefList<T> list) {
     RefArrayList<T> copy = new RefArrayList<>(list);
@@ -532,6 +672,11 @@ public class TestUtil {
     return copy;
   }
 
+  /**
+   * Add global handlers.
+   *
+   * @param httpd the httpd
+   */
   public static void addGlobalHandlers(@Nullable final FileHTTPD httpd) {
     if (null != httpd) {
       httpd.addGET("threads.json", "text/json", out -> {
@@ -546,6 +691,12 @@ public class TestUtil {
     }
   }
 
+  /**
+   * Sum tensor.
+   *
+   * @param tensorStream the tensor stream
+   * @return the tensor
+   */
   @Nonnull
   public static Tensor sum(@Nonnull RefCollection<Tensor> tensorStream) {
     Tensor temp_13_0012 = RefUtil.get(tensorStream.stream().reduce((a, b) -> {
@@ -555,6 +706,12 @@ public class TestUtil {
     return temp_13_0012;
   }
 
+  /**
+   * Sum tensor.
+   *
+   * @param tensorStream the tensor stream
+   * @return the tensor
+   */
   @Nonnull
   public static Tensor sum(@Nonnull RefStream<Tensor> tensorStream) {
     return RefUtil.get(tensorStream.reduce((a, b) -> {
@@ -562,6 +719,12 @@ public class TestUtil {
     }));
   }
 
+  /**
+   * Avg tensor.
+   *
+   * @param values the values
+   * @return the tensor
+   */
   @Nonnull
   public static Tensor avg(@Nonnull RefCollection<? extends Tensor> values) {
     Tensor temp_13_0027 = sum(values.stream().map(x -> {
@@ -574,6 +737,14 @@ public class TestUtil {
     return temp_13_0013;
   }
 
+  /**
+   * Render char sequence.
+   *
+   * @param log       the log
+   * @param tensor    the tensor
+   * @param normalize the normalize
+   * @return the char sequence
+   */
   @Nonnull
   public static CharSequence render(@Nonnull final NotebookOutput log, @Nonnull final Tensor tensor,
                                     final boolean normalize) {
@@ -582,6 +753,14 @@ public class TestUtil {
     }).reduce((a, b) -> a + b));
   }
 
+  /**
+   * Animated gif char sequence.
+   *
+   * @param log        the log
+   * @param loopTimeMs the loop time ms
+   * @param images     the images
+   * @return the char sequence
+   */
   @Nonnull
   public static CharSequence animatedGif(@Nonnull final NotebookOutput log, final int loopTimeMs,
                                          @Nonnull final BufferedImage... images) {

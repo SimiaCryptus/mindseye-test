@@ -38,9 +38,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 
+/**
+ * The type Batch derivative tester.
+ */
 public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics> {
+  /**
+   * The Log.
+   */
   static final Logger log = LoggerFactory.getLogger(BatchDerivativeTester.class);
 
+  /**
+   * The Probe size.
+   */
   public final double probeSize;
   private final int batches;
   private final double tolerance;
@@ -49,44 +58,99 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
   private boolean verbose = true;
   private boolean verify = true;
 
+  /**
+   * Instantiates a new Batch derivative tester.
+   *
+   * @param tolerance the tolerance
+   * @param probeSize the probe size
+   * @param batches   the batches
+   */
   public BatchDerivativeTester(final double tolerance, final double probeSize, final int batches) {
     this.tolerance = tolerance;
     this.probeSize = probeSize;
     this.batches = batches;
   }
 
+  /**
+   * Is test feedback boolean.
+   *
+   * @return the boolean
+   */
   public boolean isTestFeedback() {
     return testFeedback;
   }
 
+  /**
+   * Sets test feedback.
+   *
+   * @param testFeedback the test feedback
+   */
   public void setTestFeedback(boolean testFeedback) {
     this.testFeedback = testFeedback;
   }
 
+  /**
+   * Is test learning boolean.
+   *
+   * @return the boolean
+   */
   public boolean isTestLearning() {
     return testLearning;
   }
 
+  /**
+   * Sets test learning.
+   *
+   * @param testLearning the test learning
+   */
   public void setTestLearning(boolean testLearning) {
     this.testLearning = testLearning;
   }
 
+  /**
+   * Is verbose boolean.
+   *
+   * @return the boolean
+   */
   public boolean isVerbose() {
     return verbose;
   }
 
+  /**
+   * Sets verbose.
+   *
+   * @param verbose the verbose
+   */
   public void setVerbose(boolean verbose) {
     this.verbose = verbose;
   }
 
+  /**
+   * Is verify boolean.
+   *
+   * @return the boolean
+   */
   public boolean isVerify() {
     return verify;
   }
 
+  /**
+   * Sets verify.
+   *
+   * @param verify the verify
+   */
   public void setVerify(boolean verify) {
     this.verify = verify;
   }
 
+  /**
+   * Test learning tolerance statistics.
+   *
+   * @param component  the component
+   * @param IOPair     the io pair
+   * @param statistics the statistics
+   * @return the tolerance statistics
+   */
   public ToleranceStatistics testLearning(@Nonnull Layer component, @Nonnull IOPair IOPair,
                                           ToleranceStatistics statistics) {
     final ToleranceStatistics prev = statistics;
@@ -176,6 +240,14 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     return statistics;
   }
 
+  /**
+   * Test feedback tolerance statistics.
+   *
+   * @param component  the component
+   * @param IOPair     the io pair
+   * @param statistics the statistics
+   * @return the tolerance statistics
+   */
   public ToleranceStatistics testFeedback(@Nonnull Layer component, @Nonnull IOPair IOPair,
                                           ToleranceStatistics statistics) {
     Tensor[] inputPrototype = IOPair.getInputPrototype();
@@ -339,6 +411,12 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     return _statistics;
   }
 
+  /**
+   * Test frozen.
+   *
+   * @param component      the component
+   * @param inputPrototype the input prototype
+   */
   public void testFrozen(@Nonnull final Layer component, @Nonnull final Tensor[] inputPrototype) {
     @Nonnull final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
     Layer temp_02_0036 = component.copy();
@@ -411,6 +489,12 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     }
   }
 
+  /**
+   * Test un frozen.
+   *
+   * @param component      the component
+   * @param inputPrototype the input prototype
+   */
   public void testUnFrozen(@Nonnull final Layer component, @Nullable final Tensor[] inputPrototype) {
     @Nonnull final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
     Layer temp_02_0042 = component.copy();
@@ -561,6 +645,8 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       if (null != inputDelta) {
         result.addInPlace(new Tensor(inputDelta.getDelta(), result.getDimensions()));
       }
+      if (null != inputKey)
+        inputKey.freeRef();
       if (null != inputDelta)
         inputDelta.freeRef();
     }
@@ -725,22 +811,42 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     @Nullable
     private Tensor outputPrototype;
 
+    /**
+     * Instantiates a new Io pair.
+     *
+     * @param component the component
+     * @param tensor    the tensor
+     * @param parent    the parent
+     */
     public IOPair(@Nullable Layer component, @Nullable Tensor tensor, @Nullable BatchDerivativeTester parent) {
       this.component = component;
       this.tensor = tensor;
       this.parent = parent;
     }
 
+    /**
+     * Get input prototype tensor [ ].
+     *
+     * @return the tensor [ ]
+     */
     @Nullable
     public Tensor[] getInputPrototype() {
       return RefUtil.addRef(inputPrototype);
     }
 
+    /**
+     * Gets output prototype.
+     *
+     * @return the output prototype
+     */
     @Nullable
     public Tensor getOutputPrototype() {
       return outputPrototype == null ? null : outputPrototype.addRef();
     }
 
+    /**
+     * Invoke.
+     */
     public void invoke() {
       assert parent != null;
       if (null != inputPrototype)

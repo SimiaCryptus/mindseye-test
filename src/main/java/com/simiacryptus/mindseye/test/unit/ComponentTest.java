@@ -26,11 +26,27 @@ import com.simiacryptus.ref.lang.ReferenceCounting;
 
 import javax.annotation.Nullable;
 
+/**
+ * The interface Component test.
+ *
+ * @param <T> the type parameter
+ */
 public interface ComponentTest<T> extends ReferenceCounting {
 
+  /**
+   * Test t.
+   *
+   * @param log            the log
+   * @param component      the component
+   * @param inputPrototype the input prototype
+   * @return the t
+   */
   @Nullable
   T test(NotebookOutput log, Layer component, Tensor... inputPrototype);
 
+  /**
+   * Free.
+   */
   void _free();
 
   ComponentTest<T> addRef();

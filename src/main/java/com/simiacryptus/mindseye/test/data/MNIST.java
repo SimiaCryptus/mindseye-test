@@ -38,8 +38,14 @@ import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.zip.GZIPInputStream;
 
+/**
+ * The type Mnist.
+ */
 public class MNIST {
 
+  /**
+   * The constant training.
+   */
   public static final DataLoader<LabeledObject<Tensor>> training = new DataLoader<LabeledObject<Tensor>>() {
     {
     }
@@ -67,6 +73,9 @@ public class MNIST {
       queue.freeRef();
     }
   };
+  /**
+   * The constant validation.
+   */
   public static final DataLoader<LabeledObject<Tensor>> validation = new DataLoader<LabeledObject<Tensor>>() {
     {
     }
@@ -95,11 +104,21 @@ public class MNIST {
     }
   };
 
+  /**
+   * Training data stream ref stream.
+   *
+   * @return the ref stream
+   */
   @Nonnull
   public static RefStream<LabeledObject<Tensor>> trainingDataStream() {
     return MNIST.training.stream();
   }
 
+  /**
+   * Validation data stream ref stream.
+   *
+   * @return the ref stream
+   */
   @Nonnull
   public static RefStream<LabeledObject<Tensor>> validationDataStream() {
     return MNIST.validation.stream();
@@ -152,6 +171,12 @@ public class MNIST {
     @Nonnull
     private final RefIterator<byte[]> labelItr;
 
+    /**
+     * Instantiates a new Labeled object iterator.
+     *
+     * @param imgStream   the img stream
+     * @param labelStream the label stream
+     */
     public LabeledObjectIterator(@Nonnull RefStream<Tensor> imgStream, @Nonnull RefStream<byte[]> labelStream) {
       imgItr = imgStream.iterator();
       labelItr = labelStream.iterator();

@@ -36,7 +36,13 @@ import javax.annotation.Nullable;
 import java.util.UUID;
 import java.util.function.IntFunction;
 
+/**
+ * The type Performance tester.
+ */
 public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
+  /**
+   * The Log.
+   */
   static final Logger log = LoggerFactory.getLogger(PerformanceTester.class);
 
   private int batches = 100;
@@ -44,41 +50,90 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   private boolean testEvaluation = true;
   private boolean testLearning = true;
 
+  /**
+   * Instantiates a new Performance tester.
+   */
   public PerformanceTester() {
   }
 
+  /**
+   * Gets batches.
+   *
+   * @return the batches
+   */
   public int getBatches() {
     return batches;
   }
 
+  /**
+   * Sets batches.
+   *
+   * @param batches the batches
+   */
   public void setBatches(int batches) {
     this.batches = batches;
   }
 
+  /**
+   * Gets samples.
+   *
+   * @return the samples
+   */
   public int getSamples() {
     return samples;
   }
 
+  /**
+   * Sets samples.
+   *
+   * @param samples the samples
+   */
   public void setSamples(int samples) {
     this.samples = samples;
   }
 
+  /**
+   * Is test evaluation boolean.
+   *
+   * @return the boolean
+   */
   public boolean isTestEvaluation() {
     return testEvaluation;
   }
 
+  /**
+   * Sets test evaluation.
+   *
+   * @param testEvaluation the test evaluation
+   */
   public void setTestEvaluation(final boolean testEvaluation) {
     this.testEvaluation = testEvaluation;
   }
 
+  /**
+   * Is test learning boolean.
+   *
+   * @return the boolean
+   */
   public boolean isTestLearning() {
     return testLearning;
   }
 
+  /**
+   * Sets test learning.
+   *
+   * @param testLearning the test learning
+   */
   public void setTestLearning(final boolean testLearning) {
     this.testLearning = testLearning;
   }
 
+  /**
+   * Test.
+   *
+   * @param component      the component
+   * @param inputPrototype the input prototype
+   */
   public void test(@Nonnull final Layer component, @Nonnull final Tensor[] inputPrototype) {
     log.info(RefString.format("%s batch length, %s trials", batches, samples));
     log.info("Input Dimensions:");
@@ -146,6 +201,13 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
     return (PerformanceTester) super.addRef();
   }
 
+  /**
+   * Test performance tuple 2.
+   *
+   * @param component      the component
+   * @param inputPrototype the input prototype
+   * @return the tuple 2
+   */
   @Nonnull
   protected Tuple2<Double, Double> testPerformance(@Nonnull final Layer component, @Nullable final Tensor... inputPrototype) {
     final Tensor[][] data = new Tensor[batches][];

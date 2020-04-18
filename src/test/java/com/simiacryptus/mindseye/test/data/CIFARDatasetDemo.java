@@ -29,6 +29,9 @@ import com.simiacryptus.util.test.LabeledObject;
 import javax.annotation.Nonnull;
 import java.awt.image.BufferedImage;
 
+/**
+ * The type Cifar dataset demo.
+ */
 public class CIFARDatasetDemo extends ImageCategoryDatasetDemo {
 
   @Nonnull

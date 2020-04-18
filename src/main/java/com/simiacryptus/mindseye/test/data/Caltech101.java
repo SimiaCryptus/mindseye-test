@@ -40,6 +40,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+/**
+ * The type Caltech 101.
+ */
 public class Caltech101 {
 
   @Nullable
@@ -96,11 +99,19 @@ public class Caltech101 {
     }
   };
 
+  /**
+   * Halt.
+   */
   public static void halt() {
     assert Caltech101.training != null;
     Caltech101.training.stop();
   }
 
+  /**
+   * Training data stream ref stream.
+   *
+   * @return the ref stream
+   */
   @Nonnull
   public static RefStream<LabeledObject<WeakCachedSupplier<BufferedImage>>> trainingDataStream() {
     assert Caltech101.training != null;

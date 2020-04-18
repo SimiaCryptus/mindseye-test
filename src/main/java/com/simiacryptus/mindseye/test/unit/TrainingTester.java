@@ -55,7 +55,13 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.IntFunction;
 
+/**
+ * The type Training tester.
+ */
 public abstract class TrainingTester extends ComponentTestBase<TrainingTester.ComponentResult> {
+  /**
+   * The Logger.
+   */
   static final Logger logger = LoggerFactory.getLogger(TrainingTester.class);
 
   private int batches = 3;
@@ -63,41 +69,90 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
   private boolean verbose = true;
   private boolean throwExceptions = false;
 
+  /**
+   * Instantiates a new Training tester.
+   */
   public TrainingTester() {
   }
 
+  /**
+   * Gets batches.
+   *
+   * @return the batches
+   */
   public int getBatches() {
     return batches;
   }
 
+  /**
+   * Sets batches.
+   *
+   * @param batches the batches
+   */
   public void setBatches(int batches) {
     this.batches = batches;
   }
 
+  /**
+   * Gets randomization mode.
+   *
+   * @return the randomization mode
+   */
   public RandomizationMode getRandomizationMode() {
     return randomizationMode;
   }
 
+  /**
+   * Sets randomization mode.
+   *
+   * @param randomizationMode the randomization mode
+   */
   public void setRandomizationMode(RandomizationMode randomizationMode) {
     this.randomizationMode = randomizationMode;
   }
 
+  /**
+   * Is throw exceptions boolean.
+   *
+   * @return the boolean
+   */
   public boolean isThrowExceptions() {
     return throwExceptions;
   }
 
+  /**
+   * Sets throw exceptions.
+   *
+   * @param throwExceptions the throw exceptions
+   */
   public void setThrowExceptions(boolean throwExceptions) {
     this.throwExceptions = throwExceptions;
   }
 
+  /**
+   * Is verbose boolean.
+   *
+   * @return the boolean
+   */
   public boolean isVerbose() {
     return verbose;
   }
 
+  /**
+   * Sets verbose.
+   *
+   * @param verbose the verbose
+   */
   public void setVerbose(boolean verbose) {
     this.verbose = verbose;
   }
 
+  /**
+   * Gets monitor.
+   *
+   * @param history the history
+   * @return the monitor
+   */
   @Nonnull
   public static TrainingMonitor getMonitor(@Nonnull final List<StepRecord> history) {
     return new TrainingMonitor() {
@@ -115,6 +170,13 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     };
   }
 
+  /**
+   * Append tensor [ ] [ ].
+   *
+   * @param left  the left
+   * @param right the right
+   * @return the tensor [ ] [ ]
+   */
   @Nonnull
   public static Tensor[][] append(@Nonnull Tensor[][] left, @Nonnull Tensor[] right) {
     if (left.length != right.length) {
@@ -130,6 +192,12 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
         .toArray(Tensor[][]::new);
   }
 
+  /**
+   * Copy tensor [ ] [ ].
+   *
+   * @param input_gd the input gd
+   * @return the tensor [ ] [ ]
+   */
   @Nonnull
   public static Tensor[][] copy(@Nonnull Tensor[][] input_gd) {
     return RefArrays.stream(input_gd).map(t -> {
@@ -141,6 +209,12 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     }).toArray(Tensor[][]::new);
   }
 
+  /**
+   * Pop tensor [ ] [ ].
+   *
+   * @param data the data
+   * @return the tensor [ ] [ ]
+   */
   @Nonnull
   public static Tensor[][] pop(@Nonnull Tensor[][] data) {
     return RefArrays.stream(data).map(t -> {
@@ -148,6 +222,14 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     }).toArray(Tensor[][]::new);
   }
 
+  /**
+   * Grid j panel.
+   *
+   * @param inputLearning    the input learning
+   * @param modelLearning    the model learning
+   * @param completeLearning the complete learning
+   * @return the j panel
+   */
   @Nonnull
   public JPanel grid(@Nullable final TestResult inputLearning, @Nullable final TestResult modelLearning,
                      @Nullable final TestResult completeLearning) {
@@ -179,10 +261,23 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     return jPanel;
   }
 
+  /**
+   * Is zero boolean.
+   *
+   * @param stream the stream
+   * @return the boolean
+   */
   public boolean isZero(@Nonnull final RefDoubleStream stream) {
     return isZero(stream, 1e-14);
   }
 
+  /**
+   * Is zero boolean.
+   *
+   * @param stream  the stream
+   * @param zeroTol the zero tol
+   * @return the boolean
+   */
   public boolean isZero(@Nonnull final RefDoubleStream stream, double zeroTol) {
     final double[] array = stream.toArray();
     if (array.length == 0)
@@ -268,6 +363,15 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     return result;
   }
 
+  /**
+   * Test complete learning test result.
+   *
+   * @param log            the log
+   * @param component      the component
+   * @param random         the random
+   * @param inputPrototype the input prototype
+   * @return the test result
+   */
   @Nonnull
   public TestResult testCompleteLearning(@Nonnull final NotebookOutput log, @Nonnull final Layer component,
                                          final Random random, @Nonnull final Tensor[] inputPrototype) {
@@ -321,6 +425,15 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     return temp_18_0009;
   }
 
+  /**
+   * Test input learning test result.
+   *
+   * @param log            the log
+   * @param component      the component
+   * @param random         the random
+   * @param inputPrototype the input prototype
+   * @return the test result
+   */
   @Nullable
   public TestResult testInputLearning(@Nonnull final NotebookOutput log, @Nonnull final Layer component,
                                       final Random random, @Nonnull final Tensor[] inputPrototype) {
@@ -359,6 +472,15 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
         buildMask(inputPrototypeLength));
   }
 
+  /**
+   * Test model learning test result.
+   *
+   * @param log            the log
+   * @param component      the component
+   * @param random         the random
+   * @param inputPrototype the input prototype
+   * @return the test result
+   */
   @Nullable
   public TestResult testModelLearning(@Nonnull final NotebookOutput log, @Nonnull final Layer component,
                                       final Random random, @Nullable final Tensor[] inputPrototype) {
@@ -394,10 +516,22 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     return trainAll("Model Convergence", log, trainingInput, shuffle(random, copy));
   }
 
+  /**
+   * Min double.
+   *
+   * @param history the history
+   * @return the double
+   */
   public double min(@Nonnull List<StepRecord> history) {
     return history.stream().mapToDouble(x -> x.fitness).min().orElse(Double.NaN);
   }
 
+  /**
+   * Build mask boolean [ ].
+   *
+   * @param length the length
+   * @return the boolean [ ]
+   */
   @Nonnull
   public boolean[] buildMask(int length) {
     @Nonnull final boolean[] mask = new boolean[length + 1];
@@ -407,6 +541,16 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     return mask;
   }
 
+  /**
+   * Train all test result.
+   *
+   * @param title         the title
+   * @param log           the log
+   * @param trainingInput the training input
+   * @param layer         the layer
+   * @param mask          the mask
+   * @return the test result
+   */
   @Nonnull
   public TestResult trainAll(CharSequence title, @Nonnull NotebookOutput log, @Nonnull Tensor[][] trainingInput,
                              @Nonnull Layer layer, boolean... mask) {
@@ -443,6 +587,13 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     }
   }
 
+  /**
+   * Train cj gd list.
+   *
+   * @param log       the log
+   * @param trainable the trainable
+   * @return the list
+   */
   @Nonnull
   public List<StepRecord> trainCjGD(@Nonnull final NotebookOutput log, @Nullable final Trainable trainable) {
     log.p(
@@ -472,6 +623,13 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     return history;
   }
 
+  /**
+   * Train gd list.
+   *
+   * @param log       the log
+   * @param trainable the trainable
+   * @return the list
+   */
   @Nonnull
   public List<StepRecord> trainGD(@Nonnull final NotebookOutput log, @Nullable final Trainable trainable) {
     log.p("First, we train using basic gradient descent method apply weak line search conditions.");
@@ -500,6 +658,13 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     return history;
   }
 
+  /**
+   * Train lbfgs list.
+   *
+   * @param log       the log
+   * @param trainable the trainable
+   * @return the list
+   */
   @Nonnull
   public List<StepRecord> trainLBFGS(@Nonnull final NotebookOutput log, @Nullable final Trainable trainable) {
     log.p(
@@ -549,10 +714,20 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     return (TrainingTester) super.addRef();
   }
 
+  /**
+   * Print header.
+   *
+   * @param log the log
+   */
   protected void printHeader(@Nonnull NotebookOutput log) {
     log.h1("Training Characteristics");
   }
 
+  /**
+   * Loss layer layer.
+   *
+   * @return the layer
+   */
   protected abstract Layer lossLayer();
 
   private TrainingTester.TrainingResult getResult(double min) {
@@ -660,11 +835,27 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     return history;
   }
 
+  /**
+   * The enum Result type.
+   */
   public enum ResultType {
-    Converged, NonConverged
+    /**
+     * Converged result type.
+     */
+    Converged,
+    /**
+     * Non converged result type.
+     */
+    NonConverged
   }
 
+  /**
+   * The enum Randomization mode.
+   */
   public enum RandomizationMode {
+    /**
+     * The Permute.
+     */
     Permute {
       @Override
       public void shuffle(@Nonnull final Random random, @Nonnull final double[] buffer) {
@@ -676,6 +867,9 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
         }
       }
     },
+    /**
+     * The Permute duplicates.
+     */
     PermuteDuplicates {
       @Override
       public void shuffle(@Nonnull final Random random, @Nonnull final double[] buffer) {
@@ -685,6 +879,9 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
         }
       }
     },
+    /**
+     * The Random.
+     */
     Random {
       @Override
       public void shuffle(@Nonnull final Random random, @Nonnull final double[] buffer) {
@@ -694,14 +891,39 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
       }
     };
 
+    /**
+     * Shuffle.
+     *
+     * @param random the random
+     * @param buffer the buffer
+     */
     public abstract void shuffle(Random random, double[] buffer);
   }
 
+  /**
+   * The type Component result.
+   */
   public static class ComponentResult {
+    /**
+     * The Complete.
+     */
     final ProblemResult complete;
+    /**
+     * The Input.
+     */
     final ProblemResult input;
+    /**
+     * The Model.
+     */
     final ProblemResult model;
 
+    /**
+     * Instantiates a new Component result.
+     *
+     * @param input    the input
+     * @param model    the model
+     * @param complete the complete
+     */
     public ComponentResult(final ProblemResult input, final ProblemResult model, final ProblemResult complete) {
       this.input = input;
       this.model = model;
@@ -715,11 +937,30 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     }
   }
 
+  /**
+   * The type Test result.
+   */
   public static class TestResult {
+    /**
+     * The Iter plot.
+     */
     final PlotCanvas iterPlot;
+    /**
+     * The Time plot.
+     */
     final PlotCanvas timePlot;
+    /**
+     * The Value.
+     */
     final ProblemResult value;
 
+    /**
+     * Instantiates a new Test result.
+     *
+     * @param iterPlot the iter plot
+     * @param timePlot the time plot
+     * @param value    the value
+     */
     public TestResult(final PlotCanvas iterPlot, final PlotCanvas timePlot, final ProblemResult value) {
       this.timePlot = timePlot;
       this.iterPlot = iterPlot;
@@ -727,10 +968,25 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     }
   }
 
+  /**
+   * The type Training result.
+   */
   public static final class TrainingResult {
+    /**
+     * The Type.
+     */
     final ResultType type;
+    /**
+     * The Value.
+     */
     final double value;
 
+    /**
+     * Instantiates a new Training result.
+     *
+     * @param type  the type
+     * @param value the value
+     */
     public TrainingResult(final ResultType type, final double value) {
       this.type = type;
       this.value = value;
@@ -743,14 +999,29 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     }
   }
 
+  /**
+   * The type Problem result.
+   */
   public static class ProblemResult {
+    /**
+     * The Map.
+     */
     @Nonnull
     final Map<CharSequence, TrainingResult> map;
 
+    /**
+     * Instantiates a new Problem result.
+     */
     public ProblemResult() {
       this.map = new HashMap<>();
     }
 
+    /**
+     * Put.
+     *
+     * @param key    the key
+     * @param result the result
+     */
     public void put(CharSequence key, TrainingResult result) {
       map.put(key, result);
     }
@@ -759,7 +1030,11 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     @Override
     public String toString() {
       return "{ " + map.entrySet().stream().map(e ->
-          String.format("\"%s\": %s", e.getKey(), e.getValue().toString())
+          {
+            String format = String.format("\"%s\": %s", e.getKey(), e.getValue().toString());
+            RefUtil.freeRef(e);
+            return format;
+          }
       ).reduce((a, b) -> a + ", " + b).get() + " }";
     }
   }

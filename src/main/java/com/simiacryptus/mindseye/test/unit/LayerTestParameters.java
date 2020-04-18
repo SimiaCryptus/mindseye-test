@@ -36,25 +36,51 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * The type Layer test parameters.
+ */
 class LayerTestParameters extends ReferenceCountingBase {
   @Nullable
   private final Layer layer;
   private final int[][] inputDims;
 
+  /**
+   * Instantiates a new Layer test parameters.
+   *
+   * @param layer     the layer
+   * @param inputDims the input dims
+   */
   protected LayerTestParameters(@Nullable Layer layer, int[][] inputDims) {
     this.layer = layer;
     this.inputDims = inputDims;
   }
 
+  /**
+   * Get dims int [ ] [ ].
+   *
+   * @return the int [ ] [ ]
+   */
   public int[][] getDims() {
     return inputDims;
   }
 
+  /**
+   * Gets layer.
+   *
+   * @return the layer
+   */
   @Nullable
   public Layer getLayer() {
     return layer == null ? null : layer.addRef();
   }
 
+  /**
+   * Gets node tests.
+   *
+   * @param layer     the layer
+   * @param inputDims the input dims
+   * @return the node tests
+   */
   @Nonnull
   public static RefCollection<LayerTestParameters> getNodeTests(@Nonnull Layer layer, @Nonnull int[][] inputDims) {
     @Nonnull

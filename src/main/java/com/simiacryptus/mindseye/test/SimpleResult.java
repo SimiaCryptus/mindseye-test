@@ -26,16 +26,37 @@ import com.simiacryptus.ref.lang.ReferenceCounting;
 import javax.annotation.Nonnull;
 import java.util.UUID;
 
+/**
+ * The interface Simple result.
+ */
 public interface SimpleResult extends ReferenceCounting {
+  /**
+   * Get input derivative tensor list [ ].
+   *
+   * @return the tensor list [ ]
+   */
   @javax.annotation.Nullable
   TensorList[] getInputDerivative();
 
+  /**
+   * Gets layer derivative.
+   *
+   * @return the layer derivative
+   */
   @javax.annotation.Nullable
   DeltaSet<UUID> getLayerDerivative();
 
+  /**
+   * Gets output.
+   *
+   * @return the output
+   */
   @javax.annotation.Nullable
   TensorList getOutput();
 
+  /**
+   * Free.
+   */
   void _free();
 
   @Nonnull

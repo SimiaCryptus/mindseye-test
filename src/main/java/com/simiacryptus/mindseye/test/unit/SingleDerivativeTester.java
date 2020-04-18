@@ -41,9 +41,15 @@ import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.stream.IntStream;
 
+/**
+ * The type Single derivative tester.
+ */
 public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistics> {
   private static final Logger log = LoggerFactory.getLogger(SingleDerivativeTester.class);
 
+  /**
+   * The Probe size.
+   */
   public final double probeSize;
   private final double tolerance;
   private boolean testFeedback = true;
@@ -51,39 +57,85 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
   private boolean verbose = true;
   private boolean verify = true;
 
+  /**
+   * Instantiates a new Single derivative tester.
+   *
+   * @param tolerance the tolerance
+   * @param probeSize the probe size
+   */
   public SingleDerivativeTester(final double tolerance, final double probeSize) {
     this.tolerance = tolerance;
     this.probeSize = probeSize;
   }
 
+  /**
+   * Is test feedback boolean.
+   *
+   * @return the boolean
+   */
   public boolean isTestFeedback() {
     return testFeedback;
   }
 
+  /**
+   * Sets test feedback.
+   *
+   * @param testFeedback the test feedback
+   */
   public void setTestFeedback(boolean testFeedback) {
     this.testFeedback = testFeedback;
   }
 
+  /**
+   * Is test learning boolean.
+   *
+   * @return the boolean
+   */
   public boolean isTestLearning() {
     return testLearning;
   }
 
+  /**
+   * Sets test learning.
+   *
+   * @param testLearning the test learning
+   */
   public void setTestLearning(boolean testLearning) {
     this.testLearning = testLearning;
   }
 
+  /**
+   * Is verbose boolean.
+   *
+   * @return the boolean
+   */
   public boolean isVerbose() {
     return verbose;
   }
 
+  /**
+   * Sets verbose.
+   *
+   * @param verbose the verbose
+   */
   public void setVerbose(boolean verbose) {
     this.verbose = verbose;
   }
 
+  /**
+   * Is verify boolean.
+   *
+   * @return the boolean
+   */
   public boolean isVerify() {
     return verify;
   }
 
+  /**
+   * Sets verify.
+   *
+   * @param verify the verify
+   */
   public void setVerify(boolean verify) {
     this.verify = verify;
   }
@@ -165,6 +217,12 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     }
   }
 
+  /**
+   * Print stats string.
+   *
+   * @param array the array
+   * @return the string
+   */
   @NotNull
   @RefIgnore
   public String printStats(@RefIgnore Tensor[] array) {
@@ -175,6 +233,12 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
         .orElse("");
   }
 
+  /**
+   * Pretty print string.
+   *
+   * @param array the array
+   * @return the string
+   */
   @NotNull
   @RefIgnore
   public String prettyPrint(@RefIgnore Tensor[] array) {
@@ -184,6 +248,15 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
         .orElse("");
   }
 
+  /**
+   * Test learning tolerance statistics.
+   *
+   * @param prev            the prev
+   * @param component       the component
+   * @param inputPrototype  the input prototype
+   * @param outputPrototype the output prototype
+   * @return the tolerance statistics
+   */
   public ToleranceStatistics testLearning(@Nonnull ToleranceStatistics prev, @Nonnull Layer component,
                                           @Nullable Tensor[] inputPrototype, @Nonnull Tensor outputPrototype) {
     RefList<double[]> temp_00_0024 = component.state();
@@ -257,6 +330,15 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
         ).reduce(ToleranceStatistics::combine).map(x -> x.combine(prev)).orElse(prev);
   }
 
+  /**
+   * Test feedback tolerance statistics.
+   *
+   * @param statistics      the statistics
+   * @param component       the component
+   * @param inputPrototype  the input prototype
+   * @param outputPrototype the output prototype
+   * @return the tolerance statistics
+   */
   @Nonnull
   public ToleranceStatistics testFeedback(@Nonnull ToleranceStatistics statistics, @Nonnull Layer component,
                                           @Nonnull Tensor[] inputPrototype, @Nonnull Tensor outputPrototype) {
@@ -342,6 +424,12 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     return statistics.combine(RefUtil.orElse(optional, null));
   }
 
+  /**
+   * Test frozen.
+   *
+   * @param component      the component
+   * @param inputPrototype the input prototype
+   */
   public void testFrozen(@Nonnull final Layer component, @Nonnull Tensor[] inputPrototype) {
     final int inElements = RefArrays.stream(RefUtil.addRef(inputPrototype)).mapToInt(x -> {
       int temp_00_0005 = x.length();
@@ -420,6 +508,12 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     }
   }
 
+  /**
+   * Test un frozen.
+   *
+   * @param component      the component
+   * @param inputPrototype the input prototype
+   */
   public void testUnFrozen(@Nonnull final Layer component, Tensor[] inputPrototype) {
     inputPrototype = RefArrays.stream(inputPrototype).map(tensor -> {
       Tensor temp_00_0012 = tensor.copy();
@@ -505,6 +599,16 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     return (SingleDerivativeTester) super.addRef();
   }
 
+  /**
+   * Measure feedback.
+   *
+   * @param component        the component
+   * @param inputIndex       the input index
+   * @param baseOutput       the base output
+   * @param inputPrototype   the input prototype
+   * @param measuredGradient the measured gradient
+   * @param probeIndex       the probe index
+   */
   protected void measureFeedback(@Nonnull Layer component, int inputIndex, @Nullable Tensor baseOutput,
                                  @Nonnull Tensor[] inputPrototype, @Nonnull Tensor measuredGradient, int probeIndex) {
     @Nonnull final Tensor inputProbe = inputPrototype[inputIndex].copy();

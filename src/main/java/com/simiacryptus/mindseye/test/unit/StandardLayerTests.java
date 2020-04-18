@@ -31,33 +31,59 @@ import com.simiacryptus.util.test.SysOutInterceptor;
 
 import javax.annotation.Nonnull;
 
+/**
+ * The type Standard layer tests.
+ */
 public abstract class StandardLayerTests extends LayerTests {
 
   static {
     SysOutInterceptor.INSTANCE.init();
   }
 
+  /**
+   * Instantiates a new Standard layer tests.
+   */
   public StandardLayerTests() {
     super();
     logger.info("Seed: " + seed);
   }
 
+  /**
+   * Gets big tests.
+   *
+   * @return the big tests
+   */
   @Nonnull
   protected RefList<ComponentTest<?>> getBigTests() {
     return RefArrays.asList(getPerformanceTester(), getBatchingTester(), new ReferenceIO(getReferenceIO()),
         getEquivalencyTester());
   }
 
+  /**
+   * Gets final tests.
+   *
+   * @return the final tests
+   */
   @Nonnull
   protected RefList<ComponentTest<?>> getFinalTests() {
     return RefArrays.asList(getTrainingTester());
   }
 
+  /**
+   * Gets little tests.
+   *
+   * @return the little tests
+   */
   @Nonnull
   protected RefList<ComponentTest<?>> getLittleTests() {
     return RefArrays.asList(new SerializationTest(), getDerivativeTester());
   }
 
+  /**
+   * All tests.
+   *
+   * @param log the log
+   */
   public final void allTests(@Nonnull final NotebookOutput log) {
     printJavadoc(log);
     long seed = (long) (Math.random() * Long.MAX_VALUE);

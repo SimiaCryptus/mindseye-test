@@ -32,6 +32,9 @@ import javax.annotation.Nullable;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
+/**
+ * The type Simple eval.
+ */
 public class SimpleEval extends ReferenceCountingBase implements Callable<SimpleEval> {
   @Nonnull
   private final Tensor[] input;
@@ -43,6 +46,12 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
   @Nullable
   private Tensor output;
 
+  /**
+   * Instantiates a new Simple eval.
+   *
+   * @param layer the layer
+   * @param input the input
+   */
   public SimpleEval(@Nonnull final Layer layer, @Nonnull final Tensor... input) {
     this.layer = layer;
     this.input = input;
@@ -56,20 +65,40 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
     }).map(dims -> new Tensor(dims)).toArray(value -> new Tensor[value]);
   }
 
+  /**
+   * Get derivative tensor [ ].
+   *
+   * @return the tensor [ ]
+   */
   @Nullable
   public Tensor[] getDerivative() {
     return RefUtil.addRef(derivative);
   }
 
+  /**
+   * Gets output.
+   *
+   * @return the output
+   */
   @Nullable
   public Tensor getOutput() {
     return output == null ? null : output.addRef();
   }
 
+  /**
+   * Is calc derivative boolean.
+   *
+   * @return the boolean
+   */
   public boolean isCalcDerivative() {
     return calcDerivative;
   }
 
+  /**
+   * Sets result.
+   *
+   * @param eval the eval
+   */
   public void setResult(Result eval) {
     assert eval != null;
     try {
@@ -93,15 +122,35 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
     }
   }
 
+  /**
+   * Sets validate derivative.
+   *
+   * @param calcDerivative the calc derivative
+   */
   public void setValidateDerivative(boolean calcDerivative) {
     this.calcDerivative = calcDerivative;
   }
 
+  /**
+   * Run simple eval.
+   *
+   * @param layer  the layer
+   * @param tensor the tensor
+   * @return the simple eval
+   */
   @Nonnull
   public static SimpleEval run(@Nonnull final Layer layer, @Nullable final Tensor... tensor) {
     return run(layer, true, tensor);
   }
 
+  /**
+   * Run simple eval.
+   *
+   * @param layer              the layer
+   * @param validateDerivative the validate derivative
+   * @param tensor             the tensor
+   * @return the simple eval
+   */
   @Nonnull
   public static SimpleEval run(@Nonnull final Layer layer, boolean validateDerivative, @Nullable final Tensor... tensor) {
     SimpleEval simpleEval = new SimpleEval(layer, tensor);
@@ -117,10 +166,18 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
     return this.addRef();
   }
 
+  /**
+   * Eval.
+   */
   public void eval() {
     setResult(layer.eval(input()));
   }
 
+  /**
+   * Input result [ ].
+   *
+   * @return the result [ ]
+   */
   @NotNull
   public Result[] input() {
     return RefIntStream.range(0, input.length).mapToObj(i -> {
@@ -130,6 +187,12 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
     }).toArray(Result[]::new);
   }
 
+  /**
+   * Gets feedback.
+   *
+   * @param data the data
+   * @return the feedback
+   */
   @Nonnull
   public TensorList getFeedback(@Nonnull final TensorList data) {
     try {
@@ -178,6 +241,11 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
 
     private Tensor tensor;
 
+    /**
+     * Instantiates a new Accumulator.
+     *
+     * @param tensor the tensor
+     */
     public Accumulator(Tensor tensor) {
       this.tensor = tensor;
     }

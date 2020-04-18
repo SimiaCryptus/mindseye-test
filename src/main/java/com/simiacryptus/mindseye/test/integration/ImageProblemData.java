@@ -26,9 +26,24 @@ import com.simiacryptus.util.test.LabeledObject;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 
+/**
+ * The interface Image problem data.
+ */
 public interface ImageProblemData {
+  /**
+   * Training data ref stream.
+   *
+   * @return the ref stream
+   * @throws IOException the io exception
+   */
   @Nonnull
   RefStream<LabeledObject<Tensor>> trainingData() throws IOException;
 
+  /**
+   * Validation data ref stream.
+   *
+   * @return the ref stream
+   * @throws IOException the io exception
+   */
   RefStream<LabeledObject<Tensor>> validationData() throws IOException;
 }

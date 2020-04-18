@@ -41,6 +41,9 @@ import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.function.IntFunction;
 
+/**
+ * The type Batching tester.
+ */
 public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
   private static final Logger logger = LoggerFactory.getLogger(BatchingTester.class);
 
@@ -48,23 +51,51 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
   private final boolean validateDerivatives;
   private int batchSize = 10;
 
+  /**
+   * Instantiates a new Batching tester.
+   *
+   * @param tolerance           the tolerance
+   * @param validateDerivatives the validate derivatives
+   */
   public BatchingTester(final double tolerance, boolean validateDerivatives) {
     this.tolerance = tolerance;
     this.validateDerivatives = validateDerivatives;
   }
 
+  /**
+   * Gets batch size.
+   *
+   * @return the batch size
+   */
   public int getBatchSize() {
     return batchSize;
   }
 
+  /**
+   * Sets batch size.
+   *
+   * @param batchSize the batch size
+   */
   public void setBatchSize(int batchSize) {
     this.batchSize = batchSize;
   }
 
+  /**
+   * Gets random.
+   *
+   * @return the random
+   */
   public double getRandom() {
     return 5 * (Math.random() - 0.5);
   }
 
+  /**
+   * Test tolerance statistics.
+   *
+   * @param reference      the reference
+   * @param inputPrototype the input prototype
+   * @return the tolerance statistics
+   */
   @Nonnull
   public ToleranceStatistics test(@Nullable final Layer reference, @Nonnull final Tensor[] inputPrototype) {
     if (null == reference) {

@@ -45,12 +45,20 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.DoubleFunction;
 import java.util.function.Function;
 
+/**
+ * The type Activation layer test base.
+ */
 public abstract class ActivationLayerTestBase extends LayerTestBase {
 
   @Nullable
   @RefIgnore
   private final Layer layer;
 
+  /**
+   * Instantiates a new Activation layer test base.
+   *
+   * @param layer the layer
+   */
   public ActivationLayerTestBase(@Nullable final Layer layer) {
     this.layer = layer;
   }
@@ -81,6 +89,13 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
     return trainingTester;
   }
 
+  /**
+   * Plot plot canvas.
+   *
+   * @param title the title
+   * @param data  the data
+   * @return the plot canvas
+   */
   @Nonnull
   public static PlotCanvas plot(final String title, final double[][] data) {
     @Nonnull final PlotCanvas plot = ScatterPlot.plot(data);
@@ -90,6 +105,14 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
     return plot;
   }
 
+  /**
+   * Plot plot canvas.
+   *
+   * @param title    the title
+   * @param plotData the plot data
+   * @param function the function
+   * @return the plot canvas
+   */
   @Nonnull
   public static PlotCanvas plot(final String title, @Nonnull final RefList<double[]> plotData,
                                 @Nonnull final Function<double[], double[]> function) {
@@ -98,11 +121,19 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
     return ActivationLayerTestBase.plot(title, data);
   }
 
+  /**
+   * Scan ref double stream.
+   *
+   * @return the ref double stream
+   */
   @Nonnull
   public RefDoubleStream scan() {
     return RefIntStream.range(-1000, 1000).mapToDouble(x -> x / 300.0);
   }
 
+  /**
+   * Activation plot.
+   */
   @Test
   @Timeout(value = 15, unit = TimeUnit.MINUTES)
   public void activationPlot() {
@@ -135,6 +166,9 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
     }, plotData));
   }
 
+  /**
+   * Cleanup.
+   */
   @AfterEach
   @MustCall
   public void cleanup() {

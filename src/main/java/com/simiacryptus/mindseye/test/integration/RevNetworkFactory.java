@@ -24,7 +24,17 @@ import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nonnull;
 
+/**
+ * The interface Rev network factory.
+ */
 public interface RevNetworkFactory {
+  /**
+   * Vector to image dag network.
+   *
+   * @param log      the log
+   * @param features the features
+   * @return the dag network
+   */
   @Nonnull
   DAGNetwork vectorToImage(NotebookOutput log, int features);
 }

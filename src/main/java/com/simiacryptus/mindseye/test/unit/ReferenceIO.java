@@ -34,10 +34,21 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * The type Reference io.
+ */
 public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
+  /**
+   * The Reference io.
+   */
   @Nullable
   final RefHashMap<Tensor[], Tensor> referenceIO;
 
+  /**
+   * Instantiates a new Reference io.
+   *
+   * @param referenceIO the reference io
+   */
   public ReferenceIO(@Nullable final RefHashMap<Tensor[], Tensor> referenceIO) {
     this.referenceIO = referenceIO;
   }

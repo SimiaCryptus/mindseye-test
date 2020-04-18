@@ -29,7 +29,13 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 
+/**
+ * The type Mnist problem data.
+ */
 public class MnistProblemData implements ImageProblemData {
+  /**
+   * The Log.
+   */
   static final Logger log = LoggerFactory.getLogger(MnistProblemData.class);
 
   @Nonnull

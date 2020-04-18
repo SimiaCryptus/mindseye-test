@@ -33,8 +33,14 @@ import org.junit.jupiter.api.Timeout;
 import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * The type Layer test base.
+ */
 public abstract class LayerTestBase extends LayerTests {
 
+  /**
+   * Perf test.
+   */
   @Test
   @Timeout(value = 15, unit = TimeUnit.MINUTES)
   @DisplayName("Performance")
@@ -43,6 +49,9 @@ public abstract class LayerTestBase extends LayerTests {
     run(getLog(), getPerformanceTester(), getLargeDims(), seed);
   }
 
+  /**
+   * Batching test.
+   */
   @Test
   @Timeout(value = 15, unit = TimeUnit.MINUTES)
   @DisplayName("Data Batching Invariance")
@@ -51,6 +60,9 @@ public abstract class LayerTestBase extends LayerTests {
     run(getLog(), getBatchingTester(), getLargeDims(), seed);
   }
 
+  /**
+   * Reference io test.
+   */
   @Test
   @Timeout(value = 15, unit = TimeUnit.MINUTES)
   @DisplayName("Input/Output")
@@ -59,6 +71,9 @@ public abstract class LayerTestBase extends LayerTests {
     run(getLog(), new ReferenceIO(getReferenceIO()), getLargeDims(), seed);
   }
 
+  /**
+   * Equivalency test.
+   */
   @Test
   @Timeout(value = 15, unit = TimeUnit.MINUTES)
   @DisplayName("Equivalency Validation")
@@ -71,6 +86,9 @@ public abstract class LayerTestBase extends LayerTests {
     }
   }
 
+  /**
+   * Json test.
+   */
   @Test
   @Timeout(value = 15, unit = TimeUnit.MINUTES)
   @DisplayName("JSON Serialization")
@@ -79,6 +97,9 @@ public abstract class LayerTestBase extends LayerTests {
     run(getLog(), new SerializationTest(), getSmallDims(), seed);
   }
 
+  /**
+   * Derivative test.
+   */
   @Test
   @Timeout(value = 15, unit = TimeUnit.MINUTES)
   @DisplayName("Derivative Validation")
@@ -87,6 +108,9 @@ public abstract class LayerTestBase extends LayerTests {
     run(getLog(), getDerivativeTester(), getSmallDims(), seed);
   }
 
+  /**
+   * Training test.
+   */
   @Test
   @Timeout(value = 15, unit = TimeUnit.MINUTES)
   @DisplayName("Comparative Training")

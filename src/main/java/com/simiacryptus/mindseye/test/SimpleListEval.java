@@ -31,6 +31,9 @@ import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.function.IntFunction;
 
+/**
+ * The type Simple list eval.
+ */
 public class SimpleListEval extends ReferenceCountingBase implements Callable<SimpleResult>, SimpleResult {
   @Nonnull
   private final TensorList[] input;
@@ -44,6 +47,12 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
   @Nullable
   private DeltaSet<UUID> layerDerivative;
 
+  /**
+   * Instantiates a new Simple list eval.
+   *
+   * @param layer the layer
+   * @param input the input
+   */
   public SimpleListEval(@Nonnull final Layer layer, @Nonnull final TensorList... input) {
     Layer temp_09_0001 = layer.addRef();
     this.layer = temp_09_0001 == null ? null : temp_09_0001.addRef();
@@ -71,6 +80,11 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
     return layerDerivative == null ? null : layerDerivative.addRef();
   }
 
+  /**
+   * Sets layer derivative.
+   *
+   * @param layerDerivative the layer derivative
+   */
   public void setLayerDerivative(@Nullable DeltaSet<UUID> layerDerivative) {
     DeltaSet<UUID> temp_09_0004 = layerDerivative == null ? null : layerDerivative.addRef();
     if (null != this.layerDerivative)
@@ -88,14 +102,30 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
     return output == null ? null : output.addRef();
   }
 
+  /**
+   * Is calc derivatives boolean.
+   *
+   * @return the boolean
+   */
   public boolean isCalcDerivatives() {
     return calcDerivatives;
   }
 
+  /**
+   * Sets calc derivatives.
+   *
+   * @param calcDerivatives the calc derivatives
+   */
   public void setCalcDerivatives(boolean calcDerivatives) {
     this.calcDerivatives = calcDerivatives;
   }
 
+  /**
+   * Accumulate.
+   *
+   * @param buffer the buffer
+   * @param data   the data
+   */
   public static void accumulate(@Nonnull final TensorList buffer, @Nonnull final TensorList data) {
     RefIntStream.range(0, data.length()).forEach(RefUtil.wrapInterface(b -> {
       @Nullable
@@ -108,11 +138,26 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
     }, data, buffer));
   }
 
+  /**
+   * Run simple result.
+   *
+   * @param layer  the layer
+   * @param tensor the tensor
+   * @return the simple result
+   */
   @Nonnull
   public static SimpleResult run(@Nonnull final Layer layer, @Nullable final TensorList... tensor) {
     return run(layer, true, tensor);
   }
 
+  /**
+   * Run simple result.
+   *
+   * @param layer           the layer
+   * @param calcDerivatives the calc derivatives
+   * @param tensor          the tensor
+   * @return the simple result
+   */
   @Nonnull
   public static SimpleResult run(@Nonnull final Layer layer, boolean calcDerivatives, @Nullable final TensorList... tensor) {
     SimpleListEval eval = new SimpleListEval(layer, tensor);
@@ -179,6 +224,12 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
     return this.addRef();
   }
 
+  /**
+   * Gets feedback.
+   *
+   * @param data the data
+   * @return the feedback
+   */
   @Nonnull
   public TensorList getFeedback(@Nonnull final TensorList data) {
     TensorArray temp_09_0014 = new TensorArray(data.stream().map(t -> {

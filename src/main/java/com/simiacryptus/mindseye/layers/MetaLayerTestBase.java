@@ -22,8 +22,14 @@ package com.simiacryptus.mindseye.layers;
 import com.simiacryptus.mindseye.test.LayerTestBase;
 import org.junit.jupiter.api.Disabled;
 
+/**
+ * The type Meta layer test base.
+ */
 public abstract class MetaLayerTestBase extends LayerTestBase {
 
+  /**
+   * Instantiates a new Meta layer test base.
+   */
   public MetaLayerTestBase() {
   }
 

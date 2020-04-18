@@ -45,29 +45,59 @@ import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
+/**
+ * The type Serialization test.
+ */
 public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
   @Nonnull
   private final RefHashMap<SerialPrecision, Layer> models = new RefHashMap<>();
   private boolean persist = false;
 
+  /**
+   * Gets models.
+   *
+   * @return the models
+   */
   @Nonnull
   public RefHashMap<SerialPrecision, Layer> getModels() {
     return RefUtil.addRef(models);
   }
 
+  /**
+   * Is persist boolean.
+   *
+   * @return the boolean
+   */
   public boolean isPersist() {
     return persist;
   }
 
+  /**
+   * Sets persist.
+   *
+   * @param persist the persist
+   */
   public void setPersist(boolean persist) {
     this.persist = persist;
   }
 
+  /**
+   * Compress gz byte [ ].
+   *
+   * @param prettyPrint the pretty print
+   * @return the byte [ ]
+   */
   @Nonnull
   public static byte[] compressGZ(@Nonnull String prettyPrint) {
     return compressGZ(prettyPrint.getBytes(Charset.forName("UTF-8")));
   }
 
+  /**
+   * Compress gz byte [ ].
+   *
+   * @param bytes the bytes
+   * @return the byte [ ]
+   */
   @Nonnull
   public static byte[] compressGZ(byte[] bytes) {
     @Nonnull

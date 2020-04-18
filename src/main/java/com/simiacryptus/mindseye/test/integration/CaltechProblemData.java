@@ -31,24 +31,45 @@ import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * The type Caltech problem data.
+ */
 public class CaltechProblemData implements ImageProblemData {
 
   private final int imageSize;
   @Nullable
   private List<CharSequence> labels = null;
 
+  /**
+   * Instantiates a new Caltech problem data.
+   */
   public CaltechProblemData() {
     this(256);
   }
 
+  /**
+   * Instantiates a new Caltech problem data.
+   *
+   * @param imageSize the image size
+   */
   public CaltechProblemData(int imageSize) {
     this.imageSize = imageSize;
   }
 
+  /**
+   * Gets image size.
+   *
+   * @return the image size
+   */
   public int getImageSize() {
     return imageSize;
   }
 
+  /**
+   * Gets labels.
+   *
+   * @return the labels
+   */
   @Nullable
   public List<CharSequence> getLabels() {
     if (null == labels) {

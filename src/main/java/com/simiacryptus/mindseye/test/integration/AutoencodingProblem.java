@@ -54,6 +54,9 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+/**
+ * The type Autoencoding problem.
+ */
 @SuppressWarnings("FieldCanBeLocal")
 public abstract class AutoencodingProblem implements Problem {
 
@@ -70,6 +73,16 @@ public abstract class AutoencodingProblem implements Problem {
   private final RevNetworkFactory revFactory;
   private int timeoutMinutes = 1;
 
+  /**
+   * Instantiates a new Autoencoding problem.
+   *
+   * @param fwdFactory the fwd factory
+   * @param optimizer  the optimizer
+   * @param revFactory the rev factory
+   * @param data       the data
+   * @param features   the features
+   * @param dropout    the dropout
+   */
   public AutoencodingProblem(final FwdNetworkFactory fwdFactory, final OptimizationStrategy optimizer,
                              final RevNetworkFactory revFactory, final ImageProblemData data, final int features, final double dropout) {
     this.fwdFactory = fwdFactory;
@@ -86,16 +99,32 @@ public abstract class AutoencodingProblem implements Problem {
     return history;
   }
 
+  /**
+   * Gets timeout minutes.
+   *
+   * @return the timeout minutes
+   */
   public int getTimeoutMinutes() {
     return timeoutMinutes;
   }
 
+  /**
+   * Sets timeout minutes.
+   *
+   * @param timeoutMinutes the timeout minutes
+   * @return the timeout minutes
+   */
   @Nonnull
   public AutoencodingProblem setTimeoutMinutes(final int timeoutMinutes) {
     this.timeoutMinutes = timeoutMinutes;
     return this;
   }
 
+  /**
+   * Get training data tensor [ ] [ ].
+   *
+   * @return the tensor [ ] [ ]
+   */
   @Nonnull
   public Tensor[][] getTrainingData() {
     try {
@@ -109,6 +138,12 @@ public abstract class AutoencodingProblem implements Problem {
     }
   }
 
+  /**
+   * Parse int.
+   *
+   * @param label the label
+   * @return the int
+   */
   public int parse(@Nonnull final String label) {
     return Integer.parseInt(label.replaceAll("[^\\d]", ""));
   }
@@ -249,6 +284,14 @@ public abstract class AutoencodingProblem implements Problem {
     return this;
   }
 
+  /**
+   * To row linked hash map.
+   *
+   * @param log              the log
+   * @param labeledObject    the labeled object
+   * @param predictionSignal the prediction signal
+   * @return the linked hash map
+   */
   @Nonnull
   public LinkedHashMap<CharSequence, Object> toRow(@Nonnull final NotebookOutput log,
                                                    @Nonnull final LabeledObject<Tensor> labeledObject, final double[] predictionSignal) {
@@ -261,9 +304,20 @@ public abstract class AutoencodingProblem implements Problem {
     return row;
   }
 
+  /**
+   * Loss layer layer.
+   *
+   * @return the layer
+   */
   @Nonnull
   protected abstract Layer lossLayer();
 
+  /**
+   * Dropout stochastic component.
+   *
+   * @param dropout the dropout
+   * @return the stochastic component
+   */
   @Nonnull
   protected abstract StochasticComponent dropout(double dropout);
 }

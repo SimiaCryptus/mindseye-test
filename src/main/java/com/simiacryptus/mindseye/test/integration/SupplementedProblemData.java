@@ -33,16 +33,31 @@ import java.util.Random;
 import java.util.function.IntFunction;
 import java.util.function.ToDoubleFunction;
 
+/**
+ * The type Supplemented problem data.
+ */
 public class SupplementedProblemData implements ImageProblemData {
 
   private final int expansion = 10;
   private final ImageProblemData inner;
   private final Random random = new Random();
 
+  /**
+   * Instantiates a new Supplemented problem data.
+   *
+   * @param inner the inner
+   */
   public SupplementedProblemData(final ImageProblemData inner) {
     this.inner = inner;
   }
 
+  /**
+   * Print sample.
+   *
+   * @param log      the log
+   * @param expanded the expanded
+   * @param size     the size
+   */
   public static void printSample(@Nonnull final NotebookOutput log, @Nullable final Tensor[][] expanded, final int size) {
     @Nonnull final RefArrayList<Tensor[]> list = new RefArrayList<>(RefArrays.asList(expanded));
     RefCollections.shuffle(list.addRef());
@@ -54,6 +69,12 @@ public class SupplementedProblemData implements ImageProblemData {
     list.freeRef();
   }
 
+  /**
+   * Add noise tensor.
+   *
+   * @param tensor the tensor
+   * @return the tensor
+   */
   @Nonnull
   protected static Tensor addNoise(@Nonnull final Tensor tensor) {
     Tensor temp_16_0003 = tensor.mapParallel(v -> Math.random() < 0.9 ? v : v + Math.random() * 100);
@@ -61,6 +82,14 @@ public class SupplementedProblemData implements ImageProblemData {
     return temp_16_0003;
   }
 
+  /**
+   * Translate tensor.
+   *
+   * @param dx     the dx
+   * @param dy     the dy
+   * @param tensor the tensor
+   * @return the tensor
+   */
   @Nonnull
   protected static Tensor translate(final int dx, final int dy, @Nonnull final Tensor tensor) {
     final int sx = tensor.getDimensions()[0];

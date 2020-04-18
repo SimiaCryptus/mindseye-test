@@ -26,13 +26,36 @@ import smile.plot.swing.ScatterPlot;
 import java.awt.*;
 import java.util.List;
 
+/**
+ * The type Problem run.
+ */
 public class ProblemRun {
 
+  /**
+   * The Color.
+   */
   public final Color color;
+  /**
+   * The History.
+   */
   public final List<StepRecord> history;
+  /**
+   * The Name.
+   */
   public final String name;
+  /**
+   * The Type.
+   */
   public final PlotType type;
 
+  /**
+   * Instantiates a new Problem run.
+   *
+   * @param name    the name
+   * @param history the history
+   * @param color   the color
+   * @param type    the type
+   */
   public ProblemRun(final String name, final List<StepRecord> history, final Color color, final PlotType type) {
     this.history = history;
     this.name = name;
@@ -40,6 +63,12 @@ public class ProblemRun {
     this.type = type;
   }
 
+  /**
+   * Plot plot.
+   *
+   * @param pts the pts
+   * @return the plot
+   */
   public Plot plot(final double[][] pts) {
     Plot plot;
     switch (type) {
@@ -58,7 +87,17 @@ public class ProblemRun {
     }
   }
 
+  /**
+   * The enum Plot type.
+   */
   public enum PlotType {
-    Line, Scatter
+    /**
+     * Line plot type.
+     */
+    Line,
+    /**
+     * Scatter plot type.
+     */
+    Scatter
   }
 }

@@ -42,6 +42,9 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.zip.GZIPInputStream;
 
+/**
+ * The type Cifar 10.
+ */
 public class CIFAR10 {
 
   @Nullable
@@ -93,11 +96,19 @@ public class CIFAR10 {
     }
   };
 
+  /**
+   * Halt.
+   */
   public static void halt() {
     assert CIFAR10.training != null;
     CIFAR10.training.stop();
   }
 
+  /**
+   * Training data stream ref stream.
+   *
+   * @return the ref stream
+   */
   @Nonnull
   public static RefStream<LabeledObject<Tensor>> trainingDataStream() {
     assert CIFAR10.training != null;

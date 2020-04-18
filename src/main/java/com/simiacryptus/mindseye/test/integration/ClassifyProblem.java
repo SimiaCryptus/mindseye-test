@@ -56,6 +56,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+/**
+ * The type Classify problem.
+ */
 public abstract class ClassifyProblem implements Problem {
 
   private static final Logger logger = LoggerFactory.getLogger(ClassifyProblem.class);
@@ -70,6 +73,14 @@ public abstract class ClassifyProblem implements Problem {
   private int batchSize = 10000;
   private int timeoutMinutes = 1;
 
+  /**
+   * Instantiates a new Classify problem.
+   *
+   * @param fwdFactory the fwd factory
+   * @param optimizer  the optimizer
+   * @param data       the data
+   * @param categories the categories
+   */
   public ClassifyProblem(final FwdNetworkFactory fwdFactory, final OptimizationStrategy optimizer,
                          final ImageProblemData data, final int categories) {
     this.fwdFactory = fwdFactory;
@@ -87,10 +98,21 @@ public abstract class ClassifyProblem implements Problem {
     }
   }
 
+  /**
+   * Gets batch size.
+   *
+   * @return the batch size
+   */
   public int getBatchSize() {
     return batchSize;
   }
 
+  /**
+   * Sets batch size.
+   *
+   * @param batchSize the batch size
+   * @return the batch size
+   */
   @Nonnull
   public ClassifyProblem setBatchSize(int batchSize) {
     this.batchSize = batchSize;
@@ -103,16 +125,32 @@ public abstract class ClassifyProblem implements Problem {
     return history;
   }
 
+  /**
+   * Gets timeout minutes.
+   *
+   * @return the timeout minutes
+   */
   public int getTimeoutMinutes() {
     return timeoutMinutes;
   }
 
+  /**
+   * Sets timeout minutes.
+   *
+   * @param timeoutMinutes the timeout minutes
+   * @return the timeout minutes
+   */
   @Nonnull
   public ClassifyProblem setTimeoutMinutes(final int timeoutMinutes) {
     this.timeoutMinutes = timeoutMinutes;
     return this;
   }
 
+  /**
+   * Get training data tensor [ ] [ ].
+   *
+   * @return the tensor [ ] [ ]
+   */
   @Nonnull
   public Tensor[][] getTrainingData() {
     try {
@@ -129,10 +167,23 @@ public abstract class ClassifyProblem implements Problem {
     }
   }
 
+  /**
+   * Parse int.
+   *
+   * @param label the label
+   * @return the int
+   */
   public int parse(final CharSequence label) {
     return this.labels.indexOf(label);
   }
 
+  /**
+   * Predict int [ ].
+   *
+   * @param network       the network
+   * @param labeledObject the labeled object
+   * @return the int [ ]
+   */
   public int[] predict(@Nonnull final Layer network, @Nonnull final LabeledObject<Tensor> labeledObject) {
     Result result = network.eval(labeledObject.data.addRef());
     labeledObject.freeRef();
@@ -251,6 +302,14 @@ public abstract class ClassifyProblem implements Problem {
     return this;
   }
 
+  /**
+   * To row linked hash map.
+   *
+   * @param log              the log
+   * @param labeledObject    the labeled object
+   * @param predictionSignal the prediction signal
+   * @return the linked hash map
+   */
   @Nullable
   public LinkedHashMap<CharSequence, Object> toRow(@Nonnull final NotebookOutput log,
                                                    @Nonnull final LabeledObject<Tensor> labeledObject, final double[] predictionSignal) {
@@ -271,6 +330,11 @@ public abstract class ClassifyProblem implements Problem {
     return row;
   }
 
+  /**
+   * Loss layer layer.
+   *
+   * @return the layer
+   */
   @Nonnull
   protected abstract Layer lossLayer();
 }

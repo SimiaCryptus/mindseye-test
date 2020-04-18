@@ -23,6 +23,11 @@ import com.simiacryptus.ref.lang.ReferenceCountingBase;
 
 import javax.annotation.Nonnull;
 
+/**
+ * The type Component test base.
+ *
+ * @param <T> the type parameter
+ */
 public abstract class ComponentTestBase<T> extends ReferenceCountingBase implements ComponentTest<T> {
 
   public @SuppressWarnings("unused")
