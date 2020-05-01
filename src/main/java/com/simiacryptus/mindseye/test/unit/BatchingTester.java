@@ -177,9 +177,8 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
           .mapToObj(RefUtil.wrapInterface((IntFunction<ToleranceStatistics>) batch -> {
                 TensorList[] asABatchInputDerivative = asABatch.getInputDerivative();
                 assert oneAtATime != null;
-                SimpleEval temp_15_0013 = oneAtATime.get(batch);
-                Tensor[] derivative = temp_15_0013.getDerivative();
-                temp_15_0013.freeRef();
+                SimpleEval eval = oneAtATime.get(batch);
+                Tensor[] derivative = eval.getDerivative();
                 IntFunction<ToleranceStatistics> statisticsFunction = RefUtil.wrapInterface(input -> {
                   assert asABatchInputDerivative != null;
                   @Nullable
@@ -196,8 +195,10 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
                   a.freeRef();
                   return toleranceStatistics;
                 }, oneAtATime.addRef(), asABatch.addRef(), asABatchInputDerivative, derivative);
-                return RefIntStream.range(0, Math.min(inputPrototype.length, batchLength)).mapToObj(statisticsFunction)
+                ToleranceStatistics statistics = RefIntStream.range(0, Math.min(inputPrototype.length, batchLength)).mapToObj(statisticsFunction)
                     .reduce(ToleranceStatistics::combine).orElse(null);
+                eval.freeRef();
+                return statistics;
               }, RefUtil.addRef(inputPrototype), oneAtATime == null ? null : oneAtATime.addRef(),
               asABatch.addRef()))
           .filter(Objects::nonNull).reduce(ToleranceStatistics::combine).orElse(null);
