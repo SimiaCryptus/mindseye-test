@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.test.unit.*;
 import com.simiacryptus.notebook.NotebookOutput;
+import com.simiacryptus.ref.lang.RefUtil;
 import com.simiacryptus.util.Util;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
@@ -90,6 +91,7 @@ public abstract class LayerTestBase extends LayerTests {
           @Nullable
           @Override
           public String test(NotebookOutput log, Layer component, Tensor... inputPrototype) {
+            RefUtil.freeRef(inputPrototype);
             new MermaidGrapher(log, true).mermaid((DAGNetwork) component);
             return "OK";
           }

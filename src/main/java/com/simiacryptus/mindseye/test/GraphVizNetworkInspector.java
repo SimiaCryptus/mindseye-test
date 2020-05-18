@@ -101,6 +101,7 @@ public final class GraphVizNetworkInspector {
       });
       assert graphNodes != null;
       RefCollection<MutableNode> values = graphNodes.values();
+      graphNodes.freeRef();
       final LinkSource[] nodeArray = values.stream().map(x -> (LinkSource) x).toArray(LinkSource[]::new);
       values.freeRef();
       return Factory.graph().with(nodeArray).graphAttr().with(Rank.dir(Rank.RankDir.TOP_TO_BOTTOM)).directed();

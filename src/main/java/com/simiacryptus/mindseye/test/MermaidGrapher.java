@@ -114,7 +114,6 @@ public class MermaidGrapher {
 
   @NotNull
   private static String getLabel(@Nonnull @RefIgnore Layer layer) {
-    UUID id = layer.getId();
     String name = layer.getName();
     layer.freeRef();
     assert name != null;
@@ -192,7 +191,7 @@ public class MermaidGrapher {
     log.p("ID: " + id.toString());
     log.p("Class: " + layer.getClass().getName());
     if (writeZip) writeZip(log, layer);
-    add(log, layer);
+    add(log, layer.addRef());
     logged.add(id);
   }
 

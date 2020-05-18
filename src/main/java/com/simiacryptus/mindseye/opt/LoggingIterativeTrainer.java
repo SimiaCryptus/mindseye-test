@@ -291,9 +291,9 @@ public abstract class LoggingIterativeTrainer extends ReferenceCountingBase {
     shuffle();
     currentPointRef.set(measure(out));
     try {
-      assert isDefined(currentPointRef);
+      assert isDefined(currentPointRef.addRef());
 mainLoop:
-      while (timeoutMs > RefSystem.currentTimeMillis() && terminateThreshold < getMean(currentPointRef) && maxIterations > iterationCounter.get()) {
+      while (timeoutMs > RefSystem.currentTimeMillis() && terminateThreshold < getMean(currentPointRef.addRef()) && maxIterations > iterationCounter.get()) {
         shuffle();
         currentPointRef.set(measure(out));
         for (int subiteration = 0; subiteration < iterationsPerSample || iterationsPerSample <= 0; subiteration++) {
@@ -333,13 +333,13 @@ mainLoop:
         ((DAGNetwork) subjectLayer).clearNoise();
       }
       if (null != subjectLayer) subjectLayer.freeRef();
-      return isDefined(currentPointRef) ? getMean(currentPointRef) : Double.NaN;
+      return isDefined(currentPointRef.addRef()) ? getMean(currentPointRef.addRef()) : Double.NaN;
     } catch (Throwable e) {
       out.p(RefString.format("Error %s", Util.toString(e)));
       throw Util.throwException(e);
     } finally {
       out.p(RefString.format("Final threshold in iteration %s: %s (> %s) after %.3fs (< %.3fs)",
-          iterationCounter.get(), isDefined(currentPointRef) ? getMean(currentPointRef) : null, terminateThreshold,
+          iterationCounter.get(), isDefined(currentPointRef.addRef()) ? getMean(currentPointRef.addRef()) : null, terminateThreshold,
           (RefSystem.currentTimeMillis() - startTime) / 1000.0,
           timeout.toMillis() / 1000.0));
 
@@ -348,8 +348,9 @@ mainLoop:
 
   private boolean isDefined(RefAtomicReference<@Nullable PointSample> currentPointRef) {
     PointSample pointSample = currentPointRef.get();
+    currentPointRef.freeRef();
     boolean isDefined = pointSample != null;
-    pointSample.freeRef();
+    RefUtil.freeRef(pointSample);
     return isDefined;
   }
 
@@ -424,6 +425,7 @@ mainLoop:
 
   private double getMean(RefAtomicReference<@Nullable PointSample> currentPointRef) {
     PointSample pointSample = currentPointRef.get();
+    currentPointRef.freeRef();
     double mean = pointSample.getMean();
     pointSample.freeRef();
     return mean;
@@ -480,7 +482,7 @@ mainLoop:
       currentPointRef.set(timedLineSearch.getResult());
       timedLineSearch.freeRef();
       assert previous != null;
-      double mean = getMean(currentPointRef);
+      double mean = getMean(currentPointRef.addRef());
       stepMonitor.log(RefString.format("Fitness changed from %s to %s", previous.getMean(), mean));
       int stepResult;
       if (previous.getMean() <= mean) {
