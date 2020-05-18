@@ -25,7 +25,7 @@ import com.simiacryptus.lang.UncheckedSupplier;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.Explodable;
 import com.simiacryptus.mindseye.network.DAGNetwork;
-import com.simiacryptus.mindseye.test.TestUtil;
+import com.simiacryptus.mindseye.test.GraphVizNetworkInspector;
 import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.notebook.TableOutput;
 import com.simiacryptus.ref.lang.LifecycleException;
@@ -34,11 +34,10 @@ import com.simiacryptus.ref.lang.ReferenceCountingBase;
 import com.simiacryptus.ref.wrappers.*;
 import com.simiacryptus.util.IOUtil;
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.test.NotebookReportBase;
+import com.simiacryptus.util.test.NotebookTestBase;
 import com.simiacryptus.util.test.SysOutInterceptor;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
-import guru.nidi.graphviz.model.Graph;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -52,7 +51,7 @@ import java.util.function.DoubleSupplier;
 /**
  * The type Layer tests.
  */
-public abstract class LayerTests extends NotebookReportBase {
+public abstract class LayerTests extends NotebookTestBase {
   /**
    * The constant seed.
    */
@@ -305,7 +304,7 @@ public abstract class LayerTests extends NotebookReportBase {
         log.h1("Network Diagram");
         log.p("This is a network apply the following layout:");
         log.eval(RefUtil.wrapInterface((UncheckedSupplier<BufferedImage>) () -> {
-          return Graphviz.fromGraph((Graph) TestUtil.toGraph(((DAGNetwork) layer).addRef())).height(400).width(600)
+          return Graphviz.fromGraph(GraphVizNetworkInspector.toGraphviz(((DAGNetwork) layer).addRef())).height(400).width(600)
               .render(Format.PNG).toImage();
         }, layer.addRef()));
       } catch (Throwable e) {
@@ -321,7 +320,7 @@ public abstract class LayerTests extends NotebookReportBase {
           DAGNetwork network = (DAGNetwork) explode.addRef();
           log.eval(RefUtil.wrapInterface((UncheckedSupplier<String>) () -> {
             @Nonnull
-            Graphviz graphviz = Graphviz.fromGraph((Graph) TestUtil.toGraph(network.addRef()))
+            Graphviz graphviz = Graphviz.fromGraph(GraphVizNetworkInspector.toGraphviz(network.addRef()))
                 .height(400).width(600);
             @Nonnull
             File file = new File(log.getResourceDir(), log.getFileName() + "_network.svg");

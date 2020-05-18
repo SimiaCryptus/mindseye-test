@@ -29,6 +29,7 @@ import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
+import com.simiacryptus.mindseye.test.GraphVizNetworkInspector;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.util.ImageUtil;
@@ -42,7 +43,6 @@ import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.ScalarStatistics;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
-import guru.nidi.graphviz.model.Graph;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -212,7 +212,7 @@ public abstract class EncodingProblem implements Problem {
     @Nonnull final DAGNetwork imageNetwork = revFactory.vectorToImage(log, features);
     log.h3("Network Diagram");
     log.eval(RefUtil.wrapInterface((UncheckedSupplier<BufferedImage>) () -> {
-      return Graphviz.fromGraph((Graph) TestUtil.toGraph(imageNetwork.addRef()))
+      return Graphviz.fromGraph(GraphVizNetworkInspector.toGraphviz(imageNetwork.addRef()))
           .height(400).width(600).render(Format.PNG).toImage();
     }, imageNetwork.addRef()));
 

@@ -20,10 +20,10 @@
 package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.test.unit.EquivalencyTester;
-import com.simiacryptus.mindseye.test.unit.LayerTests;
-import com.simiacryptus.mindseye.test.unit.ReferenceIO;
-import com.simiacryptus.mindseye.test.unit.SerializationTest;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.network.DAGNetwork;
+import com.simiacryptus.mindseye.test.unit.*;
+import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.util.Util;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -71,6 +72,33 @@ public abstract class LayerTestBase extends LayerTests {
     run(getLog(), new ReferenceIO(getReferenceIO()), getLargeDims(), seed);
   }
 
+  @Test
+  @Timeout(value = 15, unit = TimeUnit.MINUTES)
+  @DisplayName("Network Graph")
+  public void graphTest() {
+    final Layer layer = getLayer();
+    Assumptions.assumeTrue(null != layer, "No Layer");
+    Assumptions.assumeTrue(layer instanceof DAGNetwork, "No Layer");
+    layer.freeRef();
+    run(getLog(),
+        new ComponentTestBase<String>() {
+          @Override
+          public void _free() {
+            super._free();
+          }
+
+          @Nullable
+          @Override
+          public String test(NotebookOutput log, Layer component, Tensor... inputPrototype) {
+            new MermaidGrapher(log, true).mermaid((DAGNetwork) component);
+            return "OK";
+          }
+        },
+        getLargeDims(),
+        (long) (Math.random() * Long.MAX_VALUE)
+    );
+  }
+
   /**
    * Equivalency test.
    */
@@ -81,9 +109,7 @@ public abstract class LayerTestBase extends LayerTests {
     long seed = (long) (Math.random() * Long.MAX_VALUE);
     EquivalencyTester equivalencyTester = getEquivalencyTester();
     Assumptions.assumeTrue(null != equivalencyTester, "No Reference Layer");
-    if (null != equivalencyTester) {
-      run(getLog(), equivalencyTester, getLargeDims(), seed);
-    }
+    run(getLog(), equivalencyTester, getLargeDims(), seed);
   }
 
   /**

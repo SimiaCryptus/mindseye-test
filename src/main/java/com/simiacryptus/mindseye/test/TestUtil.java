@@ -23,7 +23,6 @@ import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.MonitoringWrapperLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
-import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.util.ImageUtil;
@@ -36,11 +35,6 @@ import com.simiacryptus.util.JsonUtil;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.PercentileStatistics;
 import com.simiacryptus.util.io.GifSequenceWriter;
-import guru.nidi.graphviz.attribute.Label;
-import guru.nidi.graphviz.attribute.Rank;
-import guru.nidi.graphviz.engine.Format;
-import guru.nidi.graphviz.engine.Graphviz;
-import guru.nidi.graphviz.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import smile.plot.swing.PlotCanvas;
@@ -447,129 +441,6 @@ public class TestUtil {
       e.printStackTrace(System.out);
       return null;
     }
-  }
-
-  /**
-   * To graph object.
-   *
-   * @param network the network
-   * @return the object
-   */
-  @Nonnull
-  public static Object toGraph(@Nonnull final DAGNetwork network) {
-    return toGraph(network, TestUtil::getName);
-  }
-
-  /**
-   * Graph.
-   *
-   * @param log     the log
-   * @param network the network
-   */
-  public static void graph(@Nonnull final NotebookOutput log, @Nonnull final DAGNetwork network) {
-    Graphviz graphviz = Graphviz.fromGraph((Graph) toGraph(network.addRef(), node -> {
-      Layer layer = node.getLayer();
-      if (null != layer) {
-        String name = layer.getName();
-        assert name != null;
-        if (name.endsWith("Layer")) {
-          node.freeRef();
-          layer.freeRef();
-          return name.substring(0, name.length() - 5);
-        } else {
-          node.freeRef();
-          layer.freeRef();
-          return name;
-        }
-      } else {
-        assert network != null;
-        String temp_13_0004 = "Input " + network.inputHandles.indexOf(node.getId());
-        node.freeRef();
-        return temp_13_0004;
-      }
-    }));
-    network.freeRef();
-    log.out("\n" + log.png(graphviz.height(400).width(600).render(Format.PNG).toImage(), "Configuration Graph") + "\n");
-    log.out(
-        "\n" + log.svg(graphviz.height(400).width(600).render(Format.SVG_STANDALONE).toString(), "Configuration Graph")
-            + "\n");
-  }
-
-  /**
-   * To graph object.
-   *
-   * @param network the network
-   * @param fn      the fn
-   * @return the object
-   */
-  @Nonnull
-  public static Object toGraph(@Nonnull final DAGNetwork network, @Nonnull RefFunction<DAGNode, String> fn) {
-    final RefList<DAGNode> nodes = network.getNodes();
-    network.freeRef();
-    final RefMap<UUID, MutableNode> graphNodes = nodes.stream().collect(RefCollectors.toMap(node -> {
-      UUID temp_13_0005 = node.getId();
-      node.freeRef();
-      return temp_13_0005;
-    }, node -> {
-      UUID id = node.getId();
-      String name = fn.apply(node);
-      return Factory.mutNode(Label.html(name + "<!-- " + id.toString() + " -->"));
-    }));
-    final RefStream<UUID[]> stream = nodes.stream().flatMap(to -> {
-      RefStream<UUID[]> temp_13_0007 = RefArrays.stream(to.getInputs())
-          .map(RefUtil.wrapInterface((Function<? super DAGNode, ? extends UUID[]>) from -> {
-            UUID[] temp_13_0008 = new UUID[]{from.getId(), to.getId()};
-            from.freeRef();
-            return temp_13_0008;
-          }, to.addRef()));
-      if (null != to)
-        to.freeRef();
-      return temp_13_0007;
-    });
-    final RefMap<UUID, RefList<UUID>> idMap = stream
-        .collect(RefCollectors.groupingBy(x -> x[0], RefCollectors.mapping(x -> x[1], RefCollectors.toList())));
-    nodes.forEach(RefUtil.wrapInterface((Consumer<? super DAGNode>) to -> {
-      RefList<UUID> temp_13_0024 = idMap.computeIfAbsent(to.getId(), RefArrays::asList);
-      if (temp_13_0024 != null) {
-        MutableNode mutableNode = graphNodes.get(to.getId());
-        mutableNode.addLink(
-            temp_13_0024.stream().map(RefUtil.wrapInterface(from -> {
-              MutableNode node = graphNodes.get(from);
-              return Link.to(node);
-            }, graphNodes.addRef())).<LinkTarget>toArray(LinkTarget[]::new));
-        temp_13_0024.freeRef();
-      }
-      to.freeRef();
-    }, graphNodes == null ? null : graphNodes.addRef(), idMap));
-    nodes.freeRef();
-    assert graphNodes != null;
-    RefCollection<MutableNode> temp_13_0025 = graphNodes.values();
-    final LinkSource[] nodeArray = temp_13_0025.stream().map(x -> (LinkSource) x).toArray(LinkSource[]::new);
-    temp_13_0025.freeRef();
-    graphNodes.freeRef();
-    return Factory.graph().with(nodeArray).graphAttr().with(Rank.dir(Rank.RankDir.TOP_TO_BOTTOM)).directed();
-  }
-
-  /**
-   * Gets name.
-   *
-   * @param node the node
-   * @return the name
-   */
-  @Nonnull
-  public static String getName(@Nonnull DAGNode node) {
-    String name;
-    @Nullable final Layer layer = node.getLayer();
-    if (null == layer) {
-      name = node.getId().toString();
-    } else {
-      final Class<? extends Layer> layerClass = layer.getClass();
-      name = layerClass.getSimpleName() + "\n" + layer.getId();
-    }
-    node.freeRef();
-    if (null != layer)
-      layer.freeRef();
-    return name;
   }
 
   /**

@@ -162,9 +162,9 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
               File file = new File(log.getResourceDir(), log.getFileName() + "_" + precision.name() + ".zip");
               layer.writeZip(file, precision);
               @Nonnull final Layer echo = Layer.fromZip(new ZipFile(file));
-              RefHashMap<SerialPrecision, Layer> temp_23_0001 = getModels();
-              RefUtil.freeRef(temp_23_0001.put(precision, echo.addRef()));
-              temp_23_0001.freeRef();
+              RefHashMap<SerialPrecision, Layer> models = getModels();
+              RefUtil.freeRef(models.put(precision, echo.addRef()));
+              models.freeRef();
               synchronized (outSync) {
                 log.h2(RefString.format("Zipfile %s", precision.name()));
                 log.p(log.link(file, RefString.format("Wrote Model apply %s precision to %s; %.3fMiB bytes", precision,

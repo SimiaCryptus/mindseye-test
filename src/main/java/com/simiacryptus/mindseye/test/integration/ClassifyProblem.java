@@ -27,6 +27,7 @@ import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.SimpleLossNetwork;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
+import com.simiacryptus.mindseye.test.GraphVizNetworkInspector;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.notebook.NotebookOutput;
@@ -37,7 +38,6 @@ import com.simiacryptus.util.Util;
 import com.simiacryptus.util.test.LabeledObject;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
-import guru.nidi.graphviz.model.Graph;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -208,7 +208,7 @@ public abstract class ClassifyProblem implements Problem {
     @Nonnull final DAGNetwork network = fwdFactory.imageToVector(log, categories);
     log.h3("Network Diagram");
     log.eval(RefUtil.wrapInterface((UncheckedSupplier<BufferedImage>) () -> {
-      return Graphviz.fromGraph((Graph) TestUtil.toGraph(network.addRef())).height(400)
+      return Graphviz.fromGraph(GraphVizNetworkInspector.toGraphviz(network.addRef())).height(400)
           .width(600).render(Format.PNG).toImage();
     }, network.addRef()));
 
