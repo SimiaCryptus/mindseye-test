@@ -1,8 +1,8 @@
-.idea/
-mindseye-test.iml
-target/
-*.hprof
-logs/
-reports/
 *.gz
+*.hprof
 *.zip
+.idea/
+logs/
+mindseye-test.iml
+reports/
+target/

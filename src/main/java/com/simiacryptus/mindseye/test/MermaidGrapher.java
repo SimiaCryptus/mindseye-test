@@ -55,6 +55,7 @@ public class MermaidGrapher {
   public static void writeZip(NotebookOutput log, Layer layer) {
     File file = new File(log.getResourceDir(), log.getFileName() + "_" + layer.getId() + ".zip");
     layer.writeZip(file, SerialPrecision.Double);
+    layer.freeRef();
     log.p(log.link(file, RefString.format("Layer Zip (%.3fMiB bytes)", file.length() * 1.0 / 0x100000)));
   }
 
@@ -91,7 +92,9 @@ public class MermaidGrapher {
   public static Map<UUID, List<UUID>> connections(RefList<DAGNode> nodes) {
     Map<UUID, List<UUID>> collect = Arrays.stream(nodes.stream().flatMap(to -> {
       UUID toId = to.getId();
-      return RefArrays.stream(to.getInputs()).map(from -> new UUID[]{getUuid(from), toId});
+      @Nonnull DAGNode[] inputs = to.getInputs();
+      to.freeRef();
+      return RefArrays.stream(inputs).map(from -> new UUID[]{getUuid(from), toId});
     }).toArray(UUID[][]::new)).collect(Collectors.groupingBy(x -> x[0], Collectors.mapping(x -> x[1], Collectors.toList())));
     nodes.freeRef();
     return collect;
@@ -105,23 +108,29 @@ public class MermaidGrapher {
 
   private static String compactJson(Layer layer) {
     if (layer instanceof WrapperLayer) {
-      layer = layer.copy();
+      Layer copy = layer.copy();
+      layer.freeRef();
+      layer = copy;
       ((WrapperLayer) layer).setInner(null);
     }
     JsonElement compactJson = layer.getJson(new HashMap<>(), SerialPrecision.Double);
+    layer.freeRef();
     return new GsonBuilder().setPrettyPrinting().create().toJson(compactJson);
   }
 
   @NotNull
   private static String getLabel(@Nonnull @RefIgnore Layer layer) {
     String name = layer.getName();
-    layer.freeRef();
     assert name != null;
     if (name.endsWith("Layer")) {
       return name.substring(0, name.length() - 5);
     } else {
       return name;
     }
+  }
+
+  private static String idString(@RefIgnore Layer l) {
+    return l.getId().toString();
   }
 
   @NotNull
@@ -133,45 +142,60 @@ public class MermaidGrapher {
     log.subreport("Network Diagrams for " + network.getName(), (NotebookOutput sublog) -> {
       List<UUID> logged = new ArrayList<>();
       RefHashMap<UUID, Layer> found = new RefHashMap<>();
-      RefUtil.freeRef(found.put(network.getId(), network.addRef()));
+      UUID networkId = network.getId();
+      RefUtil.freeRef(found.put(networkId, network.addRef()));
       network.visitNodes(dagNode -> {
         Layer layer = dagNode.getLayer();
+        dagNode.freeRef();
         if (null != layer) RefUtil.freeRef(found.put(layer.getId(), layer));
+        else layer.freeRef();
       });
       RefHashSet<Layer> values = found.values();
+      found.freeRef();
       values.stream()
           .collect(Collectors.groupingBy(Layer::getClass, Collectors.toList()))
           .entrySet().stream().sorted(Comparator.comparingDouble(x -> {
-        if (network.getClass().equals(x.getKey())) return -1.0;
-        if (DAGNetwork.class.isAssignableFrom(x.getKey())) return 0.0;
-        if (WrapperLayer.class.isAssignableFrom(x.getKey())) return 0.5;
+        Class<? extends Layer> key = x.getKey();
+        RefUtil.freeRef(x);
+        if (network.getClass().equals(key)) return -1.0;
+        if (DAGNetwork.class.isAssignableFrom(key)) return 0.0;
+        if (WrapperLayer.class.isAssignableFrom(key)) return 0.5;
         return 1.0;
       })).forEach(e -> {
         String type = e.getKey().getSimpleName();
         sublog.h1(type);
-        e.getValue().stream()
-            .filter(x -> x.getId().equals(network.getId()))
-            .sorted(Comparator.comparing(Layer::getName).thenComparing(l -> l.getId().toString()))
-            .forEach(layer -> out(sublog, logged, layer, writeZip));
-        e.getValue().stream()
-            .filter(x -> !x.getId().equals(network.getId()))
-            .sorted(Comparator.comparing(Layer::getName).thenComparing(l -> l.getId().toString()))
-            .forEach(layer -> out(sublog, logged, layer, writeZip));
+        out(sublog, logged, networkId, e.getValue());
+        RefUtil.freeRef(e);
       });
       values.freeRef();
       return null;
     });
+    network.freeRef();
+  }
+
+  private void out(NotebookOutput sublog, List<UUID> logged, UUID networkId, List<Layer> value) {
+    value.stream()
+        .filter((@RefIgnore Layer x) -> x.getId().equals(networkId))
+        .sorted(Comparator.comparing(Layer::getName).thenComparing(MermaidGrapher::idString))
+        .forEach(layer -> out(sublog, logged, layer, writeZip));
+    value.stream()
+        .filter((@RefIgnore Layer x) -> !x.getId().equals(networkId))
+        .sorted(Comparator.comparing(Layer::getName).thenComparing(MermaidGrapher::idString))
+        .forEach(layer -> out(sublog, logged, layer, writeZip));
+    RefUtil.freeRef(value);
   }
 
   protected String describeNode(MermaidNode mermaidNode) {
-    String name = nodeHtml(mermaidNode);
+    String name = nodeHtml((MermaidNode) mermaidNode.addRef());
     name = "\"" + name.replaceAll("\\\"", "\\\\\\\"") + "\"";
     return nodeID(mermaidNode) + "(" + name + ")";
   }
 
   @NotNull
   protected String nodeID(MermaidNode mermaidNode) {
-    return toString(mermaidNode.id);
+    String str = toString(mermaidNode.id);
+    mermaidNode.freeRef();
+    return str;
   }
 
   protected String nodeHtml(MermaidNode mermaidNode) {
@@ -180,6 +204,7 @@ public class MermaidGrapher {
     if (mermaidNode.layer != null) {
       name = "<a href='#" + toString(mermaidNode.layer.getId()) + "'>" + name + "</a>";
     }
+    mermaidNode.freeRef();
     return name;
   }
 
@@ -190,8 +215,8 @@ public class MermaidGrapher {
     log.h2(label);
     log.p("ID: " + id.toString());
     log.p("Class: " + layer.getClass().getName());
-    if (writeZip) writeZip(log, layer);
-    add(log, layer.addRef());
+    if (writeZip) writeZip(log, layer.addRef());
+    add(log, layer);
     logged.add(id);
   }
 
@@ -218,7 +243,8 @@ public class MermaidGrapher {
 
   @NotNull
   private String toMermaid(@Nonnull DAGNetwork network) {
-    return toMermaid(network, RefUtil.wrapInterface(node -> getLabel(network, node), network.addRef()));
+    RefFunction<DAGNode, String> fn = RefUtil.wrapInterface(node -> getLabel(network, node), network.addRef());
+    return toMermaid(network, fn);
   }
 
   @Nonnull
@@ -236,14 +262,17 @@ public class MermaidGrapher {
       assert graphNodes != null;
       return "graph TB\n\t" + nodes.stream().flatMap(from -> {
         UUID fromId = from.getId();
-        Layer fromLayer = from.getLayer();
         List<UUID> toList = connections.computeIfAbsent(fromId, a1 -> Arrays.asList());
         try {
           if (toList != null) {
             MermaidNode fromNode = graphNodes.get(fromId);
+            String describe = fromNode.describe();
+            fromNode.freeRef();
             return toList.stream().map(toId -> {
               MermaidNode toNode = graphNodes.get(toId);
-              return String.format("%s-->%s\n", fromNode.describe(), toNode.describe());
+              String str = String.format("%s-->%s\n", describe, toNode.describe());
+              toNode.freeRef();
+              return str;
             });
           } else {
             return Stream.empty();
@@ -273,7 +302,7 @@ public class MermaidGrapher {
 
     @NotNull
     public String describe() {
-      return this.described.getAndSet(true) ? nodeID(this) : describeNode(this);
+      return this.described.getAndSet(true) ? nodeID((MermaidNode) this.addRef()) : describeNode((MermaidNode) this.addRef());
     }
 
     @Override
