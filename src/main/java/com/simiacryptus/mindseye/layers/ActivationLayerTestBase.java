@@ -36,7 +36,8 @@ import com.simiacryptus.ref.wrappers.RefList;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
-import smile.plot.swing.PlotCanvas;
+import smile.plot.swing.Canvas;
+import smile.plot.swing.PlotPanel;
 import smile.plot.swing.ScatterPlot;
 
 import javax.annotation.Nonnull;
@@ -96,13 +97,14 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
    * @param data  the data
    * @return the plot canvas
    */
-  @Nonnull
-  public static PlotCanvas plot(final String title, final double[][] data) {
-    @Nonnull final PlotCanvas plot = ScatterPlot.plot(data);
-    plot.setTitle(title);
-    plot.setAxisLabels("x", "y");
-    plot.setSize(600, 400);
-    return plot;
+  public static PlotPanel plot(final String title, final double[][] data) {
+    @Nonnull final ScatterPlot scatterPlot = ScatterPlot.of(data);
+    Canvas canvas = new Canvas(new double[]{0, 0}, new double[]{1, 1e-5}, true);
+    PlotPanel plotPanel = new PlotPanel(canvas);
+    canvas.add(scatterPlot);
+    canvas.setTitle(title);
+    canvas.setAxisLabels("x", "y");
+    return plotPanel;
   }
 
   /**
@@ -113,9 +115,8 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
    * @param function the function
    * @return the plot canvas
    */
-  @Nonnull
-  public static PlotCanvas plot(final String title, @Nonnull final RefList<double[]> plotData,
-                                @Nonnull final Function<double[], double[]> function) {
+  public static PlotPanel plot(final String title, @Nonnull final RefList<double[]> plotData,
+                               @Nonnull final Function<double[], double[]> function) {
     final double[][] data = plotData.stream().map(function).toArray(double[][]::new);
     plotData.freeRef();
     return ActivationLayerTestBase.plot(title, data);
@@ -155,12 +156,12 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
       return temp_03_0002;
     }, layer1)).collect(RefCollectors.toList());
 
-    log.eval(RefUtil.wrapInterface((UncheckedSupplier<PlotCanvas>) () -> {
+    log.eval(RefUtil.wrapInterface((UncheckedSupplier<PlotPanel>) () -> {
       return ActivationLayerTestBase.plot("Value Plot", plotData == null ? null : plotData.addRef(),
           x -> new double[]{x[0], x[1]});
     }, plotData == null ? null : plotData.addRef()));
 
-    log.eval(RefUtil.wrapInterface((UncheckedSupplier<PlotCanvas>) () -> {
+    log.eval(RefUtil.wrapInterface((UncheckedSupplier<PlotPanel>) () -> {
       return ActivationLayerTestBase.plot("Derivative Plot", plotData == null ? null : plotData.addRef(),
           x -> new double[]{x[0], x[2]});
     }, plotData));

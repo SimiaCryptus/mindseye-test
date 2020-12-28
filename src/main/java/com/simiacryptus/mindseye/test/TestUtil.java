@@ -37,7 +37,8 @@ import com.simiacryptus.util.data.PercentileStatistics;
 import com.simiacryptus.util.io.GifSequenceWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import smile.plot.swing.PlotCanvas;
+import smile.plot.swing.Canvas;
+import smile.plot.swing.PlotPanel;
 import smile.plot.swing.ScatterPlot;
 
 import javax.annotation.Nonnull;
@@ -86,7 +87,7 @@ public class TestUtil {
    * @return the plot canvas
    */
   @Nullable
-  public static PlotCanvas compare(final String title, @Nonnull final ProblemRun... trials) {
+  public static PlotPanel compare(final String title, @Nonnull final ProblemRun... trials) {
     try {
       final DoubleSummaryStatistics xStatistics = RefArrays.stream(trials)
           .flatMapToDouble(x -> x.history.stream().mapToDouble(step -> step.iteration)).filter(Double::isFinite)
@@ -103,10 +104,12 @@ public class TestUtil {
           yStatistics.getCount() < 2 ? 0 : yStatistics.getMin()};
       @Nonnull final double[] upperBound = {xStatistics.getMax(),
           yStatistics.getCount() < 2 ? 1 : yStatistics.getMax()};
-      @Nonnull final PlotCanvas canvas = new PlotCanvas(lowerBound, upperBound);
+      Canvas canvas = new Canvas(new double[]{0, 0}, new double[]{1, 1e-5}, true);
+      PlotPanel plotPanel = new PlotPanel(canvas);
       canvas.setTitle(title);
+      canvas.setAxisLabels("x", "y");
+      plotPanel.setSize(600, 400);
       canvas.setAxisLabels("Iteration", "log10(Fitness)");
-      canvas.setSize(600, 400);
       final RefList<ProblemRun> filtered = RefArrays.stream(trials).filter(x -> !x.history.isEmpty())
           .collect(RefCollectors.toList());
       if (filtered.isEmpty()) {
@@ -130,7 +133,7 @@ public class TestUtil {
         }
       });
       filtered.freeRef();
-      return canvas;
+      return plotPanel;
     } catch (@Nonnull final Exception e) {
       e.printStackTrace(System.out);
       return null;
@@ -145,7 +148,7 @@ public class TestUtil {
    * @return the plot canvas
    */
   @Nullable
-  public static PlotCanvas compareTime(final String title, @Nonnull final ProblemRun... trials) {
+  public static PlotPanel compareTime(final String title, @Nonnull final ProblemRun... trials) {
     try {
       final DoubleSummaryStatistics[] xStatistics = RefArrays.stream(trials)
           .map(x -> x.history.stream().mapToDouble(step -> step.epochTime).filter(Double::isFinite).summaryStatistics())
@@ -162,10 +165,12 @@ public class TestUtil {
       }
       @Nonnull final double[] lowerBound = {0, yStatistics.getMin()};
       @Nonnull final double[] upperBound = {totalTime / 1000.0, yStatistics.getCount() == 1 ? 0 : yStatistics.getMax()};
-      @Nonnull final PlotCanvas canvas = new PlotCanvas(lowerBound, upperBound);
+      Canvas canvas = new Canvas(lowerBound, upperBound);
+      PlotPanel plotPanel = new PlotPanel(canvas);
       canvas.setTitle(title);
+      canvas.setAxisLabels("x", "y");
       canvas.setAxisLabels("Time", "log10(Fitness)");
-      canvas.setSize(600, 400);
+      plotPanel.setSize(600, 400);
       final RefList<ProblemRun> filtered = RefArrays.stream(trials).filter(x -> !x.history.isEmpty())
           .collect(RefCollectors.toList());
       if (filtered.isEmpty()) {
@@ -192,7 +197,7 @@ public class TestUtil {
         }
       }
       filtered.freeRef();
-      return canvas;
+      return plotPanel;
     } catch (@Nonnull final Exception e) {
       e.printStackTrace(System.out);
       return null;
@@ -395,21 +400,25 @@ public class TestUtil {
             .filter(x -> Arrays.stream(x).allMatch(Double::isFinite)).toArray(double[][]::new);
         if (Arrays.stream(data).mapToInt(x -> x.length).sum() == 0)
           return null;
-        @Nonnull final PlotCanvas plot = ScatterPlot.plot(data);
-        plot.setTitle("Convergence Plot");
-        plot.setAxisLabels("Iteration", "log10(Fitness)");
-        plot.setSize(600, 400);
-        return plot;
+        Canvas canvas = new Canvas(new double[]{0, 0}, new double[]{1, 1e-5}, true);
+        PlotPanel plotPanel = new PlotPanel(canvas);
+        canvas.add(ScatterPlot.of(data));
+        canvas.setTitle("Convergence Plot");
+        canvas.setAxisLabels("Iteration", "log10(Fitness)");
+        plotPanel.setSize(600, 400);
+        return plotPanel;
       } else {
         double[][] data = history.stream().map(step -> new double[]{step.iteration, step.fitness})
             .filter(x -> Arrays.stream(x).allMatch(Double::isFinite)).toArray(double[][]::new);
         if (Arrays.stream(data).mapToInt(x -> x.length).sum() == 0)
           return null;
-        @Nonnull final PlotCanvas plot = ScatterPlot.plot(data);
-        plot.setTitle("Convergence Plot");
-        plot.setAxisLabels("Iteration", "Fitness");
-        plot.setSize(600, 400);
-        return plot;
+        Canvas canvas = new Canvas(new double[]{0, 0}, new double[]{1, 1e-5}, true);
+        PlotPanel plotPanel = new PlotPanel(canvas);
+        plotPanel.setSize(600, 400);
+        canvas.add(ScatterPlot.of(data));
+        canvas.setTitle("Convergence Plot");
+        canvas.setAxisLabels("Iteration", "Fitness");
+        return plotPanel;
       }
     } catch (@Nonnull final Exception e) {
       logger.warn("Error plotting", e);
@@ -424,19 +433,21 @@ public class TestUtil {
    * @return the plot canvas
    */
   @Nullable
-  public static PlotCanvas plotTime(@Nonnull final List<StepRecord> history) {
+  public static PlotPanel plotTime(@Nonnull final List<StepRecord> history) {
     try {
       final LongSummaryStatistics timeStats = history.stream().mapToLong(x -> x.epochTime).summaryStatistics();
       final DoubleSummaryStatistics valueStats = history.stream().mapToDouble(x -> x.fitness).filter(x -> x > 0)
           .summaryStatistics();
-      @Nonnull final PlotCanvas plot = ScatterPlot.plot(history.stream()
-          .map(step -> new double[]{(step.epochTime - timeStats.getMin()) / 1000.0,
-              Math.log10(Math.max(valueStats.getMin(), step.fitness))})
-          .filter(x -> Arrays.stream(x).allMatch(Double::isFinite)).toArray(double[][]::new));
-      plot.setTitle("Convergence Plot");
-      plot.setAxisLabels("Time", "log10(Fitness)");
-      plot.setSize(600, 400);
-      return plot;
+      Canvas canvas = new Canvas(new double[]{0, 0}, new double[]{1, 1e-5}, true);
+      PlotPanel plotPanel = new PlotPanel(canvas);
+      canvas.add(ScatterPlot.of(history.stream()
+              .map(step -> new double[]{(step.epochTime - timeStats.getMin()) / 1000.0,
+                      Math.log10(Math.max(valueStats.getMin(), step.fitness))})
+              .filter(x -> Arrays.stream(x).allMatch(Double::isFinite)).toArray(double[][]::new)));
+      canvas.setTitle("Convergence Plot");
+      canvas.setAxisLabels("Time", "log10(Fitness)");
+      plotPanel.setSize(600, 400);
+      return plotPanel;
     } catch (@Nonnull final Exception e) {
       e.printStackTrace(System.out);
       return null;

@@ -44,7 +44,7 @@ import com.simiacryptus.ref.wrappers.*;
 import com.simiacryptus.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import smile.plot.swing.PlotCanvas;
+import smile.plot.swing.PlotPanel;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -573,16 +573,16 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     result.put("CjGD", getResult(min(cjgd)));
     result.put("LBFGS", getResult(min(lbfgs)));
     if (verbose) {
-      final PlotCanvas iterPlot = log.eval(() -> {
+      final PlotPanel iterPlot = log.eval(() -> {
         return TestUtil.compare(title + " vs Iteration", runs);
       });
-      final PlotCanvas timePlot = log.eval(() -> {
+      final PlotPanel timePlot = log.eval(() -> {
         return TestUtil.compareTime(title + " vs Time", runs);
       });
       return new TestResult(iterPlot, timePlot, result);
     } else {
-      @Nullable final PlotCanvas iterPlot = TestUtil.compare(title + " vs Iteration", runs);
-      @Nullable final PlotCanvas timePlot = TestUtil.compareTime(title + " vs Time", runs);
+      @Nullable final PlotPanel iterPlot = TestUtil.compare(title + " vs Iteration", runs);
+      @Nullable final PlotPanel timePlot = TestUtil.compareTime(title + " vs Time", runs);
       return new TestResult(iterPlot, timePlot, result);
     }
   }
@@ -944,11 +944,11 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
     /**
      * The Iter plot.
      */
-    final PlotCanvas iterPlot;
+    final PlotPanel iterPlot;
     /**
      * The Time plot.
      */
-    final PlotCanvas timePlot;
+    final PlotPanel timePlot;
     /**
      * The Value.
      */
@@ -961,7 +961,7 @@ public abstract class TrainingTester extends ComponentTestBase<TrainingTester.Co
      * @param timePlot the time plot
      * @param value    the value
      */
-    public TestResult(final PlotCanvas iterPlot, final PlotCanvas timePlot, final ProblemResult value) {
+    public TestResult(final PlotPanel iterPlot, final PlotPanel timePlot, final ProblemResult value) {
       this.timePlot = timePlot;
       this.iterPlot = iterPlot;
       this.value = value;

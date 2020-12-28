@@ -70,18 +70,19 @@ public class ProblemRun {
    * @return the plot
    */
   public Plot plot(final double[][] pts) {
-    Plot plot;
     switch (type) {
-      case Scatter:
-        plot = new ScatterPlot(pts);
-        plot.setID(name);
-        plot.setColor(color);
+      case Scatter: {
+        ScatterPlot plot = ScatterPlot.of(pts);
+//        plot.setID(name);
+//        plot.setColor(color);
         return plot;
-      case Line:
-        plot = new LinePlot(pts);
-        plot.setID(name);
-        plot.setColor(color);
+      }
+      case Line: {
+        LinePlot plot = LinePlot.of(pts);
+//        plot.setID(name);
+//        plot.setColor(color);
         return plot;
+      }
       default:
         throw new IllegalStateException(type.toString());
     }
