@@ -1,5 +1,6 @@
 *.gz
 *.hprof
+*.pem
 *.zip
 .idea/
 logs/
