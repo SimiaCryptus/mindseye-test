@@ -243,6 +243,7 @@ public abstract class LoggingIterativeTrainer extends ReferenceCountingBase {
       out.p(RefString.format("Final threshold in iteration %s: %s (> %s) after %.3fs (< %.3fs)", iterationCounter.get(),
           isDefined(currentPointRef.get()) ? getMean(currentPointRef.get()) : null, terminateThreshold,
           (RefSystem.currentTimeMillis() - startTime) / 1000.0, timeout.toMillis() / 1000.0));
+      currentPointRef.freeRef();
     }
   }
 
