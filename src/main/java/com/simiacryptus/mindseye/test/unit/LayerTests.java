@@ -74,6 +74,7 @@ public abstract class LayerTests extends NotebookTestBase {
    * The Tolerance.
    */
   protected double tolerance = 1e-3;
+  protected boolean sublayerTesting = true;
 
   /**
    * Gets batching tester.
@@ -549,7 +550,7 @@ public abstract class LayerTests extends NotebookTestBase {
       }
       out_results.putRow(testResultProps);
 
-      if (!exceptions.isEmpty() && layer instanceof DAGNetwork) {
+      if (!exceptions.isEmpty() && layer instanceof DAGNetwork && sublayerTesting) {
         log.h1("SubTests: " + layer.getClass().getSimpleName());
         RefCollection<LayerTestParameters> subLayerTestParameters = LayerTestParameters.getNodeTests(layer.addRef(), layerTestParameters.getDims());
         subLayerTestParameters.forEach(sub_layerTestParameters -> {

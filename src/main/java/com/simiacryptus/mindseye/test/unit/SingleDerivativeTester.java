@@ -374,9 +374,6 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
                     .orElse(new ToleranceStatistics());
 
                 //log.info(String.format("Component: %s", component));
-                if (!(result.absoluteTol.getMax() < tolerance)) {
-                  throw new AssertionError(result.toString());
-                }
                 if (verbose) {
                   log.info(RefString.format("Feedback for input %s", i));
                   log.info(RefString.format("Inputs Values: %s", inputPrototype[i].prettyPrint()));
@@ -390,6 +387,9 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
                       measuredGradient.getScalarStatistics()));
                   log.info(RefString.format("Feedback Error: %s", difference.prettyPrint()));
                   log.info(RefString.format("Error Statistics: %s", difference.getScalarStatistics()));
+                }
+                if (!(result.absoluteTol.getMax() < tolerance)) {
+                  throw new AssertionError(result.toString());
                 }
                 return result;
               } catch (@Nonnull final Throwable e) {
