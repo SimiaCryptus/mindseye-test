@@ -186,12 +186,13 @@ public abstract class LoggingIterativeTrainer extends ReferenceCountingBase {
   }
 
   @RefIgnore
-  public double run(NotebookOutput out) {
+  public TrainingResult run(NotebookOutput out) {
     final RefAtomicReference<@Nullable PointSample> currentPointRef = new RefAtomicReference<>();
     long startTime = RefSystem.currentTimeMillis();
     final long timeoutMs = startTime + timeout.toMillis();
     AtomicLong lastIterationTime = new AtomicLong(RefSystem.nanoTime());
     shuffle();
+    TrainingResult.TerminationCause terminationCause = TrainingResult.TerminationCause.Completed;
     currentPointRef.set(measure(out));
     try {
       assert isDefined(currentPointRef.get());
@@ -201,9 +202,11 @@ public abstract class LoggingIterativeTrainer extends ReferenceCountingBase {
         currentPointRef.set(measure(out));
         for (int subiteration = 0; subiteration < iterationsPerSample || iterationsPerSample <= 0; subiteration++) {
           if (timeoutMs < RefSystem.currentTimeMillis()) {
+            terminationCause = TrainingResult.TerminationCause.Timeout;
             break mainLoop;
           }
           if (iterationCounter.incrementAndGet() > maxIterations) {
+            terminationCause = TrainingResult.TerminationCause.Completed;
             break mainLoop;
           }
           int currentIteration = iterationCounter.get();
@@ -222,6 +225,7 @@ public abstract class LoggingIterativeTrainer extends ReferenceCountingBase {
           } else if (1 == stepResult) {
             break;
           } else if (2 == stepResult) {
+            terminationCause = TrainingResult.TerminationCause.Failed;
             break mainLoop;
           } else {
             throw new RuntimeException();
@@ -235,7 +239,7 @@ public abstract class LoggingIterativeTrainer extends ReferenceCountingBase {
       }
       if (null != subjectLayer)
         subjectLayer.freeRef();
-      return isDefined(currentPointRef.get()) ? getMean(currentPointRef.get()) : Double.NaN;
+      return new TrainingResult(isDefined(currentPointRef.get()) ? getMean(currentPointRef.get()) : Double.NaN, terminationCause);
     } catch (Throwable e) {
       out.p(RefString.format("Error %s", Util.toString(e)));
       throw Util.throwException(e);
