@@ -62,8 +62,17 @@ public final class GraphVizNetworkInspector {
   }
 
   public static void graph(@Nonnull NotebookOutput log, Graph graph) {
-    String svgSrc = Graphviz.fromGraph(graph).height(400).width(600).render(Format.SVG_STANDALONE).toString();
-    log.out("\n" + log.svg(svgSrc, "Configuration Graph") + "\n");
+    try {
+      String svgSrc = Graphviz.fromGraph(graph).height(400).width(600).totalMemory(8 * 1024 * 1024).render(Format.SVG_STANDALONE).toString();
+      log.out("\n" + log.svg(svgSrc, "Configuration Graph") + "\n");
+    } catch (Throwable e) {
+      try {
+        log.eval(()->{
+          throw new RuntimeException(e);
+        });
+      } catch (Throwable e2) {
+      }
+    }
   }
 
   /**
