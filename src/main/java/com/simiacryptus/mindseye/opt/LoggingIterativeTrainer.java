@@ -239,7 +239,7 @@ public abstract class LoggingIterativeTrainer extends ReferenceCountingBase {
       }
       if (null != subjectLayer)
         subjectLayer.freeRef();
-      return new TrainingResult(isDefined(currentPointRef.get()) ? getMean(currentPointRef.get()) : Double.NaN, terminationCause);
+      return new TrainingResult(isDefined(currentPointRef.get()) ? getMean(currentPointRef.get()) : Double.NaN, terminationCause, iterationCounter.get());
     } catch (Throwable e) {
       out.p(RefString.format("Error %s", Util.toString(e)));
       throw Util.throwException(e);
